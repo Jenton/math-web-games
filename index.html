@@ -25,30 +25,27 @@
       <button id="menuBack" class="btn ghost small" type="button">&larr; Players</button>
       <div class="who"><span id="menuAv" class="av"></span><h1 id="menuName"></h1></div>
 
-      <h2>Games</h2>
+      <h2>Pick a game</h2>
       <div class="games">
         <button id="playMunchers" class="game-card" type="button">
           <span class="g-ico">&#128056;</span>
           <span class="g-name">Munchers</span>
-          <span class="g-desc">Move around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-go">Choose &rarr;</span>
         </button>
         <div class="game-card soon" aria-disabled="true">
           <span class="g-ico">&#9878;&#65039;</span>
           <span class="g-name">Balance</span>
-          <span class="g-desc">Coming soon: find the unknown on the scale.</span>
+          <span class="g-desc">Find the unknown on the scale.</span>
+          <span class="g-go">Coming soon</span>
         </div>
         <div class="game-card soon" aria-disabled="true">
           <span class="g-ico">&#9881;&#65039;</span>
           <span class="g-name">Machine Builder</span>
-          <span class="g-desc">Coming soon: chain operations to hit the target.</span>
+          <span class="g-desc">Chain operations to hit the target.</span>
+          <span class="g-go">Coming soon</span>
         </div>
       </div>
-
-      <h2>Settings</h2>
-      <div class="setting"><span class="s-label">Grade level</span><div id="setBand" class="chips"></div></div>
-      <div class="setting"><span class="s-label">Challenge</span><div id="setStars" class="chips"></div></div>
-      <div class="setting"><span class="s-label">Look</span><div id="setTheme" class="chips"></div></div>
-      <div class="setting"><span class="s-label">Glitches</span><div id="setMonsters" class="chips"></div></div>
 
       <details class="grownups">
         <summary>For grown-ups</summary>
@@ -56,6 +53,39 @@
         <ul id="statsList"></ul>
         <button id="deletePlayer" class="btn danger small" type="button">Delete this player</button>
       </details>
+    </section>
+
+    <!-- SETUP: one screen to choose how to play, then Play -->
+    <section id="setup" class="screen" hidden>
+      <button id="setupBack" class="btn ghost small" type="button">&larr; Games</button>
+      <div class="who"><span class="g-ico">&#128056;</span><h1>Munchers</h1></div>
+
+      <ol class="how">
+        <li><b>Read the rule</b> at the top of the board.</li>
+        <li><b>Walk</b> to a number that fits: tap it, or use the arrow keys.</li>
+        <li><b>Munch</b> it! A wrong munch costs a heart and shows you why.</li>
+      </ol>
+
+      <h2>1. Which grade?</h2>
+      <div id="setBand" class="opts"></div>
+
+      <h2>2. How tricky?</h2>
+      <div id="setStars" class="opts"></div>
+
+      <div class="sample">
+        <span class="s-label">Example of what you'll see</span>
+        <p id="sampleRule" class="sample-rule"></p>
+        <button id="sampleMore" class="btn ghost small" type="button">Show another example</button>
+      </div>
+
+      <h2>3. Extras <span class="opt">(optional)</span></h2>
+      <div class="setting"><span class="s-label">Glitches</span><div id="setMonsters" class="chips"></div><p id="monstersHelp" class="help"></p></div>
+      <div class="setting"><span class="s-label">Look</span><div id="setTheme" class="chips"></div><p class="help">Only changes the pictures. The game stays the same.</p></div>
+
+      <div class="playbar">
+        <p id="summary" class="summary"></p>
+        <button id="playNow" class="btn big" type="button">&#9654; Play</button>
+      </div>
     </section>
 
     <!-- GAME: Munchers -->
