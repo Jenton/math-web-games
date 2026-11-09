@@ -78,3 +78,21 @@ based on recent success. Parents can override.
 4. Balance, then Machine Builder.
 5. Collection layer and parent view.
 6. Co-op modes.
+
+## Decisions after review (v1)
+
+- **No-reading mode: dropped.** The younger player reads, so written prompts are fine at every level.
+- **v1 limits are deliberate, and meant to be revisited after playtesting.** Each is built as a
+  setting or extension point so it can be lifted without a rewrite:
+
+| v1 limit | How it can be lifted |
+|----------|----------------------|
+| No timers | Add a timed "challenge mode" flag per game |
+| Manual difficulty (band + stars), with a "try harder?" suggestion after 3 clean levels | Replace the suggestion with auto-adapt using the per-skill stats already recorded |
+| One game (Munchers) | Games are separate modules; Balance and Machine Builder have placeholder cards |
+| No collection / rewards layer | Profiles already have room for it; add after playtest |
+| No co-op / competitive | Add per-game modes later; handicapped by each player's own level |
+| Original characters only (emoji skins) | Skins are data in `js/game.js`; swap in art any time |
+
+## Status
+v1 built: profiles, settings, Munchers (all four bands, 10 skills), backup/restore, tests.
