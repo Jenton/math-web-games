@@ -4,12 +4,22 @@
   const $ = (s) => document.querySelector(s);
   const AVATARS = ['🦊', '🐼', '🐯', '🦄', '🐲', '🐱', '🐶', '🐸', '🦉', '🐙', '🌟', '🚀'];
   const BAND_LABELS = { 'K-1': 'Kindergarten – 1st', '2-3': '2nd – 3rd', '4-5': '4th – 5th', '6': '6th grade' };
-  const STAR_LABELS = ['★ Easier', '★★ Medium', '★★★ Harder'];
+  const BAND_INFO = {
+    'K-1': 'Adding to small numbers, even and odd, bigger or smaller.',
+    '2-3': 'Skip counting, adding and subtracting, rounding, bigger or smaller.',
+    '4-5': 'Multiplication facts, factors, prime numbers, mixed expressions.',
+    '6': 'Fractions, exponents, negative numbers, primes, factors.',
+  };
+  const STAR_OPTS = [
+    ['★ Easier', 'Smaller numbers, 8 to munch, 1 glitch.'],
+    ['★★ Medium', 'Bigger numbers, 10 to munch, 2 glitches.'],
+    ['★★★ Harder', 'Trickiest numbers, 12 to munch, 3 fast glitches.'],
+  ];
   let current = null;
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'game'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -85,9 +95,35 @@
       b.type = 'button';
       b.className = 'chip' + (value === currentValue ? ' on' : '');
       b.textContent = label;
+      b.setAttribute('aria-pressed', value === currentValue);
       b.addEventListener('click', () => {
         onPick(value);
-        [...container.children].forEach((x) => x.classList.toggle('on', x === b));
+        [...container.children].forEach((x) => {
+          x.classList.toggle('on', x === b);
+          x.setAttribute('aria-pressed', x === b);
+        });
+      });
+      container.appendChild(b);
+    });
+  }
+
+  /** Big option cards: a title plus a plain-language line saying what it changes. */
+  function optCards(container, options, currentValue, onPick) {
+    container.innerHTML = '';
+    options.forEach(([value, title, desc]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt-card' + (value === currentValue ? ' on' : '');
+      b.setAttribute('aria-pressed', value === currentValue);
+      b.innerHTML = '<span class="o-t"></span><span class="o-d"></span>';
+      b.querySelector('.o-t').textContent = title;
+      b.querySelector('.o-d').textContent = desc;
+      b.addEventListener('click', () => {
+        onPick(value);
+        [...container.children].forEach((x) => {
+          x.classList.toggle('on', x === b);
+          x.setAttribute('aria-pressed', x === b);
+        });
       });
       container.appendChild(b);
     });
@@ -99,13 +135,6 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
-    const s = current.settings;
-    const save = () => Store.save();
-    chips($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b]]), s.band, (v) => { s.band = v; save(); });
-    chips($('#setStars'), [1, 2, 3].map((n) => [n, STAR_LABELS[n - 1]]), s.stars, (v) => { s.stars = v; save(); });
-    chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].name]), s.theme, (v) => { s.theme = v; save(); applyTheme(current); });
-    chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { s.monsters = v; save(); });
-
     const stats = $('#statsList');
     stats.innerHTML = '';
     const ids = Object.keys(current.stats);
@@ -118,6 +147,35 @@
     });
     $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels cleared';
     show('menu');
+  }
+
+  /* ---------- game setup (one screen: choose, then Play) ---------- */
+
+  function updateSetup() {
+    const s = current.settings;
+    $('#summary').textContent = BAND_LABELS[s.band] + ' · ' + STAR_OPTS[s.stars - 1][0].split(' ')[0] + ' ' + STAR_OPTS[s.stars - 1][0].split(' ')[1] + ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name;
+    $('#monstersHelp').textContent = s.monsters === 'on'
+      ? 'Glitches wander the board. If one touches you, you lose a heart.'
+      : 'No glitches: just you and the numbers. Great for learning at your own pace.';
+    $('#sampleRule').textContent = MG.makeLevelRule(s.band, s.stars, null).title;
+  }
+
+  function openSetup() {
+    applyTheme(current);
+    const s = current.settings;
+    const save = () => { Store.save(); updateSetup(); };
+    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], BAND_INFO[b]]), s.band, (v) => { s.band = v; save(); });
+    optCards($('#setStars'), [1, 2, 3].map((n) => [n, STAR_OPTS[n - 1][0], STAR_OPTS[n - 1][1]]), s.stars, (v) => { s.stars = v; save(); });
+    chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { s.theme = v; applyTheme(current); save(); });
+    chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { s.monsters = v; save(); });
+    updateSetup();
+    show('setup');
+  }
+
+  function playMunchers() {
+    applyTheme(current);
+    show('game');
+    Munchers.start(current, { onSave: () => Store.save(), onExit: openSetup });
   }
 
   /* ---------- wiring ---------- */
@@ -145,11 +203,10 @@
     });
     $('#npCancel').addEventListener('click', () => $('#newPlayer').close());
     $('#menuBack').addEventListener('click', renderHome);
-    $('#playMunchers').addEventListener('click', () => {
-      applyTheme(current);
-      show('game');
-      Munchers.start(current, { onSave: () => Store.save(), onExit: () => openMenu(current.id) });
-    });
+    $('#playMunchers').addEventListener('click', openSetup);
+    $('#playNow').addEventListener('click', playMunchers);
+    $('#setupBack').addEventListener('click', () => openMenu(current.id));
+    $('#sampleMore').addEventListener('click', updateSetup);
     $('#deletePlayer').addEventListener('click', () => {
       if (confirm('Delete ' + current.name + " and all of their progress? This can't be undone.")) {
         Store.remove(current.id);
