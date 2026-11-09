@@ -10,16 +10,35 @@
     '4-5': 'Multiplication facts, factors, prime numbers, mixed expressions.',
     '6': 'Fractions, exponents, negative numbers, primes, factors.',
   };
-  const STAR_OPTS = [
-    ['★ Easier', 'Smaller numbers, 8 to munch, 1 glitch.'],
-    ['★★ Medium', 'Bigger numbers, 10 to munch, 2 glitches.'],
-    ['★★★ Harder', 'Trickiest numbers, 12 to munch, 3 fast glitches.'],
-  ];
+  const GAMES = {
+    munchers: {
+      name: 'Munchers', ico: '🐸', extras: true, mod: () => Munchers,
+      how: ['<b>Read the rule</b> at the top of the board.', '<b>Walk</b> to a number that fits: tap it, or use the arrow keys.', '<b>Munch</b> it! A wrong munch costs a heart and shows you why.'],
+      band: BAND_INFO,
+      stars: [['★ Easier', 'Smaller numbers, 8 to munch, 1 glitch.'], ['★★ Medium', 'Bigger numbers, 10 to munch, 2 glitches.'], ['★★★ Harder', 'Trickiest numbers, 12 to munch, 3 fast glitches.']],
+      sample: (s) => MG.makeLevelRule(s.band, s.stars, null).title,
+    },
+    balance: {
+      name: 'Balance', ico: '⚖️', extras: false, mod: () => Balance,
+      how: ['Every <b>yellow block</b> is the same mystery weight (<b>?</b>). White blocks show their weight.', '<b>Change the number</b> for ? with − and +. Watch the scale tip.', '<b>Lock it in</b> when you think both sides are equal.'],
+      band: { 'K-1': 'One mystery block and a few small blocks. Totals up to 20.', '2-3': 'Two mystery blocks, or bigger totals up to 50.', '4-5': 'Several mystery blocks plus extra weight, like 4 × ? + 7.', '6': 'Mystery blocks on both sides, like 5 × ? + 3 = 2 × ? + 21.' },
+      stars: [['★ Easier', 'Smaller numbers.'], ['★★ Medium', 'Bigger numbers and more blocks.'], ['★★★ Harder', 'The trickiest numbers and more blocks.']],
+      sample: (s) => MGP.makeBalance(s.band, s.stars).text,
+    },
+    machine: {
+      name: 'Machine Builder', ico: '⚙️', extras: false, mod: () => Machine,
+      how: ['You get a <b>start number</b>, a <b>target</b>, and a few operation cards.', '<b>Tap cards</b> to build a chain. Each one changes the number.', 'Reach the target in as <b>few steps</b> as you can for more stars.'],
+      band: { 'K-1': 'Adding and subtracting small numbers.', '2-3': 'Adding, subtracting, and multiplying.', '4-5': 'Multiplying, dividing, adding, subtracting.', '6': 'All four operations plus squaring, and numbers can go negative.' },
+      stars: [['★ Easier', '3 cards, short chains.'], ['★★ Medium', '4 cards, medium chains.'], ['★★★ Harder', '4 cards, long chains.']],
+      sample: (s) => { const m = MGP.makeMachine(s.band, s.stars); return 'Turn ' + MGP.fmt(m.start) + ' into ' + MGP.fmt(m.target) + ' using ' + m.ops.map((o) => o.label).join(', '); },
+    },
+  };
+  let currentGame = 'munchers';
   let current = null;
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'machine'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -142,10 +161,10 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = current.stats[k];
-      li.textContent = (MG.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
-    $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels cleared';
+    $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels, ' + ((current.balance || {}).levels || 0) + ' Balance puzzles, ' + ((current.machine || {}).levels || 0) + ' Machine puzzles solved';
     show('menu');
   }
 
@@ -153,29 +172,38 @@
 
   function updateSetup() {
     const s = current.settings;
-    $('#summary').textContent = BAND_LABELS[s.band] + ' · ' + STAR_OPTS[s.stars - 1][0].split(' ')[0] + ' ' + STAR_OPTS[s.stars - 1][0].split(' ')[1] + ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name;
+    const g = GAMES[currentGame];
+    const star = g.stars[s.stars - 1][0];
+    $('#summary').textContent = BAND_LABELS[s.band] + ' · ' + star + (g.extras ? ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name : '');
     $('#monstersHelp').textContent = s.monsters === 'on'
       ? 'Glitches wander the board. If one touches you, you lose a heart.'
       : 'No glitches: just you and the numbers. Great for learning at your own pace.';
-    $('#sampleRule').textContent = MG.makeLevelRule(s.band, s.stars, null).title;
+    $('#sampleRule').textContent = g.sample(s);
   }
 
-  function openSetup() {
+  function openSetup(gameId) {
+    if (typeof gameId === 'string') currentGame = gameId;
+    const g = GAMES[currentGame];
     applyTheme(current);
     const s = current.settings;
     const save = () => { Store.save(); updateSetup(); };
-    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], BAND_INFO[b]]), s.band, (v) => { s.band = v; save(); });
-    optCards($('#setStars'), [1, 2, 3].map((n) => [n, STAR_OPTS[n - 1][0], STAR_OPTS[n - 1][1]]), s.stars, (v) => { s.stars = v; save(); });
+    $('#setupIco').textContent = g.ico;
+    $('#setupTitle').textContent = g.name;
+    $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
+    $('#extras').hidden = !g.extras;
+    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { s.band = v; save(); });
+    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { s.stars = v; save(); });
     chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { s.theme = v; applyTheme(current); save(); });
     chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { s.monsters = v; save(); });
     updateSetup();
     show('setup');
   }
 
-  function playMunchers() {
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', machine: 'machine' };
+  function playGame() {
     applyTheme(current);
-    show('game');
-    Munchers.start(current, { onSave: () => Store.save(), onExit: openSetup });
+    show(SCREEN_OF[currentGame]);
+    GAMES[currentGame].mod().start(current, { onSave: () => Store.save(), onExit: () => openSetup(currentGame) });
   }
 
   /* ---------- wiring ---------- */
@@ -203,8 +231,8 @@
     });
     $('#npCancel').addEventListener('click', () => $('#newPlayer').close());
     $('#menuBack').addEventListener('click', renderHome);
-    $('#playMunchers').addEventListener('click', openSetup);
-    $('#playNow').addEventListener('click', playMunchers);
+    document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
+    $('#playNow').addEventListener('click', playGame);
     $('#setupBack').addEventListener('click', () => openMenu(current.id));
     $('#sampleMore').addEventListener('click', updateSetup);
     $('#deletePlayer').addEventListener('click', () => {
