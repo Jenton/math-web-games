@@ -27,24 +27,24 @@
 
       <h2>Pick a game</h2>
       <div class="games">
-        <button id="playMunchers" class="game-card" type="button">
+        <button class="game-card" data-game="munchers" type="button">
           <span class="g-ico">&#128056;</span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
-        <div class="game-card soon" aria-disabled="true">
+        <button class="game-card" data-game="balance" type="button">
           <span class="g-ico">&#9878;&#65039;</span>
           <span class="g-name">Balance</span>
-          <span class="g-desc">Find the unknown on the scale.</span>
-          <span class="g-go">Coming soon</span>
-        </div>
-        <div class="game-card soon" aria-disabled="true">
+          <span class="g-desc">Find the mystery weight that makes the scale level.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="machine" type="button">
           <span class="g-ico">&#9881;&#65039;</span>
           <span class="g-name">Machine Builder</span>
-          <span class="g-desc">Chain operations to hit the target.</span>
-          <span class="g-go">Coming soon</span>
-        </div>
+          <span class="g-desc">Chain operations to turn the start number into the target.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
       </div>
 
       <details class="grownups">
@@ -58,13 +58,9 @@
     <!-- SETUP: one screen to choose how to play, then Play -->
     <section id="setup" class="screen" hidden>
       <button id="setupBack" class="btn ghost small" type="button">&larr; Games</button>
-      <div class="who"><span class="g-ico">&#128056;</span><h1>Munchers</h1></div>
+      <div class="who"><span id="setupIco" class="g-ico"></span><h1 id="setupTitle"></h1></div>
 
-      <ol class="how">
-        <li><b>Read the rule</b> at the top of the board.</li>
-        <li><b>Walk</b> to a number that fits: tap it, or use the arrow keys.</li>
-        <li><b>Munch</b> it! A wrong munch costs a heart and shows you why.</li>
-      </ol>
+      <ol id="setupHow" class="how"></ol>
 
       <h2>1. Which grade?</h2>
       <div id="setBand" class="opts"></div>
@@ -78,13 +74,64 @@
         <button id="sampleMore" class="btn ghost small" type="button">Show another example</button>
       </div>
 
+      <div id="extras">
       <h2>3. Extras <span class="opt">(optional)</span></h2>
       <div class="setting"><span class="s-label">Glitches</span><div id="setMonsters" class="chips"></div><p id="monstersHelp" class="help"></p></div>
       <div class="setting"><span class="s-label">Look</span><div id="setTheme" class="chips"></div><p class="help">Only changes the pictures. The game stays the same.</p></div>
 
+      </div>
+
       <div class="playbar">
         <p id="summary" class="summary"></p>
         <button id="playNow" class="btn big" type="button">&#9654; Play</button>
+      </div>
+    </section>
+
+    <!-- GAME: Balance -->
+    <section id="balance" class="screen" hidden>
+      <div class="hud">
+        <button id="balBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="balNo" class="pill"></span>
+      </div>
+      <h2 class="rule-title">Make the scale level</h2>
+      <p class="rule-hint">Every <b>yellow block</b> is a mystery weight (<b>?</b>) and they all weigh the same. What does one weigh?</p>
+      <div id="scale" class="scale" aria-hidden="true">
+        <div class="beam"><div id="panL" class="pan"></div><div id="panR" class="pan"></div></div>
+        <div class="post"></div>
+      </div>
+      <p id="balSums" class="sums" role="status" aria-live="polite"></p>
+      <div class="guess">
+        <button id="gBig-" class="btn ghost" type="button" aria-label="minus 10">&minus;10</button>
+        <button id="gMinus" class="btn ghost big" type="button" aria-label="minus 1">&minus;</button>
+        <div id="gVal" class="gval" aria-live="polite"></div>
+        <button id="gPlus" class="btn ghost big" type="button" aria-label="plus 1">+</button>
+        <button id="gBig+" class="btn ghost" type="button" aria-label="plus 10">+10</button>
+      </div>
+      <div class="controls">
+        <button id="balCheck" class="btn big" type="button">Lock it in</button>
+        <p class="note">Change the number and watch the scale tip. Arrow keys work too; press Enter to lock in.</p>
+      </div>
+    </section>
+
+    <!-- GAME: Machine Builder -->
+    <section id="machine" class="screen" hidden>
+      <div class="hud">
+        <button id="macBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="macNo" class="pill"></span>
+        <span id="macPar" class="pill"></span>
+      </div>
+      <h2 id="macTitle" class="rule-title"></h2>
+      <p class="rule-hint">Tap the operation cards to build a chain. Reach the target in as few steps as you can.</p>
+      <div class="mac-now">
+        <div><span class="s-label">Now</span><div id="macVal" class="mac-big"></div></div>
+        <div class="mac-arrow" aria-hidden="true">&rarr;</div>
+        <div><span class="s-label">Target</span><div id="macTarget" class="mac-big tgt"></div></div>
+      </div>
+      <ol id="macPath" class="mac-path" aria-label="Your chain so far"></ol>
+      <div id="macOps" class="mac-ops"></div>
+      <div class="row center">
+        <button id="macUndo" class="btn ghost" type="button">Undo</button>
+        <button id="macReset" class="btn ghost" type="button">Start over</button>
       </div>
     </section>
 
@@ -103,18 +150,18 @@
         <button id="munchBtn" class="btn big" type="button">Munch!</button>
         <p class="note">Tap a number to walk there and munch it. Keyboard: arrows or WASD to move, space to munch.</p>
       </div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
-      <div id="panel" class="panel" hidden role="dialog" aria-live="assertive">
-        <div class="panel-box">
-          <h3 id="panelTitle"></h3>
-          <p id="panelText"></p>
-          <div class="row">
-            <button id="panelBtn" class="btn big" type="button"></button>
-            <button id="panelBtn2" class="btn ghost big" type="button" hidden></button>
-          </div>
-        </div>
-      </div>
     </section>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="panel" class="panel" hidden role="dialog" aria-live="assertive">
+    <div class="panel-box">
+      <h3 id="panelTitle"></h3>
+      <p id="panelText"></p>
+      <div class="row">
+        <button id="panelBtn" class="btn big" type="button"></button>
+        <button id="panelBtn2" class="btn ghost big" type="button" hidden></button>
+      </div>
+    </div>
+    </div>
   </main>
 
   <dialog id="newPlayer">
@@ -133,7 +180,11 @@
 
   <script src="js/engine.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/puzzles.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/balance.js"></script>
+  <script src="js/machine.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
