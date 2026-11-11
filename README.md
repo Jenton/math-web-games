@@ -26,7 +26,7 @@ creatures already earned are kept.
 - **Munchers**: munch only the numbers that fit the rule. Wrong munches explain why.
   Skills: sums to a target, even/odd, greater/less (and the number line), multiples,
   rounding, factors, primes, expressions, equivalent fractions, exponents.
-- **Balance**: a scale tips as you change the number for the mystery block `?`; level it to solve K-6 equations
+- **Balance**: work out the mystery weight `?` to level the scale (it only tips after you lock in, 3 tries per puzzle, worked solution after a miss); K-6 equations
   (one unknown at K-1, unknown on both sides at 6th)
 - **Machine Builder**: chain operation cards to turn a start number into a target in the fewest steps
   (par is computed exactly by search, so star ratings are fair)
@@ -40,13 +40,23 @@ creatures already earned are kept.
   through"). Tap a monster to target it, pick a friend to act, and play the card that fits: a right card does damage, a wrong one does none, and every
   monster hits back. Friends have special powers (hit all, shield, heal, stun, hints...). Five encounters per adventure, including a boss whose big attack a
   Balance puzzle cancels, and two cages: win to free a friend. XP, levels, and a team of up to 3.
+- **Sort & Rule**: a gate has a secret rule; test numbers, spot the pattern, then pick the rule (fewer tests = more stars)
+- **Cut & Share**: cut pizzas into equal slices so every friend gets a fair share (fewest cuts is computed exactly)
 - One setup screen per game: pick grade and challenge in plain language, then Play
 - Four visual skins (Block World, Creatures, Fantasy, Cute), "calm" mode with no glitches
+
+## Deploying
+Merging to `main` publishes the site automatically (`.github/workflows/firebase-hosting-merge.yml`): it runs the node tests, builds a clean
+folder with `tools/build-site.sh` (only the files the game needs), deploys that folder to https://math-quest-family.web.app, and then checks
+the live site (what must be public is, and `.git`, workflows, docs, tests and Firebase rules are not). To publish something that is not on
+`main` yet, use `tools/deploy-hosting.sh` (`--dry-run` shows what would go out). **Never deploy from the repo folder itself**: that publishes
+`.git` and more, and a broad ignore pattern once hid every Kenney asset. `tests/site-build.test.js` guards both mistakes.
 
 ## Develop
 ```
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
+node tests/newgames.test.js  # Sort & Rule has one fitting rule; Cut & Share par is minimal; Balance worked steps
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliation, rescues, and that perfect play always wins while ignoring the math loses
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
@@ -58,10 +68,11 @@ node tests/firebase-backend.test.js  # verifies the Firebase adapter against a f
 node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices
 node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 migration, all four games, backups, merging two devices
 node tests/browser/quest.browser.js          # optional, needs Playwright: plays whole Creature Quest adventures through the real buttons
+node tests/browser/map.browser.js            # optional, needs Playwright: plays a whole Creature Quest world-map region (story, groups, rescue, boss, next region)
 node tests/browser/spacing.browser.js        # optional, needs Playwright: every back button has breathing room above the content below it (any new screen is checked automatically)
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens), `js/firebase-backend.js` (the Firebase REST adapter, no SDK), `js/storage.js`, `js/game.js`
-(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/sortrule.js` + `js/sort.js` (Sort & Rule), `js/cutshare.js` + `js/share.js` (Cut & Share), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
 
 **Working on this repo (people or Claude):** start with `CLAUDE.md` (rules and which doc to read for which task), then `docs/work-streams.md` (who owns what).
 

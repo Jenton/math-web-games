@@ -44,11 +44,11 @@ something is built. Details and design notes for each item are further down in t
 ### New games
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
 - [ ] Number Line Runner
-- [ ] Sort & Rule (Zoombinis-style logic)
+- [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
-- [ ] Cut & Share
+- [x] Cut & Share: built (`js/cutshare.js`, `js/share.js`)
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
 
 ### Portal and cross-cutting features

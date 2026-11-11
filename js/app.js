@@ -60,13 +60,27 @@
       stars: [['★ Easier', '3 cards, short chains.'], ['★★ Medium', '4 cards, medium chains.'], ['★★★ Harder', '4 cards, long chains.']],
       sample: (s) => { const m = MGP.makeMachine(s.band, s.stars); return 'Turn ' + MGP.fmt(m.start) + ' into ' + MGP.fmt(m.target) + ' using ' + m.ops.map((o) => o.label).join(', '); },
     },
+    sort: {
+      name: 'Sort & Rule', ico: '🚪', extras: false, mod: () => Sort,
+      how: ['The gate has a <b>secret rule</b>. Pick a number to send through and see if it passes or is stopped.', 'Test a few numbers and <b>look for the pattern</b>. Testing fewer numbers earns more stars.', 'Then <b>pick the rule</b> from four choices. A wrong pick shows you a number that proves it wrong.'],
+      band: { 'K-1': 'Even or odd, bigger or smaller than a number, counting by 5s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, and numbers in between.', '4-5': 'Multiples up to 9, prime and square numbers, factors.', '6': 'Rules with "and", "or" and "not", like prime or square.' },
+      stars: [['★ Easier', 'Simple one-part rules.'], ['★★ Medium', 'Trickier rules.'], ['★★★ Harder', 'The trickiest rules, some with two parts.']],
+      sample: (s) => { const p = MGR.makeSort(s.band, s.stars); return 'The gate lets through… ' + p.rule.text; },
+    },
+    share: {
+      name: 'Cut & Share', ico: '🍕', extras: false, mod: () => Share,
+      how: ['Some friends want <b>fair shares</b> of pizza.', '<b>Choose how many slices</b> to cut each pizza into, and how many slices <b>each friend</b> gets.', 'Use every slice and keep it fair. <b>Fewer cuts</b> earn more stars. You get <b>3 tries</b>.'],
+      band: { 'K-1': 'Halves, thirds and quarters of one or two pizzas.', '2-3': 'A few pizzas shared among up to 8 friends.', '4-5': 'More pizzas and more friends, including more than one pizza each.', '6': 'Share part of a pizza, like 3/4 of a pizza among 3 friends.' },
+      stars: [['★ Easier', 'Fewer friends, smaller numbers.'], ['★★ Medium', 'More pizzas and friends.'], ['★★★ Harder', 'The biggest groups and trickiest splits.']],
+      sample: (s) => MGC.makeShare(s.band, s.stars).text,
+    },
   };
   let currentGame = 'munchers';
   let current = null;
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'td', 'machine', 'lemonade', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -196,11 +210,11 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || ESC.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('rpg', 'wins') + ' Quest battles won';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
     show('menu');
   }
 
@@ -238,7 +252,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', defense: 'td', machine: 'machine', lemonade: 'lemonade', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);

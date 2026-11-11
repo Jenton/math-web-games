@@ -41,8 +41,8 @@ No missing assets: a 404 image silently falls back to emoji and looks like an ar
 
 ## Git and deploy
 - Never force-push a shared branch. Before a PR: `git fetch && git merge origin/main`, run all tests, merge one PR at a time.
-- **Merging to `main` deploys.** `.github/workflows/firebase-hosting-merge.yml` runs the node tests and then publishes to Firebase Hosting `live`.
-  So do not merge a PR the owner has not approved, and do not run `firebase deploy` by hand (the CLI would publish `.git`; `tools/deploy-hosting.sh` exists only as a manual fallback, `--dry-run` first).
+- **Merging to `main` deploys.** `.github/workflows/firebase-hosting-merge.yml` runs the node tests, builds a clean folder with `tools/build-site.sh`, and publishes it to Firebase Hosting `live`.
+  So do not merge a PR the owner has not approved, and never run `firebase deploy` from the repo folder (it would publish `.git`). Files the site needs must not live under `docs/`, `tests/`, `tools/` or a dot-folder; `tests/site-build.test.js` checks this.
 - Never add billing, Google Analytics, service-account keys or secrets. `js/firebase-config.js` holds public identifiers only.
 
 ## When you change something, update the docs in the same PR
