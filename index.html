@@ -46,7 +46,7 @@
 
     <!-- MENU: games + settings for one player -->
     <section id="menu" class="screen" hidden>
-      <button id="menuBack" class="btn ghost small" type="button">&larr; Players</button>
+      <nav class="crumbs" data-level="menu" data-back="menuBack" aria-label="Where you are"></nav>
       <div class="who"><span id="menuAv" class="av"></span><h1 id="menuName"></h1></div>
 
       <h2>Pick a game</h2>
@@ -124,7 +124,7 @@
 
     <!-- SETUP: one screen to choose how to play, then Play -->
     <section id="setup" class="screen" hidden>
-      <button id="setupBack" class="btn ghost small" type="button">&larr; Games</button>
+      <nav class="crumbs" data-level="setup" data-back="setupBack" aria-label="Where you are"></nav>
       <div class="who"><span id="setupIco" class="g-ico"></span><h1 id="setupTitle"></h1></div>
 
       <ol id="setupHow" class="how"></ol>
@@ -163,7 +163,7 @@
     <!-- GAME: Balance -->
     <section id="balance" class="screen" hidden>
       <div class="hud">
-        <button id="balBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="balBack" data-game="balance" aria-label="Where you are"></nav>
         <span id="balNo" class="pill"></span>
       </div>
       <h2 class="rule-title">Make the scale level</h2>
@@ -189,7 +189,7 @@
     <!-- GAME: Escape Room Locks -->
     <section id="escape" class="screen" hidden>
       <div class="hud">
-        <button id="escBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="escBack" data-game="escape" aria-label="Where you are"></nav>
         <span id="escNo" class="pill"></span>
         <span id="escLocks" class="pill" aria-label="Locks"></span>
       </div>
@@ -201,7 +201,7 @@
     <!-- GAME: Number Defense -->
     <section id="td" class="screen" hidden>
       <div class="hud">
-        <button id="tdBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="tdBack" data-game="defense" aria-label="Where you are"></nav>
         <span id="tdNo" class="pill"></span>
         <span id="tdGold" class="pill"></span>
         <span id="tdGate" class="hearts" aria-label="Castle hearts"></span>
@@ -223,7 +223,7 @@
     <!-- GAME: Machine Builder -->
     <section id="machine" class="screen" hidden>
       <div class="hud">
-        <button id="macBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="macBack" data-game="machine" aria-label="Where you are"></nav>
         <span id="macNo" class="pill"></span>
         <span id="macPar" class="pill"></span>
       </div>
@@ -245,7 +245,7 @@
     <!-- GAME: Lemonade Stand -->
     <section id="lemonade" class="screen" hidden>
       <div class="hud">
-        <button id="lemBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="lemBack" data-game="lemonade" aria-label="Where you are"></nav>
         <span id="lemNo" class="pill"></span>
       </div>
       <h2 id="lemTitle" class="rule-title"></h2>
@@ -272,7 +272,7 @@
     <!-- GAME: Creature Quest (RPG) -->
     <section id="quest" class="screen" hidden>
       <div id="qHome">
-        <div class="hud"><button id="qBack" class="btn ghost small" type="button">&larr; Setup</button></div>
+        <div class="hud"><nav class="crumbs" data-level="play" data-back="qBack" data-game="quest" aria-label="Where you are"></nav></div>
         <h1>Creature Quest</h1>
         <p class="lead">Monsters have a weakness. Pick the attack card that fits it, and your team strikes hard!</p>
         <div class="q-level">
@@ -369,7 +369,7 @@
     <!-- GAME: Sort & Rule -->
     <section id="sort" class="screen" hidden>
       <div class="hud">
-        <button id="sortBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="sortBack" data-game="sort" aria-label="Where you are"></nav>
         <span id="sortNo" class="pill"></span>
         <span id="sortTests" class="pill"></span>
       </div>
@@ -399,7 +399,7 @@
     <!-- GAME: Cut & Share -->
     <section id="share" class="screen" hidden>
       <div class="hud">
-        <button id="shBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="shBack" data-game="share" aria-label="Where you are"></nav>
         <span id="shNo" class="pill"></span>
         <span id="shTries" class="pill"></span>
       </div>
@@ -430,7 +430,7 @@
     <!-- GAME: Munchers -->
     <section id="game" class="screen" hidden>
       <div class="hud">
-        <button id="gameMenu" class="btn ghost small" type="button">&larr; Menu</button>
+        <nav class="crumbs" data-level="play" data-back="gameMenu" data-game="munchers" aria-label="Where you are"></nav>
         <span id="levelNo" class="pill"></span>
         <span id="left" class="pill"></span>
         <span id="hearts" class="hearts" aria-label="hearts"></span>

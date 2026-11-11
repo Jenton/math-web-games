@@ -52,6 +52,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
 
 ### Portal and cross-cutting features
+- [x] Breadcrumb navigation (Players > Games > game) on the player menu, setup and every game screen; replaces the single back button. Quest's inner screens (map, prep, battle) keep their own back buttons.
 - [ ] Auto-adapting difficulty using the per-skill stats already recorded (only after playtesting)
 - [ ] Fuller parent view (per-skill levels, trends, conversation-starter prompts)
 - [ ] Daily puzzle per kid

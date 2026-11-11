@@ -239,6 +239,7 @@
     const save = () => { Store.save(); updateSetup(); };
     $('#setupIco').innerHTML = g.ico.includes('/') ? '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">' : g.ico;
     $('#setupTitle').textContent = g.name;
+    document.querySelectorAll('#setup .crumb.cur').forEach((c) => (c.textContent = g.name));
     $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
     $('#extras').hidden = !g.extras;
     $('#questArtBox').hidden = currentGame !== 'quest';
@@ -257,6 +258,41 @@
     applyTheme(current);
     show(SCREEN_OF[currentGame]);
     GAMES[currentGame].mod().start(current, { onSave: () => Store.save(), onExit: () => openSetup(currentGame) });
+  }
+
+  /* ---------- breadcrumbs ---------- */
+  // Every level screen shows "Players > Games > <game>" so a player can jump to the top (Players) or just back to the Games list.
+  // The old back-button ids live on the crumb that does the same job, so each game's own exit code (saving, stopping timers) still runs.
+  const GAME_NAME = (k) => (GAMES[k] ? GAMES[k].name : k);
+
+  function buildCrumbs() {
+    document.querySelectorAll('nav.crumbs').forEach((nav) => {
+      const level = nav.dataset.level;
+      const back = nav.dataset.back;
+      const add = (label, opts) => {
+        if (nav.children.length) { const sep = document.createElement('span'); sep.className = 'crumb-sep'; sep.setAttribute('aria-hidden', 'true'); sep.textContent = '›'; nav.appendChild(sep); }
+        const el = document.createElement(opts.cur ? 'span' : 'button');
+        el.className = 'crumb' + (opts.cur ? ' cur' : '');
+        el.textContent = label;
+        if (opts.cur) el.setAttribute('aria-current', 'page');
+        else { el.type = 'button'; if (opts.id) el.id = opts.id; if (opts.go) el.dataset.go = opts.go; }
+        nav.appendChild(el);
+        return el;
+      };
+      if (level === 'menu') { add('Players', { id: back }); add('Games', { cur: true }); }
+      else if (level === 'setup') { add('Players', { go: 'home' }); add('Games', { id: back }); nav.curEl = add('', { cur: true }); }
+      else { add('Players', { go: 'home' }); add('Games', { go: 'menu' }); add(GAME_NAME(nav.dataset.game), { id: back }); }
+    });
+    // a crumb that jumps further than the game's own back button first runs that button (so the game saves and stops), then moves on
+    document.addEventListener('click', (e) => {
+      const c = e.target.closest && e.target.closest('.crumb[data-go]');
+      if (!c) return;
+      const nav = c.closest('nav.crumbs');
+      if (nav.dataset.level === 'play') { const exitBtn = document.getElementById(nav.dataset.back); if (exitBtn) exitBtn.click(); }
+      if (!current) return renderHome();
+      if (c.dataset.go === 'menu') openMenu(current.id);
+      else renderHome();
+    });
   }
 
   /* ---------- wiring ---------- */
@@ -286,6 +322,7 @@
       openMenu(p.id);
     });
     $('#npCancel').addEventListener('click', () => $('#newPlayer').close());
+    buildCrumbs();
     $('#menuBack').addEventListener('click', renderHome);
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
     $('#playNow').addEventListener('click', playGame);
@@ -300,7 +337,7 @@
     Sfx.onChange(paintSound);
     paintSound();
     document.addEventListener('click', (e) => {
-      const t = e.target.closest && e.target.closest('.btn, .chip, .game-card, .player-card, .opt-card, .creature');
+      const t = e.target.closest && e.target.closest('.btn, .chip, .game-card, .player-card, .opt-card, .creature, .crumb');
       if (t && t !== sb && t.id !== 'munchBtn' && !t.disabled) Sfx.play('click');
     });
     $('#setupBack').addEventListener('click', () => openMenu(current.id));

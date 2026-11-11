@@ -28,7 +28,7 @@ const { serve } = require('../helpers/static-server.js');
     const r = await page.evaluate(() => {
       const scr = [...document.querySelectorAll('main .screen')].find((s) => !s.hidden);
       const btn = document.querySelector('.sound-btn').getBoundingClientRect();
-      const covered = [...scr.querySelectorAll('.hud > *')].filter((e) => e.offsetParent).filter((e) => {
+      const covered = [...scr.querySelectorAll('.hud .pill, .hud button, .hud .crumb, .hud .hearts')].filter((e) => e.offsetParent).filter((e) => {
         const b = e.getBoundingClientRect();
         return b.left < btn.right && b.right > btn.left && b.top < btn.bottom && b.bottom > btn.top;
       }).map((e) => e.id || e.textContent.trim());
