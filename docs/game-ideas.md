@@ -36,6 +36,31 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Ally upgrades (growth with use)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea below; no design yet)
 
+### Creature Quest: backlog for a focused chat
+Everything below is open. State of play: v2 rules, sprites in two themes, the world map (5 regions, 22 allies), saved Quick adventure, camp buffs and puzzle spots are all built and merged. Nothing has been playtested with the kids yet, so **playtest first, then pick from this list**.
+
+**Design work (needs a decision before building)**
+- [ ] **Tune the numbers** after real play (`TUNE` in `js/rpg.js`). The simulations say a perfect player wins 100%, a learner who misses a third wins about 90/83/82% (1/2/3 stars), and ignoring the math wins about 40/20/16%.
+- [ ] **Character customization**, cosmetic only (outfits, colors, hats), unlocked by progress, never sold as advantage.
+- [ ] **Spellcraft enemies** (exact-HP) and **Machine Builder bosses**: more enemy types on the same engine (see "Enemy types").
+- [ ] **A non-combat variant for the younger player** (see the idea further down; no design yet).
+- [ ] **Deeper story chapters**: today each region has an intro, a few story spots and a boss outro. Recurring characters, a through-line, and consequences for choices are not built.
+- [ ] **Smarter camps**: only two buffs exist (a shield, or one wrong card taken out). Ideas: a buff chosen from two options, a camp where you swap team members, a camp that teaches a math tip.
+- [ ] **More puzzle-spot kinds** (Sort & Rule, Cut & Share, Number Defense wave, Lemonade change) now that those games exist. Today only Balance and Machine Builder.
+- [ ] **More allies** beyond 22, ideally with genuinely new effects (every story friend reuses an existing effect). Each needs art in both themes and must keep "perfect play wins with any single ally" true (`tests/rpg.test.js`).
+- [ ] **More regions**: new map art, new rescue friends, and an ending beyond Ember Mountain.
+
+**Known rough edges (small fixes)**
+- Some enemy names and sprites do not match (for example "Round Snail" shows a white round monster in the cute theme). The classic theme's allies are recolored heroes, so several look alike.
+- Classic backdrops are only meadow and dungeon (other regions use a map tint); the cute theme has five.
+- A puzzle spot or fight can be replayed for XP again. That is fine for now, but watch for farming.
+- A saved Quick adventure restarts the *battle* you were in (not mid-turn), and its plan is regenerated on resume.
+- A region's intro shows once per visit to the quest, not once ever (it is not saved).
+- No sound is specific to Quest yet beyond the shared hit, wrong, correct, win and lose sounds.
+- The Playwright suites cover the map and whole adventures; allies' special effects are covered by node tests only, not clicked through in a browser.
+
+**Rules to keep** (from the v2 decisions): the math never depends on the team; a right answer always works; a wrong answer does no damage and explains itself; no timers; every new region, ally and puzzle goes through `docs/new-game-checklist.md` (scene brief, phone screenshots of each state). Work in `js/worldmap.js` (data) and `js/quest.js` (screens); `js/rpg.js` is the tested engine, so keep changes there small and add tests.
+
 ### Existing games, possible extensions
 - [ ] Balance: drag-blocks-onto-pans version for the youngest players, negative weights (balloons), limited guesses, two-player "first to level it"
 - [ ] Machine Builder: reverse puzzles ("which input makes 24?"), "find the missing card", step trace of a wrong attempt, co-op chain
