@@ -484,3 +484,9 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @keyframes q-guard { 0%, 100% { filter: none; } 40% { filter: drop-shadow(0 0 8px #4aa3ff) brightness(1.2); } }
 @keyframes q-windup { 0% { transform: scale(1, 1); } 70% { transform: translateY(2px) scale(1.1, .86); box-shadow: 0 0 0 4px #ffb84a; } 100% { transform: translateY(0) scale(1.04, .94); } }
 @media (prefers-reduced-motion: reduce) { .mate.act, .mate.oops, .mate.hurt, .mate.guard, .foe.windup { animation: none; } .mate, .mate.fainted { transition: none; } }
+
+/* ---- Space under a back button (measured: 0px on every setup screen and the player menu, 8-10px on Quest screens) ----
+   Every screen opens with a back button (menu and setup screens) or a HUD row that holds one (game screens). The rule covers any
+   screen added later: a back button that is the first child of a .screen, and any .hud row. */
+.screen > .btn.small:first-child { margin-bottom: 18px; }
+.hud { margin-bottom: 14px; }
