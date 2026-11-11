@@ -24,7 +24,10 @@ something is built. Details and design notes for each item are further down in t
 
 ### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
 - [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
-- [ ] Review and choose CC0 art packs (verify each license)
+- [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
+- [ ] Art theme setting at game start (cute / classic fantasy / mix)
+- [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1)
+- [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
 - [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
 - [ ] Stage 4: Mario-World-style world map (pixel art), node types (battle, elite, boss, rescue, story beat, puzzle, camp), story chapters per region, scripted ally-rescue encounters
@@ -218,6 +221,11 @@ player moves through the story chapters.
   - RogueDB32: https://opengameart.org/content/roguedb32
   - Main art from Monster RPG 2: https://opengameart.org/content/main-art-from-monster-rpg-2
   - Meadow background: https://opengameart.org/content/meadow-background
+- **Art themes are switchable (owner decision).** Support at least a **cute** theme and a **classic fantasy** theme, chosen as a
+  setting when starting the game (the setup screen already has a "Look" setting for Munchers; enable it for Quest). The default
+  is **a mix**: cute allies and heroes with classic-fantasy monsters and landscapes. The art manifest is therefore keyed by
+  theme (`theme -> enemy/ally/background -> image`), with each theme falling back to the default and then to plain emoji.
+  Check that a theme's pieces look consistent together before shipping it.
 - Keep a `assets/CREDITS.md` listing every asset, its source URL and license. Never commit anything without a clear license.
 - Build the scene so art is **swappable data**: a manifest maps enemy/ally/background ids to image files, with a plain
   emoji or colored-shape fallback if a file is missing.
@@ -234,11 +242,23 @@ player moves through the story chapters.
    region data files, rescue encounters that unlock allies, saved node progress, and puzzle nodes that launch the existing games.
 5. **Later:** customization, more regions and allies, Spellcraft enemies, Machine Builder bosses.
 
+### Idea: a non-combat variant for the younger player (owner request, no design yet)
+The owner wants, eventually, a variant for their daughter that is still an RPG but **not focused on fighting and defeating enemies**.
+No concrete idea yet. Seeds to brainstorm from, none decided:
+- **Peaceful mode on the same engine:** the same maps, allies and rules, but a "monster" is an upset creature and the weakness is what
+  it needs. The right card calms or helps it instead of hurting it (befriend, don't defeat). Cheap to build because only the wording,
+  art and animations change, and it could be a setting on the existing game.
+- **Caretaker or village:** raise and care for creatures, grow a garden, run a cozy shop, where each task is a small math puzzle.
+- **Helper quests on the world map:** nodes are characters who need help (fix a bridge, sort a pantry), reusing Balance, Machine Builder
+  and Munchers as the puzzles.
+- **Build-a-World / Potion lab:** gentle creative variants from the "Later" list.
+The world-map node system is the right foundation, since a node can be a "help someone" encounter just as well as a battle.
+
 ### Still to decide
 - Roster: how many allies per grade band, their names and effects, which skill each is tied to.
 - How many regions and chapters in the first release, and the story/tone (the kids like fantasy and cute things).
 - How much of the three-step turn (ally, target, card) is too much for the youngest player. Test with her.
-- Which CC0 packs to use once reviewed, and the art tone (cute and colorful vs classic fantasy).
+- Which CC0 packs to use for each theme (cute, classic fantasy, and the default mix) once reviewed.
 - Number of nodes per region, and what the first region's story is.
 
 ---

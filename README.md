@@ -8,6 +8,14 @@ Open `index.html` in any browser (no install, no server, no accounts).
 Progress is saved privately on the device; use "Save a backup file" on the
 home screen to back it up or move it to another device.
 
+### How saving works
+Everything is stored in the browser's `localStorage` on the device you play on (key `mathQuest.v1`). Nothing is sent anywhere, and there
+are no accounts. Each player has their own settings, per-skill right/wrong counts, game progress, and Creature Quest level, XP,
+creatures and team. Saves happen automatically (after each card played and each win). The home screen shows when it last saved.
+Limits: progress does not move between browsers or devices on its own (use the backup file), and clearing site data or some
+iPad/Safari storage clean-ups can erase it, so back up now and then. In Creature Quest the current five-battle adventure is not
+saved: leaving mid-adventure restarts it at battle 1, but XP, level and creatures already earned are kept.
+
 ## What's here (v1)
 - Player profiles with a grade level (K-1, 2-3, 4-5, 6) and a 1-3 star challenge setting
 - **Munchers**: munch only the numbers that fit the rule. Wrong munches explain why.
