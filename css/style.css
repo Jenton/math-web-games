@@ -253,3 +253,22 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .mac-path li { position: relative; padding-left: 14px; }
 .mac-path li:not(.empty)::before { content: ""; position: absolute; left: 0; top: .45em; bottom: .45em; width: 5px; border-radius: 3px; background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .fx, .scale.level .blk.mystery { animation: none; } .op-card { transition: none; } }
+
+/* ---- Lemonade Stand ---- */
+.lem-text { font-size: 1.15rem; color: var(--ink); max-width: 560px; margin-left: auto; margin-right: auto; }
+.lem-body { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 120px; }
+.lem-coins, .lem-tray { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lem-tray { min-height: 56px; align-items: center; padding: 8px; width: 100%; max-width: 520px; border: 2px dashed var(--line); border-radius: var(--radius); background: var(--cell); }
+.lem-total { font-weight: 800; font-size: 1.2rem; }
+.coin { font: inherit; font-weight: 800; min-width: 64px; height: 64px; padding: 0 8px; border-radius: 999px; border: 3px solid #b8860b; background: #ffd95a; color: #5a4300; cursor: pointer; touch-action: manipulation; }
+.coin.c1 { background: #d9a066; border-color: #8a5a2b; color: #4a2e10; }
+.coin.c5, .coin.c10, .coin.c25 { background: #e3e6ea; border-color: #8a929c; color: #2f353c; }
+.coin.c100, .coin.c500 { background: #7fcf8a; border-color: #2e7d3a; color: #123d19; border-radius: 12px; min-width: 84px; height: 52px; }
+.coin.small { min-width: 48px; height: 48px; font-size: .85rem; }
+.coin.c100.small, .coin.c500.small { min-width: 64px; height: 40px; }
+.coin:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+.lem-stock { font-size: 1.6rem; line-height: 1.3; text-align: center; max-width: 520px; word-break: break-all; min-height: 40px; }
+.lem-prices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; width: 100%; max-width: 640px; }
+.lem-prices .opt-card:disabled { opacity: .5; cursor: default; }
+.lem-good { color: var(--good); }
+.lem-bad { color: var(--bad); }

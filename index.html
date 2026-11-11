@@ -52,6 +52,12 @@
           <span class="g-desc">Chain operations to turn the start number into the target.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="lemonade" type="button">
+          <span class="g-ico" aria-hidden="true">&#127819;</span>
+          <span class="g-name">Lemonade Stand</span>
+          <span class="g-desc">Run a stand: make change, buy the right amount, and set the price that earns the most.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
       </div>
 
       <details class="grownups">
@@ -140,6 +146,19 @@
         <button id="macUndo" class="btn ghost" type="button">Undo</button>
         <button id="macReset" class="btn ghost" type="button">Start over</button>
       </div>
+    </section>
+
+    <!-- GAME: Lemonade Stand -->
+    <section id="lemonade" class="screen" hidden>
+      <div class="hud">
+        <button id="lemBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="lemNo" class="pill"></span>
+      </div>
+      <h2 id="lemTitle" class="rule-title"></h2>
+      <p id="lemText" class="rule-hint lem-text"></p>
+      <div id="lemBody" class="lem-body"></div>
+      <p id="lemMsg" class="sums" role="status" aria-live="polite"></p>
+      <div class="controls"><button id="lemGo" class="btn big" type="button"></button></div>
     </section>
 
     <!-- GAME: Creature Quest (RPG) -->
@@ -276,7 +295,9 @@
   <script src="js/puzzles.js"></script>
   <script src="js/rpg.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/shop.js"></script>
   <script src="js/balance.js"></script>
+  <script src="js/lemonade.js"></script>
   <script src="js/machine.js"></script>
   <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
