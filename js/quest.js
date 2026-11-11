@@ -5,7 +5,9 @@
 (function (root) {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const VIEWS = ['qHome', 'qPrep', 'qBattle'];
+  const VIEWS = ['qHome', 'qMap', 'qPrep', 'qBattle'];
+  const TYPE_ICON = { battle: '⚔️', elite: '🛡️', boss: '👑', rescue: '🗝️', story: '💬', camp: '⛺' };
+  const TYPE_WORD = { battle: 'Battle', elite: 'Armored monster', boss: 'Boss', rescue: 'Rescue', story: 'Story', camp: 'Camp' };
   let ctx = null;
   let Q = null;
   let bound = false;
@@ -27,6 +29,12 @@
   const enemySprite = (e) => Art.sprite(theme(), 'enemy', enemyArt(e), e.emoji, e.name);
   const allySprite = (c) => Art.sprite(theme(), 'ally', c.id, c.emoji, c.name);
   const putSprite = (slot, node) => { slot.textContent = ''; slot.appendChild(node); };
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
   const alliesOf = (ids) => ids.map((id) => RPG.creatureById(id)).filter(Boolean);
 
   function init() {
@@ -35,9 +43,15 @@
     $('qBack').addEventListener('click', exit);
     $('qBegin').addEventListener('click', beginRun);
     $('qMyTeam').addEventListener('click', () => openPrep('collection'));
+    $('qMapBtn').addEventListener('click', () => goMap());
+    $('qMapBack').addEventListener('click', goHome);
+    $('qMapPrev').addEventListener('click', () => switchRegion(-1));
+    $('qMapNext').addEventListener('click', () => switchRegion(1));
+    // a cloud sync can replace the save while the map is showing: draw it again from the fresh data
+    document.addEventListener('mq:data-changed', () => { if (Q && ctx && !$('qMap').hidden) renderMap(); });
     $('qPrepBack').addEventListener('click', () => {
       Q.run = null;
-      goHome();
+      leave();
     });
     $('qFight').addEventListener('click', onPrepDone);
     $('qFlee').addEventListener('click', () => {
@@ -45,7 +59,7 @@
       Q.battle = null;
       Q.run = null;
       Q.busy = false;
-      goHome();
+      leave();
     });
     $('qgMinus').addEventListener('click', () => setGuess(Q.guess - 1));
     $('qgPlus').addEventListener('click', () => setGuess(Q.guess + 1));
@@ -59,7 +73,7 @@
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
     RPG.ensureState(profile);
-    Q = { mode: 'home', run: null, encounter: null, battle: null, selected: [], guess: 0, puzzle: null, busy: false, log: '' };
+    Q = { mode: 'home', region: 0, node: null, lastSkill: null, run: null, encounter: null, battle: null, selected: [], guess: 0, puzzle: null, busy: false, log: '' };
     goHome();
   }
 
@@ -83,7 +97,16 @@
     });
   }
 
+  /** Back out of a fight: to the map if it came from the map, otherwise to the quest home. */
+  function leave() {
+    if (Q.node) {
+      Q.node = null;
+      goMap();
+    } else goHome();
+  }
+
   function goHome() {
+    Q.node = null;
     const r = rpg();
     const pr = RPG.progress(r);
     $('qLevel').textContent = 'Level ' + pr.level;
@@ -94,6 +117,175 @@
     showView('qHome');
   }
 
+  /* ---------- world map ---------- */
+
+  const nodeOf = (ref) => WorldMap.nodeById(WorldMap.regionById(ref.region), ref.id);
+  const openRegions = () => {
+    const cleared = WorldMap.clearedSet(rpg());
+    return WorldMap.REGIONS.map((_, i) => i).filter((i) => WorldMap.regionOpen(i, cleared));
+  };
+
+  function switchRegion(d) {
+    const open = openRegions();
+    const to = open[open.indexOf(Q.region) + d];
+    if (to === undefined) return;
+    Q.region = to;
+    renderMap();
+  }
+
+  function goMap(region) {
+    const cleared = WorldMap.clearedSet(rpg());
+    Q.node = null;
+    Q.region = region !== undefined ? region : Math.min(Q.region, WorldMap.currentRegion(cleared));
+    if (!WorldMap.regionOpen(Q.region, cleared)) Q.region = WorldMap.currentRegion(cleared);
+    renderMap();
+    showView('qMap');
+  }
+
+  function renderMap() {
+    const r = rpg(); // always read the save fresh: a sync can replace it
+    const t = theme();
+    const reg = WorldMap.REGIONS[Q.region];
+    const cleared = WorldMap.clearedSet(r);
+    const gold = new Set(r.gold || []);
+    const states = WorldMap.nodeStates(reg, cleared);
+    const open = openRegions();
+    $('qMapName').textContent = reg.name;
+    $('qMapBlurb').textContent = reg.blurb;
+    $('qMapPrev').hidden = $('qMapNext').hidden = open.length < 2;
+    $('qMapPrev').disabled = open.indexOf(Q.region) <= 0;
+    $('qMapNext').disabled = open.indexOf(Q.region) >= open.length - 1;
+    const done = reg.nodes.filter((n) => cleared.has(n.id)).length;
+    $('qMapStars').textContent = done + ' of ' + reg.nodes.length + ' spots · ' + reg.nodes.filter((n) => gold.has(n.id)).length + ' ⭐';
+
+    const board = $('qMapBoard');
+    board.innerHTML = '';
+    board.dataset.region = reg.id;
+    board.dataset.art = t;
+    const a = reg.art[t] || {};
+    if (t === 'classic') {
+      board.style.backgroundImage = 'url(' + Art.src('classic', 'map', a.map) + ')';
+    } else {
+      board.style.backgroundImage = '';
+      board.appendChild(el('div', 'island ' + (a.island || 'grass')));
+      (reg.decor || []).forEach(([k, x, y]) => {
+        if (!Art.get('cute', 'map', k)) return;
+        const d = Art.sprite('cute', 'map', k, '', '');
+        d.classList.add('decor');
+        d.setAttribute('alt', '');
+        d.style.left = x + '%';
+        d.style.top = y + '%';
+        board.appendChild(d);
+      });
+    }
+    // a line for every link, drawn under the nodes
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('class', 'mappaths');
+    svg.setAttribute('aria-hidden', 'true');
+    reg.nodes.forEach((n) => n.next.forEach((id) => {
+      const m = WorldMap.nodeById(reg, id);
+      [['edge', ''], ['line', states[n.id] === 'cleared' ? ' lit' : '']].forEach(([c, extra]) => {
+        const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        ln.setAttribute('x1', n.x); ln.setAttribute('y1', n.y); ln.setAttribute('x2', m.x); ln.setAttribute('y2', m.y);
+        ln.setAttribute('class', 'path-' + c + extra);
+        if (a.path) ln.style.setProperty('--path', a.path);
+        svg.appendChild(ln);
+      });
+    }));
+    board.appendChild(svg);
+
+    reg.nodes.forEach((n) => {
+      const st = states[n.id];
+      const b = el('button', 'mnode ' + n.type + ' ' + st + (gold.has(n.id) ? ' gold' : ''));
+      b.type = 'button';
+      b.style.left = n.x + '%';
+      b.style.top = n.y + '%';
+      b.dataset.id = n.id;
+      b.appendChild(el('span', 'ico', st === 'locked' ? '🔒' : TYPE_ICON[n.type]));
+      if (st === 'cleared') b.appendChild(el('span', 'mark', gold.has(n.id) ? '⭐' : '✓'));
+      const kinds = WorldMap.kindsOf(n);
+      const crowd = kinds && kinds.length > 1 ? ', ' + Math.min(kinds.length, RPG.maxGroup(sel().stars)) + ' monsters' : '';
+      b.setAttribute('aria-label', n.name + ': ' + TYPE_WORD[n.type] + crowd + ', ' + (st === 'locked' ? 'locked' : st === 'cleared' ? (gold.has(n.id) ? 'cleared perfectly' : 'cleared') : 'ready'));
+      b.appendChild(el('span', 'nlabel', n.name));
+      b.addEventListener('click', () => onNode(n.id));
+      board.appendChild(b);
+    });
+
+    // the token: your lead friend stands on the last cleared spot
+    const lead = RPG.creatureById(RPG.currentTeam(r)[0]);
+    const tok = el('div', 'token');
+    tok.id = 'qToken';
+    if (lead) tok.appendChild(allySprite(lead));
+    const at = WorldMap.nodeById(reg, WorldMap.tokenAt(reg, cleared));
+    tok.style.left = at.x + '%';
+    tok.style.top = at.y + '%';
+    board.appendChild(tok);
+    $('qMapHint').textContent = WorldMap.regionDone(reg, cleared)
+      ? 'Region complete! Tap any spot to play it again.'
+      : reg.nodes.some((n) => states[n.id] === 'open') ? 'Tap a glowing spot to go there.' : '';
+  }
+
+  async function onNode(id) {
+    if (Q.busy) return;
+    const reg = WorldMap.REGIONS[Q.region];
+    const n = WorldMap.nodeById(reg, id);
+    if (WorldMap.nodeStates(reg, WorldMap.clearedSet(rpg()))[id] === 'locked') {
+      UI.toast('Clear the path before it first.', false);
+      return;
+    }
+    const tok = $('qToken');
+    if (tok) {
+      tok.style.left = n.x + '%';
+      tok.style.top = n.y + '%';
+      Q.busy = true; // ignore taps while the friend walks over
+      if (!motionOff()) sfx('step');
+      await wait(520);
+      Q.busy = false;
+    }
+    runNode(reg, n);
+  }
+
+  function runNode(reg, n) {
+    Q.node = { region: reg.id, id: n.id };
+    const kinds = WorldMap.kindsOf(n);
+    if (!kinds) return playScript(n, () => finishNode(n, true));
+    if (n.type === 'rescue' && n.script && n.script.length && !WorldMap.clearedSet(rpg()).has(n.id)) return playScript(n, () => beginNodeFight(n, kinds));
+    beginNodeFight(n, kinds);
+  }
+
+  function playScript(n, done, i) {
+    i = i || 0;
+    const last = i >= n.script.length - 1;
+    UI.panel({
+      title: TYPE_ICON[n.type] + ' ' + n.name,
+      text: n.script[i],
+      btn: last ? 'Continue' : 'Next',
+      onBtn: () => (last ? done() : playScript(n, done, i + 1)),
+    });
+  }
+
+  /** A map node is a v2 encounter: a group of monsters with their own weaknesses, built by the same rpg.js code as Quick adventure. */
+  function beginNodeFight(n, kinds) {
+    Q.run = null;
+    Q.encounter = RPG.makeEncounter(sel().band, sel().stars, kinds, { prefer: [Q.lastSkill].filter(Boolean), rescue: n.type === 'rescue' ? n.ally : null });
+    Q.lastSkill = Q.encounter.skills[Q.encounter.skills.length - 1] || Q.lastSkill;
+    openPrep('fight');
+  }
+
+  /** Mark a node cleared (it never un-clears). Returns to the map and announces a newly opened region. */
+  function finishNode(n, flawless) {
+    const r = rpg();
+    const reg = WorldMap.regionById(Q.node.region);
+    const wasOpen = new Set(openRegions());
+    WorldMap.clearNode(r, n.id, !!flawless && WorldMap.kindsOf(n) !== null);
+    ctx.onSave();
+    const opened = WorldMap.REGIONS.findIndex((g, i) => !wasOpen.has(i) && WorldMap.regionOpen(i, WorldMap.clearedSet(r)));
+    goMap(opened >= 0 ? opened : WorldMap.REGIONS.indexOf(reg));
+    if (opened >= 0) UI.toast('A new region opens: ' + WorldMap.REGIONS[opened].name + '!', true);
+  }
+
   /* ---------- team picker / pre-battle ---------- */
 
   function beginRun() {
@@ -102,6 +294,7 @@
     openPrep('fight');
   }
 
+  const runLabel = () => (Q.node ? nodeOf(Q.node).name : Q.run ? 'Battle ' + (Q.run.i + 1) + ' of ' + Q.run.plan.length : '');
   const kindTag = (e) => (e.kind === 'boss' ? ' 👑 Boss' : e.kind === 'armor' ? ' 🛡️ Armored' : '');
 
   function openPrep(mode) {
@@ -116,7 +309,7 @@
       : 'Pick up to 3 friends for your team. Rescue caged friends to find more!';
     $('qFight').textContent = fight ? '⚔️ Fight!' : 'Done';
     if (fight) {
-      $('qRun').textContent = 'Battle ' + (Q.run.i + 1) + ' of ' + Q.run.plan.length;
+      $('qRun').textContent = runLabel();
       const box = $('qPvFoes');
       box.innerHTML = '';
       Q.encounter.enemies.forEach((e) => {
@@ -128,7 +321,7 @@
         d.querySelector('.pv-weak').textContent = e.weakness;
         box.appendChild(d);
       });
-      const rescue = Q.encounter.rescue && RPG.creatureById(Q.encounter.rescue);
+      const rescue = Q.encounter.rescue && !rpg().creatures.includes(Q.encounter.rescue) && RPG.creatureById(Q.encounter.rescue); // a friend you already have is not trapped
       $('qPvRescue').hidden = !rescue;
       if (rescue) $('qPvRescue').textContent = '🔓 ' + rescue.emoji + ' ' + rescue.name + ' is trapped in a cage here! Beat the monsters to set them free.';
     }
@@ -356,7 +549,7 @@
     const b = Q.battle;
     const foe = b.foes[b.target];
     $('qTurn').textContent = 'Turn ' + b.turn;
-    $('qRunPill').textContent = Q.run ? 'Battle ' + (Q.run.i + 1) + ' of ' + Q.run.plan.length : '';
+    $('qRunPill').textContent = runLabel();
     renderFoes();
     $('qWeakTitle').textContent = foe ? foe.enemy.weakness : '';
     $('qWeakHint').textContent = foe ? foe.enemy.hint : '';
@@ -516,7 +709,7 @@
         btn: 'Try again',
         onBtn: () => startBattle(),
         btn2: 'Leave',
-        onBtn2: () => { Q.run = null; goHome(); },
+        onBtn2: () => { Q.run = null; leave(); },
         bad: true,
       });
     }
@@ -536,6 +729,23 @@
     let text = (rw.clean ? 'A perfect fight! ' : '') + '+' + rw.xp + ' XP.';
     if (out.joined) text += ' 🔓 You freed ' + out.joined.emoji + ' ' + out.joined.name + '! ' + out.joined.effectName + ': ' + out.joined.effectText;
     if (out.levelUps) text += " Level up! You're now level " + RPG.progress(r).level + ', so your team has more health.';
+    if (Q.node) {
+      const n = nodeOf(Q.node);
+      const freed = n.type === 'rescue' && n.ally && RPG.creatureById(n.ally);
+      let gold = rw.clean;
+      if (freed && !out.joined) {
+        // already a friend: no new ally, but the captors are beaten, so a thank-you and a gold star
+        text += ' ' + freed.emoji + ' ' + freed.name + ' is already your friend, and thanks you for the rescue. ⭐';
+        gold = true;
+      }
+      UI.panel({
+        title: n.type === 'boss' ? 'Region boss beaten! 🏆' : 'Victory! 🎉',
+        text,
+        btn: 'Back to the map',
+        onBtn: () => finishNode(n, gold),
+      });
+      return;
+    }
     const last = Q.run && Q.run.i >= Q.run.plan.length - 1;
     UI.panel({
       title: last ? 'Adventure complete! 🏆' : 'Victory! 🎉',

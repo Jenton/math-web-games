@@ -4,11 +4,13 @@
  * any node that points at it (via `next`) is cleared, so paths can branch and side nodes are optional. Clearing a region's
  * boss opens the next region. Adding content is adding data here: no new code.
  *
- * Node: { id, type, x, y, next: [ids], name, script?: [lines], ally? }   x and y are 0 to 100 (percent of the map).
+ * Node: { id, type, x, y, next: [ids], name, script?: [lines], kinds?: [enemy kinds], ally? }   x and y are 0 to 100 (percent of the map).
+ * `kinds` is the monster group for a fight node ('weakness' | 'armor' | 'boss', up to 3; rpg.js caps a group at 2 at 1 star). It is handed
+ * to RPG.makeEncounter, so every monster in a node has its own weakness, exactly like Quick adventure.
  * Region `decor` is [artName, x, y] for the cute theme's map decorations (the classic map has them baked into its image).
  *   type: battle | elite | boss | rescue | story | camp
- *   battle / elite / boss / rescue fight an enemy (rpg.js decides the weakness); story and camp are dialogue only.
- *   rescue: beating the captor frees `ally` (a creature id from rpg.js).
+ *   battle / elite / boss / rescue fight a group of monsters (rpg.js decides each weakness); story and camp are dialogue only.
+ *   rescue: beating the captors frees `ally` (a creature id from rpg.js). If the player already has that friend, they get a thank-you and a gold star.
  * Math rule: story beats never test math. Anything that does is a battle, which follows the same rules as every game.
  * Progress (profile.games.rpg): `cleared` and `gold` are grow-only sets of node ids (see save.js), so merges never lose progress.
  */
@@ -16,7 +18,7 @@
   'use strict';
   const isNode = typeof module !== 'undefined' && module.exports;
 
-  const KIND = { battle: 'weakness', rescue: 'weakness', elite: 'armor', boss: 'boss' }; // node type -> rpg enemy kind
+  const KIND = { battle: 'weakness', rescue: 'weakness', elite: 'armor', boss: 'boss' }; // node type -> the lead monster's kind when a node has no `kinds`
   const FIGHTS = (n) => Object.prototype.hasOwnProperty.call(KIND, n.type);
 
   const REGIONS = [
@@ -28,17 +30,17 @@
       decor: [['tree', 14, 38], ['tree2', 36, 26], ['bush', 47, 80], ['rock', 66, 84], ['tree', 60, 18], ['bush', 18, 88], ['tree2', 88, 84], ['mound', 76, 12], ['tree', 4, 44]],
       start: 'm1',
       nodes: [
-        { id: 'm1', type: 'battle', x: 8, y: 72, next: ['m2'], name: 'Meadow gate' },
+        { id: 'm1', type: 'battle', kinds: ['weakness'], x: 8, y: 72, next: ['m2'], name: 'Meadow gate' },
         { id: 'm2', type: 'story', x: 24, y: 58, next: ['m3', 'm2c'], name: 'The talking sign',
           script: ['A wooden sign creaks: "Beware! Monsters ahead. Each one has a weakness."', 'It adds, a little shyly: "Pick the card that fits it, and you will do fine."'] },
         { id: 'm2c', type: 'camp', x: 30, y: 84, next: ['m3'], name: 'Picnic spot',
           script: ['You share a snack with your team. Everyone feels ready.', 'Your friends swap stories about the best numbers they know.'] },
-        { id: 'm3', type: 'battle', x: 42, y: 50, next: ['m4'], name: 'Hollow log' },
-        { id: 'm4', type: 'battle', x: 58, y: 64, next: ['m5'], name: 'Stepping stones' },
-        { id: 'm5', type: 'elite', x: 70, y: 40, next: ['m6'], name: 'Armored guard' },
-        { id: 'm6', type: 'rescue', x: 82, y: 62, next: ['m7'], name: 'The cage', ally: 'compare',
+        { id: 'm3', type: 'battle', kinds: ['weakness', 'weakness'], x: 42, y: 50, next: ['m4'], name: 'Hollow log' },
+        { id: 'm4', type: 'battle', kinds: ['weakness', 'weakness', 'weakness'], x: 58, y: 64, next: ['m5'], name: 'Stepping stones' },
+        { id: 'm5', type: 'elite', kinds: ['armor', 'weakness'], x: 70, y: 40, next: ['m6'], name: 'Armored guard' },
+        { id: 'm6', type: 'rescue', kinds: ['weakness', 'weakness'], x: 82, y: 62, next: ['m7'], name: 'The cage', ally: 'compare',
           script: ['A cage sits under a big tree. Inside, something is hooting softly: "Hoo? Is someone there?"'] },
-        { id: 'm7', type: 'boss', x: 92, y: 28, next: [], name: 'Grumble Gate' },
+        { id: 'm7', type: 'boss', kinds: ['boss', 'weakness'], x: 92, y: 28, next: [], name: 'Grumble Gate' },
       ],
     },
     {
@@ -49,16 +51,16 @@
       decor: [['rock', 18, 72], ['crystal', 36, 20], ['mound', 60, 16], ['rock', 72, 88], ['crystal', 93, 48], ['bush', 38, 86]],
       start: 'k1',
       nodes: [
-        { id: 'k1', type: 'battle', x: 10, y: 30, next: ['k2'], name: 'Drawbridge' },
+        { id: 'k1', type: 'battle', kinds: ['weakness', 'weakness'], x: 10, y: 30, next: ['k2'], name: 'Drawbridge' },
         { id: 'k2', type: 'story', x: 28, y: 48, next: ['k3'], name: 'The polite ghost',
           script: ['A ghost floats up: "Oooo... oh, sorry! Did I startle you? I just like to count the stairs."', '"There are 12. Or 13? Never mind, good luck in there!"'] },
-        { id: 'k3', type: 'battle', x: 46, y: 66, next: ['k4', 'k3c'], name: 'Dusty hall' },
+        { id: 'k3', type: 'battle', kinds: ['weakness', 'weakness', 'weakness'], x: 46, y: 66, next: ['k4', 'k3c'], name: 'Dusty hall' },
         { id: 'k3c', type: 'camp', x: 52, y: 88, next: ['k4'], name: 'Warm kitchen',
           script: ['A friendly fire is still burning. Your team warms up and rests.'] },
-        { id: 'k4', type: 'elite', x: 66, y: 46, next: ['k5'], name: 'Armor gallery' },
-        { id: 'k5', type: 'rescue', x: 80, y: 66, next: ['k6'], name: 'The tower cell', ally: 'rounding',
+        { id: 'k4', type: 'elite', kinds: ['armor', 'weakness'], x: 66, y: 46, next: ['k5'], name: 'Armor gallery' },
+        { id: 'k5', type: 'rescue', kinds: ['weakness', 'weakness'], x: 80, y: 66, next: ['k6'], name: 'The tower cell', ally: 'rounding',
           script: ['Someone is tapping the tower wall: tap, tap, tap. "Round up or round down? Can anyone hear me?"'] },
-        { id: 'k6', type: 'boss', x: 90, y: 26, next: [], name: 'Throne room' },
+        { id: 'k6', type: 'boss', kinds: ['boss', 'weakness'], x: 90, y: 26, next: [], name: 'Throne room' },
       ],
     },
   ];
@@ -67,7 +69,10 @@
   const regionById = (id) => REGIONS.find((r) => r.id === id) || null;
   const nodeById = (region, id) => region.nodes.find((n) => n.id === id) || null;
   const bossOf = (region) => region.nodes.find((n) => n.type === 'boss');
-  const enemyKind = (node) => KIND[node.type] || null;
+  /** The monster group for a fight node (null for story and camp). */
+  const kindsOf = (node) => (KIND[node.type] ? (node.kinds && node.kinds.length ? node.kinds.slice() : [KIND[node.type]]) : null);
+  /** The lead monster's kind (kept for callers that only need to know whether a node is a fight). */
+  const enemyKind = (node) => (kindsOf(node) || [null])[0];
 
   const asSet = (v) => new Set(Array.isArray(v) ? v : []);
   const clearedSet = (r) => asSet(r && r.cleared);
@@ -134,6 +139,8 @@
         if (n.x < 0 || n.x > 100 || n.y < 0 || n.y > 100) bad.push(n.id + ': position off the map');
         n.next.forEach((t) => ids.has(t) || bad.push(n.id + ' points at missing ' + t));
         if (FIGHTS(n) === false && n.type !== 'story' && n.type !== 'camp') bad.push(n.id + ': unknown type ' + n.type);
+        if (FIGHTS(n) && !kindsOf(n).every((k) => ['weakness', 'armor', 'boss'].includes(k))) bad.push(n.id + ': unknown monster kind');
+        if (FIGHTS(n) && kindsOf(n).length > 3) bad.push(n.id + ': at most 3 monsters');
         if ((n.type === 'story' || n.type === 'camp' || n.type === 'rescue') && !(n.script && n.script.length)) bad.push(n.id + ': needs a script');
         if (n.type === 'rescue' && !n.ally) bad.push(n.id + ': rescue needs an ally');
       });
@@ -148,7 +155,7 @@
     return bad;
   }
 
-  const api = { REGIONS, KIND, regionById, nodeById, bossOf, enemyKind, clearedSet, predecessors, regionOpen, nodeStates, tokenAt, regionDone, currentRegion, clearNode, validate };
+  const api = { REGIONS, KIND, regionById, nodeById, bossOf, kindsOf, enemyKind, clearedSet, predecessors, regionOpen, nodeStates, tokenAt, regionDone, currentRegion, clearNode, validate };
   if (isNode) module.exports = api;
   else root.WorldMap = api;
 })(typeof window !== 'undefined' ? window : globalThis);
