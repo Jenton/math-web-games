@@ -12,28 +12,28 @@
   };
   const GAMES = {
     quest: {
-      name: 'Creature Quest', ico: '⚔️', extras: false, mod: () => Quest,
+      name: 'Creature Quest', ico: 'medals/m3', extras: false, mod: () => Quest,
       how: ['Every monster has a <b>weakness</b>, like "multiples of 6".', '<b>Pick the attack card</b> that fits it. More ⚔️ means more power, but a card that does not fit does nothing and heals the monster!', 'Win battles to <b>level up</b>, befriend <b>creatures</b>, and take on the boss.'],
       band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
       stars: [['★ Easier', 'Weaker monsters, 5 cards to pick from.'], ['★★ Medium', 'Tougher monsters and trickier cards.'], ['★★★ Harder', 'Strong monsters, 6 cards, and cards that nearly fit.']],
       sample: (s) => RPG.sampleText(s.band, s.stars),
     },
     munchers: {
-      name: 'Munchers', ico: '🐸', extras: true, mod: () => Munchers,
+      name: 'Munchers', ico: 'animals/frog', extras: true, mod: () => Munchers,
       how: ['<b>Read the rule</b> at the top of the board.', '<b>Walk</b> to a number that fits: tap it, or use the arrow keys.', '<b>Munch</b> it! A wrong munch costs a heart and shows you why.'],
       band: BAND_INFO,
       stars: [['★ Easier', 'Smaller numbers, 8 to munch, 1 glitch.'], ['★★ Medium', 'Bigger numbers, 10 to munch, 2 glitches.'], ['★★★ Harder', 'Trickiest numbers, 12 to munch, 3 fast glitches.']],
       sample: (s) => MG.makeLevelRule(s.band, s.stars, null).title,
     },
     balance: {
-      name: 'Balance', ico: '⚖️', extras: false, mod: () => Balance,
+      name: 'Balance', ico: 'balance/blockBlue', extras: false, mod: () => Balance,
       how: ['Every <b>yellow block</b> is the same mystery weight (<b>?</b>). White blocks show their weight.', '<b>Change the number</b> for ? with − and +. Watch the scale tip.', '<b>Lock it in</b> when you think both sides are equal.'],
       band: { 'K-1': 'One mystery block and a few small blocks. Totals up to 20.', '2-3': 'Two mystery blocks, or bigger totals up to 50.', '4-5': 'Several mystery blocks plus extra weight, like 4 × ? + 7.', '6': 'Mystery blocks on both sides, like 5 × ? + 3 = 2 × ? + 21.' },
       stars: [['★ Easier', 'Smaller numbers.'], ['★★ Medium', 'Bigger numbers and more blocks.'], ['★★★ Harder', 'The trickiest numbers and more blocks.']],
       sample: (s) => MGP.makeBalance(s.band, s.stars).text,
     },
     machine: {
-      name: 'Machine Builder', ico: '⚙️', extras: false, mod: () => Machine,
+      name: 'Machine Builder', ico: 'balance/pipe01', extras: false, mod: () => Machine,
       how: ['You get a <b>start number</b>, a <b>target</b>, and a few operation cards.', '<b>Tap cards</b> to build a chain. Each one changes the number.', 'Reach the target in as <b>few steps</b> as you can for more stars.'],
       band: { 'K-1': 'Adding and subtracting small numbers.', '2-3': 'Adding, subtracting, and multiplying.', '4-5': 'Multiplying, dividing, adding, subtracting.', '6': 'All four operations plus squaring, and numbers can go negative.' },
       stars: [['★ Easier', '3 cards, short chains.'], ['★★ Medium', '4 cards, medium chains.'], ['★★★ Harder', '4 cards, long chains.']],
@@ -195,7 +195,7 @@
     applyTheme(current);
     const s = current.settings;
     const save = () => { Store.save(); updateSetup(); };
-    $('#setupIco').textContent = g.ico;
+    $('#setupIco').innerHTML = '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">';
     $('#setupTitle').textContent = g.name;
     $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
     $('#extras').hidden = !g.extras;
@@ -241,6 +241,20 @@
     $('#menuBack').addEventListener('click', renderHome);
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
     $('#playNow').addEventListener('click', playGame);
+    // sound: one mute button for every game, and a soft click on any button or card
+    const sb = $('#soundBtn');
+    const paintSound = () => {
+      sb.textContent = Sfx.isMuted() ? '\u{1F507}' : '\u{1F50A}';
+      sb.setAttribute('aria-pressed', String(!Sfx.isMuted()));
+      sb.setAttribute('aria-label', Sfx.isMuted() ? 'Sound is off. Tap to turn on' : 'Sound is on. Tap to mute');
+    };
+    sb.addEventListener('click', () => { Sfx.toggle(); if (!Sfx.isMuted()) Sfx.play('click'); });
+    Sfx.onChange(paintSound);
+    paintSound();
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest && e.target.closest('.btn, .chip, .game-card, .player-card, .opt-card, .creature');
+      if (t && t !== sb && !t.disabled) Sfx.play('click');
+    });
     $('#setupBack').addEventListener('click', () => openMenu(current.id));
     $('#sampleMore').addEventListener('click', updateSetup);
     $('#deletePlayer').addEventListener('click', () => {
