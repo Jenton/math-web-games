@@ -40,6 +40,13 @@ creatures already earned are kept.
 - One setup screen per game: pick grade and challenge in plain language, then Play
 - Four visual skins (Block World, Creatures, Fantasy, Cute), "calm" mode with no glitches
 
+## Deploying
+Merging to `main` publishes the site automatically (`.github/workflows/firebase-hosting-merge.yml`): it runs the node tests, builds a clean
+folder with `tools/build-site.sh` (only the files the game needs), deploys that folder to https://math-quest-family.web.app, and then checks
+the live site (what must be public is, and `.git`, workflows, docs, tests and Firebase rules are not). To publish something that is not on
+`main` yet, use `tools/deploy-hosting.sh` (`--dry-run` shows what would go out). **Never deploy from the repo folder itself**: that publishes
+`.git` and more, and a broad ignore pattern once hid every Kenney asset. `tests/site-build.test.js` guards both mistakes.
+
 ## Develop
 ```
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level

@@ -14,7 +14,7 @@ Last updated: 11 Nov 2026 (evening).
 | Escape Room (new game) | `escape-room` | PR open for review | `js/elogic.js`, `js/escape.js`, `css/escape.css`, `tests/escape.test.js`, `assets/kenney/escape/` | nothing |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
 | Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
-| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is merged. Lemonade Stand is merged. Number Defense is built and awaiting "ship it". Then only Balance (after the rework) and Creature Quest (art stream) remain. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js`, `js/lemonade.js`, `js/td.js` (motion hooks only) | Balance rework merged (for Balance only) |
+| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is merged. Lemonade Stand is merged. Number Defense is merged. Remaining: Balance (checked 11 Nov: rework still unmerged, so waiting; the plan is written in the guide) and Creature Quest (art stream). **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js`, `js/lemonade.js`, `js/td.js` (motion hooks only) | Balance rework merged (for Balance only) |
 | Done and merged | PR #6 Kenney art and sound, #7 Number Defense, #8 Lemonade Stand | Merged | | |
 
 ## Merge order
@@ -36,3 +36,5 @@ New games and big visual changes also follow `docs/new-game-checklist.md` (scene
 4. **Registry files are shared hotspots:** `index.html` (script tags and screens), `js/app.js` (the `GAMES` table), `js/save.js` (`registerGame`), `README.md`, `docs/game-ideas.md`, `css/style.css`. Keep your additions in one block with its own comment, and when two sides conflict there, **keep both**.
 5. **New games** must save through the `Store` helpers, register a merge rule in `js/save.js`, and add tests (see "How the code works now" in `docs/sync-design.md`).
 6. **Never force-push** a shared branch. If the remote has commits you lack, merge them.
+7. **Deploys are automatic.** Merging to `main` runs `.github/workflows/firebase-hosting-merge.yml`, which publishes only the folder built by `tools/build-site.sh`. Do not deploy from the repo folder (it publishes `.git`), and do not add files the site needs under `docs/`, `tests/`, `tools/` or a dot-folder: they are never published. `tests/site-build.test.js` checks that everything the game references is in the published folder.
+
