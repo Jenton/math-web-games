@@ -15,7 +15,7 @@
   'use strict';
 
   const SCHEMA_VERSION = 2;
-  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on' };
+  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on', questArt: 'classic' };
 
   const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
   const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -68,7 +68,7 @@
   registerGame('machine', { levels: 'counter' });
   registerGame(
     'rpg',
-    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww' },
+    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' },
     (g) => {
       // the team can only hold creatures you own, at most 3. This only FILTERS: it never invents a team (a defaulted value
       // saved as if a player chose it would make the merge order matter). Games compute their default team when reading.

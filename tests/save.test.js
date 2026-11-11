@@ -36,7 +36,7 @@ const merge = Save.mergeData;
   assert.strictEqual(d.schemaVersion, 2);
   assert.strictEqual(d.profiles.length, 2);
   const a = d.profiles.find((p) => p.id === 'pA');
-  assert.deepStrictEqual(a.settings, { band: '4-5', stars: 2, theme: 'cute', monsters: 'off' });
+  assert.deepStrictEqual(a.settings, { band: '4-5', stars: 2, theme: 'cute', monsters: 'off', questArt: 'classic' }); // new settings default in
   assert.deepStrictEqual(Save.statTotals(a, 'multiples'), { right: 7, wrong: 3 });
   assert.strictEqual(Save.sumCounter(a.games.munchers.levels), 5);
   assert.strictEqual(a.games.munchers.streak, 2);

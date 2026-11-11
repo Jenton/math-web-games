@@ -32,6 +32,8 @@ creatures already earned are kept.
   breaks through"); you pick the attack card that fits it. A card that doesn't fit does nothing and heals the monster.
   Five battles per adventure (monsters, an armored monster, a boss whose big attack a Balance puzzle cancels),
   a team of up to 3 creatures with specialist bonuses, XP and levels, and creatures you befriend by winning.
+- **World map** (Creature Quest): a Super Mario World style map. A token walks between spots (battle, armored monster, boss, rescue, story, camp); spots unlock along branching paths, clearing a boss opens the next region, and a perfect fight earns a gold star. Regions are data in `js/worldmap.js`.
+- **Two art looks** for Quest, chosen on its setup screen: *Classic fantasy* (16 px pixel art) and *Cute* (smooth, round animals and silly monsters). Art is a manifest (`js/art.js`) with emoji fallback. See `assets/CREDITS.md`.
 - One setup screen per game: pick grade and challenge in plain language, then Play
 - Four visual skins (Block World, Creatures, Fantasy, Cute), "calm" mode with no glitches
 
@@ -40,10 +42,11 @@ creatures already earned are kept.
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/rpg.test.js       # verifies Quest hands, armor math, progression, and that ignoring the math loses
+node tests/worldmap.test.js  # verifies map data and unlock rules, progress merging, and that every enemy/ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/storage.js`, `js/game.js`
-(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/art.js` (art manifest per theme), `js/worldmap.js` (map data and unlock rules, no DOM), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
 
 See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and
 `docs/sync-design.md` (cross-device saving plan), `docs/game-ideas.md` (backlog of future games, a "not built yet" checklist, and how to plug a new one in).

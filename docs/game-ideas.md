@@ -23,15 +23,15 @@ something is built. Details and design notes for each item are further down in t
 **Status today:** built = Munchers, Balance, Machine Builder, Creature Quest (first slice). Everything below is open.
 
 ### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
-- [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
-- [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
-- [ ] Art theme setting at game start (cute / classic fantasy / mix)
+- [x] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md` (still one enemy at a time; `js/art.js`, `js/quest.js`)
+- [x] Review and choose CC0 art packs for each theme: see `docs/art-shortlist.md`. Shipped: classic = Tiny Dungeon + Tiny Town (pixel), cute = Animal Pack + Monster Builder + Background Elements + Map Pack (smooth). No mixed default theme: the two families clash in one scene
+- [x] Art theme setting at game start (classic fantasy / cute), on the Quest setup screen
 - [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md`
   - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
   - [ ] Stage 2: encryption helpers + sync adapter tested against a local fake
   - [ ] Stage 3: Firebase project (owner's existing Google account), Hosting for the site, Firestore rules, deploy. Owner wants step-by-step hand-holding (the Firebase UI is confusing to them)
   - [ ] Stage 4: sync UI (set up family code, add device, sync status, manual sync)
-- [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
+- [ ] Save the in-progress adventure (map node progress is DONE: `cleared` and `gold` sets in `profile.games.rpg`, merge-tested; the quick adventure still restarts at battle 1) (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
 - [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
@@ -356,7 +356,7 @@ What exists now, and where it differs from the plan above:
 - **Difficulty:** the player's grade band and stars apply as in the other games. Simulations in `tests/rpg.test.js` check that a
   perfect player always wins, a learner who misses a third of the time still wins about 85% at 1 star, and random or
   power-only play mostly loses.
-- **Not built yet:** world map, character customization, Spellcraft (exact-HP) enemies, Machine Builder bosses, sound/art beyond emoji.
+- **Not built yet:** puzzle and bonus map nodes, camp healing, character customization, Spellcraft (exact-HP) enemies, Machine Builder bosses, sound/art beyond emoji.
   Next steps after playtesting: tune the numbers in the tunables block at the top of `js/rpg.js`, then add the map and customization.
 
 ---

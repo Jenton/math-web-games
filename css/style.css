@@ -204,3 +204,98 @@ dialog input, dialog select { display: block; width: 100%; font: inherit; paddin
 .charge-eq { font-size: 1.4rem; font-weight: 800; }
 
 @media (prefers-reduced-motion: reduce) { .xpbar > div, .bar .fill { transition: none; } }
+
+/* ---- Creature Quest: art, battle scene, world map ---- */
+.sprite { display: block; max-width: none; user-select: none; -webkit-user-select: none; }
+.sprite.pixel { image-rendering: pixelated; }
+.sprite.emoji { font-size: 2.4rem; line-height: 1; }
+.q-mate { display: inline-flex; align-items: center; justify-content: center; }
+.q-mate .sprite { height: 48px; width: auto; }
+.q-mate .sprite.emoji { height: auto; font-size: 2rem; }
+.pv-sprite .sprite { height: 96px; width: auto; }
+.pv-sprite .sprite.emoji { height: auto; font-size: 4rem; }
+.c-emoji .sprite { height: 64px; width: auto; margin: 0 auto; }
+.c-emoji .sprite.emoji { height: auto; font-size: 2.6rem; }
+
+/* battle stage: a backdrop, the monster on the right, your team bottom-left */
+.stage { position: relative; aspect-ratio: 16 / 9; max-height: 340px; width: 100%; margin: 10px auto; overflow: hidden; border: 3px solid var(--line); border-radius: var(--radius); background: #cfe9f7; }
+.stage-bg { position: absolute; inset: 0; background-size: cover; background-position: center bottom; background-repeat: no-repeat; }
+.stage[data-art="classic"] .stage-bg { image-rendering: pixelated; }
+.stage-info { position: absolute; top: 8px; left: 8px; width: min(46%, 250px); padding: 6px 10px; background: rgba(255, 255, 255, .88); color: #222; border-radius: 12px; border: 2px solid rgba(0, 0, 0, .25); z-index: 2; }
+.stage-info .e-name { font-size: 1rem; }
+.stage-info .bar { height: 12px; margin: 3px 0; background: #ddd; }
+.stage-info .note { color: #444; font-size: .8rem; }
+.stage-enemy { position: absolute; right: 9%; bottom: 30%; z-index: 1; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, .2)); }
+.stage-enemy .sprite { height: 96px; width: auto; }
+.stage[data-art="cute"] .stage-enemy .sprite { height: 118px; }
+.stage-enemy.boss .sprite { transform: scale(1.35); transform-origin: 50% 100%; }
+.stage-enemy .sprite.emoji { height: auto; font-size: 4.5rem; }
+.stage-team { position: absolute; left: 6%; bottom: 7%; display: flex; align-items: flex-end; gap: 4px; z-index: 1; }
+.stage-team .mate .sprite { height: 64px; width: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .2)); }
+.stage-team .mate:nth-child(2) { margin-bottom: 14px; }
+.stage-team .mate:nth-child(3) { margin-bottom: 4px; }
+.stage-team .mate .sprite.emoji { height: auto; font-size: 2.6rem; }
+@media (min-width: 640px) {
+  .stage-enemy .sprite { height: 128px; }
+  .stage[data-art="cute"] .stage-enemy .sprite { height: 150px; }
+  .stage-team .mate .sprite { height: 80px; }
+}
+.floaters { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.floater { position: absolute; transform: translate(-50%, 0); font-weight: 900; font-size: 1.6rem; color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; animation: floatUp 1s ease-out forwards; }
+.floater.heal { color: #8dff9c; }
+.floater.hit { color: #ff8585; }
+@keyframes floatUp { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -48px; } }
+.lunge { animation: lunge .45s ease-in-out; }
+.lunge-enemy { animation: lungeEnemy .45s ease-in-out; }
+.hurt { animation: hurt .5s linear; }
+.heal { animation: healGlow .6s ease-out; }
+.faint { animation: faint .9s ease-in forwards; }
+@keyframes lunge { 50% { transform: translateX(46px); } }
+@keyframes lungeEnemy { 50% { transform: translateX(-56px); } }
+@keyframes hurt { 0%, 100% { transform: translateX(0); filter: none; } 15% { transform: translateX(-8px); filter: brightness(2.2); } 35% { transform: translateX(8px); } 55% { transform: translateX(-6px); filter: brightness(2); } 75% { transform: translateX(4px); } }
+@keyframes healGlow { 0% { filter: drop-shadow(0 0 0 #7dff8a); } 40% { filter: drop-shadow(0 0 14px #7dff8a) brightness(1.2); } 100% { filter: none; } }
+@keyframes faint { to { opacity: 0; transform: translateY(18px) scale(.9); filter: grayscale(1); } }
+
+/* world map */
+.map-title { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; margin: 4px 0 8px; }
+.map-title h2 { margin: 0; }
+.map-title .help { margin: 2px 0 0; }
+.mapboard { position: relative; width: 100%; max-width: 780px; aspect-ratio: 30 / 17; margin: 0 auto; overflow: hidden; border: 3px solid var(--line); border-radius: var(--radius); background-size: 100% 100%; background-color: #5aa84a; }
+.mapboard[data-art="classic"] { image-rendering: pixelated; }
+.mapboard[data-art="classic"][data-region="keep"]::before { content: ""; position: absolute; inset: 0; background: rgba(70, 40, 110, .5); mix-blend-mode: multiply; }
+.mapboard[data-art="cute"] { background: linear-gradient(#a7e1fb, #7cc8f0); }
+.island { position: absolute; inset: 6% 3% 13% 3%; border-radius: 38% 44% 40% 46% / 48% 40% 50% 42%; background: #3ec97c; box-shadow: 0 14px 0 #c68b4f, inset 0 0 0 5px rgba(255, 255, 255, .28); }
+.island.castle { background: #a9bcc2; box-shadow: 0 14px 0 #8a6a52, inset 0 0 0 5px rgba(255, 255, 255, .3); }
+.decor { position: absolute; width: 8%; height: auto; transform: translate(-50%, -50%); pointer-events: none; }
+.mappaths { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mappaths line { vector-effect: non-scaling-stroke; stroke-linecap: round; fill: none; }
+.mapboard[data-art="classic"] .path-edge { stroke: #3b2a14; stroke-width: 9; }
+.mapboard[data-art="classic"] .path-line { stroke: var(--path, #a5702f); stroke-width: 5; stroke-dasharray: 2 9; }
+.mapboard[data-art="classic"] .path-line.lit { stroke: #f1d9a0; stroke-dasharray: 2 9; }
+.mapboard[data-art="cute"] .path-edge { stroke: #d49a00; stroke-width: 13; }
+.mapboard[data-art="cute"] .path-line { stroke: #ffd23f; stroke-width: 9; }
+.mapboard[data-art="cute"] .path-line.lit { stroke: #fff2a8; }
+.mnode { position: absolute; width: 46px; height: 46px; padding: 0; transform: translate(-50%, -50%); border-radius: 50%; border: 3px solid #fff; font: inherit; font-size: 1.3rem; line-height: 1; cursor: pointer; background: #ff6b6b; color: #fff; box-shadow: 0 3px 0 rgba(0, 0, 0, .35); touch-action: manipulation; }
+.mnode.elite { background: #6f7dff; }
+.mnode.boss { width: 56px; height: 56px; background: #b04bd6; font-size: 1.6rem; }
+.mnode.rescue { background: #1fb39a; }
+.mnode.story { background: #f2b632; }
+.mnode.camp { background: #4fbf63; }
+.mnode.locked { filter: grayscale(1); opacity: .65; cursor: not-allowed; }
+.mnode.open { animation: nodePulse 1.4s ease-in-out infinite; }
+.mnode.cleared { border-color: #ffe27a; }
+.mnode:focus-visible { outline: 3px solid #222; outline-offset: 3px; }
+.mnode .mark { position: absolute; top: -9px; right: -9px; min-width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #1f8f3a; font-size: .8rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+.mnode .nlabel { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 3px; padding: 0 6px; border-radius: 8px; background: rgba(255, 255, 255, .9); color: #222; font-size: .66rem; font-weight: 700; white-space: nowrap; pointer-events: none; }
+@media (max-width: 520px) { .mnode.locked .nlabel, .mnode.cleared .nlabel { display: none; } .mnode { width: 42px; height: 42px; } .mnode.boss { width: 50px; height: 50px; } }
+@keyframes nodePulse { 0%, 100% { box-shadow: 0 3px 0 rgba(0, 0, 0, .35), 0 0 0 0 rgba(255, 255, 255, .8); } 50% { box-shadow: 0 3px 0 rgba(0, 0, 0, .35), 0 0 0 10px rgba(255, 255, 255, 0); } }
+.token { position: absolute; z-index: 3; width: 44px; transform: translate(-50%, -112%); pointer-events: none; transition: left .5s ease, top .5s ease; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .25)); }
+.token .sprite { height: 44px; width: auto; margin: 0 auto; }
+.token .sprite.emoji { height: auto; font-size: 2rem; }
+.map-hint { text-align: center; margin: 10px 0 2px; font-weight: 600; }
+.map-key { text-align: center; font-size: .8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lunge, .lunge-enemy, .hurt, .heal, .faint, .mnode.open, .floater { animation: none !important; }
+  .token { transition: none; }
+}
