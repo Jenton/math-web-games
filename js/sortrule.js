@@ -138,5 +138,5 @@
 
   const api = { makeSort, gate, explainWrong, starsFor, rulesFor, MIN_TESTS, MAX_WRONG: 2, RANGE, SKILLS: { sort: 'Sort & Rule: finding the hidden rule' } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.MGS = api;
+  else root.MGR = api;
 })(typeof window !== 'undefined' ? window : globalThis);

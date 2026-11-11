@@ -1,9 +1,11 @@
-/* Creature Quest: RPG battle logic (first slice). Pure logic, no DOM, unit-tested in Node.
+/* Creature Quest: RPG battle logic (v2). Pure logic, no DOM, unit-tested in Node.
  *
- * Design rule: the math is the CHOICE, never a gate. Each turn the player is dealt a hand of attack
- * cards and an enemy with a weakness rule. Cards that fit the rule hit for big damage; cards that don't
- * are resisted, heal the enemy, and cost a turn. A wrong card is shown with a tempting high power on
- * purpose, so picking by power alone (ignoring the math) is a losing strategy (see tests/rpg.test.js).
+ * Design rules (see "Creature Quest v2" in docs/game-ideas.md):
+ *  - The math is the CHOICE, never a gate. A right answer does damage; a wrong answer does none.
+ *  - The math NEVER depends on the team. Every enemy has its own weakness and the hand you are dealt for it is the same whichever ally acts.
+ *    Allies change what a right answer DOES (hit all, split, crit, heal, shield, stun, hint...), so no team can make a fight unwinnable.
+ *  - Fights have 1 to 3 enemies, each with its own weakness. You tap an enemy to target it, pick an ally, and play a card.
+ *  - After your turn EVERY living enemy hits back. A wrong turn is costly because all of them still attack, so guessing loses.
  *
  * Enemy kinds:
  *   weakness : rule from the Munchers rule set for the player's grade band (js/engine.js)
@@ -21,17 +23,38 @@
   const shuffle = MG.shuffle;
   const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
 
-  /* ---------- tunables ---------- */
-  const PLAN = ['weakness', 'weakness', 'armor', 'weakness', 'boss']; // one adventure = 5 battles
-  const HIT = 3; // damage per point of (power + specialist bonus)
-  const HEAL = 4; // enemy heals this much when a wrong card is played
-  const ENEMY_HP = { weakness: [15, 18, 21], armor: [18, 21, 24], boss: [30, 36, 42] };
-  const ENEMY_ATK = 2;
-  const CHARGE = { every: 3, dmg: 5 };
-  const XP_BASE = { weakness: 10, armor: 15, boss: 30 };
+  /* ---------- tunables (a mutable object so simulations and tests can sweep them) ---------- */
+  const TUNE = {
+    BASE_DMG: 6, // damage of a right answer
+    SPECIALIST_BONUS: 3, // extra damage when the acting ally's theme matches the target's skill
+    HEAL_AMOUNT: 3,
+    SHIELD_MAX: 2,
+    TEAM_BASE_HP: 26,
+    TEAM_HP_PER_LEVEL: 2,
+    TEAM_HP_CAP: 50,
+    // enemy strength is the SAME at every star level: stars make the math (and the hand) harder, not the fight longer
+    ENEMY_HP: { weakness: [10, 10, 10], armor: [12, 12, 12], boss: [22, 22, 22] },
+    HAND_SIZE: [5, 5, 6], // cards dealt, by stars 1..3
+    // how many cards fit the weakness (min, max), by stars 1..3. Fewer right cards makes guessing a losing plan and does not hurt a player who
+    // knows the math. 1 star keeps 1-2 right cards so a beginner who can only half-judge each card still has a fair chance.
+    CORRECT_PER_HAND: [[1, 2], [1, 1], [1, 1]],
+    ENEMY_ATK: { weakness: 2, armor: 3, boss: 3 },
+    CHARGE: { every: 3, dmg: 7 },
+    XP_BASE: { weakness: 8, armor: 12, boss: 25 },
+  };
   const TEAM_SIZE = 3;
 
-  const maxHp = (level) => Math.min(40, 16 + 2 * (level - 1));
+  // One adventure = five encounters. Armor and boss encounters are rescues: a caged ally is freed when you win.
+  const ADVENTURE = [
+    { kinds: ['weakness'] },
+    { kinds: ['weakness', 'weakness'] },
+    { kinds: ['armor', 'weakness'], rescue: true },
+    { kinds: ['weakness', 'weakness', 'weakness'] },
+    { kinds: ['boss', 'weakness'], rescue: true },
+  ];
+  const PLAN = ADVENTURE;
+
+  const maxHp = (level) => Math.min(TUNE.TEAM_HP_CAP, TUNE.TEAM_BASE_HP + TUNE.TEAM_HP_PER_LEVEL * (level - 1));
   const xpToNext = (level) => 40 + 20 * (level - 1);
 
   /* ---------- content ---------- */
@@ -42,19 +65,20 @@
     '6': ['fractions', 'exponents', 'compare', 'primes', 'factors'],
   };
 
-  // Original characters (plain emoji, no licensed IP). id doubles as the skill theme the creature is strong against.
+  // Original characters (plain emoji, no licensed IP). id doubles as the skill theme the ally is an expert in. Each ally has an EFFECT that
+  // happens when a right answer is played with them. Effects only add on top of the right answer's damage, so no ally is ever required.
   const CREATURES = [
-    { id: 'multiples', name: 'Hopper', emoji: '🦘', blurb: 'A skip-counting champion.', strong: 'multiples' },
-    { id: 'factors', name: 'Splish', emoji: '🦦', blurb: 'Splits numbers into equal pieces.', strong: 'factors' },
-    { id: 'primes', name: 'Primo', emoji: '🦄', blurb: 'One of a kind, just like a prime.', strong: 'prime numbers' },
-    { id: 'even-odd', name: 'Pairo', emoji: '🐼', blurb: 'Always sorts things into pairs.', strong: 'even and odd' },
-    { id: 'compare', name: 'Owlbert', emoji: '🦉', blurb: 'Can tell which is bigger at a glance.', strong: 'greater and less' },
-    { id: 'rounding', name: 'Puffy', emoji: '🐡', blurb: 'Rounds off to the nearest friend.', strong: 'rounding' },
-    { id: 'expressions', name: 'Octo', emoji: '🐙', blurb: 'Eight arms, lots of sums.', strong: 'sums and expressions' },
-    { id: 'fractions', name: 'Fraxie', emoji: '🐰', blurb: 'Cuts carrots into equal slices.', strong: 'fractions' },
-    { id: 'exponents', name: 'Powzer', emoji: '🐲', blurb: 'Grows stronger with every power.', strong: 'exponents' },
-    { id: 'armor', name: 'Shelly', emoji: '🐢', blurb: 'Knows just how to crack a shield.', strong: 'armored enemies' },
-    { id: 'boss', name: 'Pebble', emoji: '🪨', blurb: 'A tiny golem pup. Great against bosses.', strong: 'bosses' },
+    { id: 'multiples', name: 'Hopper', emoji: '🦘', blurb: 'A skip-counting champion.', strong: 'multiples', effect: 'sweep', effectName: 'Skip-strike', effectText: 'Also hits every other enemy for half damage.' },
+    { id: 'factors', name: 'Splish', emoji: '🦦', blurb: 'Splits numbers into equal pieces.', strong: 'factors', effect: 'split', effectName: 'Split', effectText: 'Also hits the weakest other enemy for half damage.' },
+    { id: 'primes', name: 'Primo', emoji: '🦄', blurb: 'One of a kind, just like a prime.', strong: 'prime numbers', effect: 'crit', effectName: 'Lucky strike', effectText: '50% more damage.' },
+    { id: 'even-odd', name: 'Pairo', emoji: '🐼', blurb: 'Always sorts things into pairs.', strong: 'even and odd', effect: 'heal', effectName: 'Share', effectText: 'Heals your team a little.' },
+    { id: 'compare', name: 'Owlbert', emoji: '🦉', blurb: 'Can tell which is bigger at a glance.', strong: 'greater and less', effect: 'hint', effectName: 'Wise hint', effectText: 'Next turn, every hand has a wrong card removed.' },
+    { id: 'rounding', name: 'Puffy', emoji: '🐡', blurb: 'Rounds off to the nearest friend.', strong: 'rounding', effect: 'shield', effectName: 'Puff up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
+    { id: 'expressions', name: 'Octo', emoji: '🐙', blurb: 'Eight arms, lots of sums.', strong: 'sums and expressions', effect: 'combo', effectName: 'Many arms', effectText: '+2 damage for each right answer in a row (up to +6).' },
+    { id: 'fractions', name: 'Fraxie', emoji: '🐰', blurb: 'Cuts carrots into equal slices.', strong: 'fractions', effect: 'slice', effectName: 'Slice', effectText: 'Takes at least a quarter of the enemy\'s health.' },
+    { id: 'exponents', name: 'Powzer', emoji: '🐲', blurb: 'Grows stronger with every power.', strong: 'exponents', effect: 'stun', effectName: 'Roar', effectText: 'The enemy skips its next attack.' },
+    { id: 'armor', name: 'Shelly', emoji: '🐢', blurb: 'Knows just how to crack a shield.', strong: 'armored enemies', effect: 'shield', effectName: 'Shell up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
+    { id: 'boss', name: 'Pebble', emoji: '🪨', blurb: 'A tiny golem pup. Great against bosses.', strong: 'bosses', effect: 'stun', effectName: 'Rumble', effectText: 'The enemy skips its next attack.' },
   ];
   const creatureById = (id) => CREATURES.find((c) => c.id === id);
 
@@ -187,12 +211,19 @@
     };
   }
 
-  /* ---------- enemies, hands ---------- */
+  /* ---------- enemies, encounters, hands ---------- */
 
   const weakTitle = (rule) => rule.title.replace(/^Eat /, 'Weak to ');
+  const clampStars = (stars) => Math.min(3, Math.max(1, stars | 0 || 1));
 
-  function makeEnemy(band, stars, kind, lastRuleId) {
-    const s = Math.min(3, Math.max(1, stars | 0 || 1));
+  /**
+   * avoid: skill ids this enemy's weakness must NOT repeat (the other enemies in the same fight).
+   * prefer: skill ids to avoid if possible (for example the previous fight's), relaxed when a grade has too few skills to satisfy it.
+   */
+  function makeEnemy(band, stars, kind, avoid, prefer) {
+    const s = clampStars(stars);
+    const hard = [].concat(avoid || []);
+    const soft = hard.concat(prefer || []);
     let rule;
     let art;
     let themes;
@@ -201,7 +232,10 @@
       art = ENEMY_ART.armor;
       themes = ['armor'];
     } else {
-      rule = MG.makeLevelRule(band, s, lastRuleId);
+      for (let i = 0; i < 60; i++) {
+        rule = MG.makeLevelRule(band, s, null);
+        if (!(i < 30 ? soft : hard).includes(rule.id)) break;
+      }
       art = kind === 'boss' ? ENEMY_ART.boss : ENEMY_ART[rule.id];
       themes = kind === 'boss' ? [rule.id, 'boss'] : [rule.id];
     }
@@ -212,16 +246,65 @@
       rule,
       weakness: kind === 'armor' ? rule.title : weakTitle(rule),
       hint: rule.hint,
-      hp: ENEMY_HP[kind][s - 1],
-      atk: ENEMY_ATK,
-      charge: kind === 'boss' ? Object.assign({}, CHARGE) : null,
+      hp: TUNE.ENEMY_HP[kind][s - 1],
+      atk: TUNE.ENEMY_ATK[kind],
+      charge: kind === 'boss' ? Object.assign({}, TUNE.CHARGE) : null,
       themes,
     };
   }
 
+  /** Allies a rescue could free, in order: this grade's creatures you do not own, then Shelly. (Pebble is the boss rescue.) */
+  function rescueCandidates(band, owned) {
+    return (BAND_SKILLS[band] || BAND_SKILLS['2-3']).concat(['armor']).filter((id, i, a) => !owned.includes(id) && a.indexOf(id) === i);
+  }
+
+  /** Largest group a fight may have: at 1 star at most 2 monsters (gentler for the youngest), otherwise 3. */
+  const maxGroup = (stars) => (clampStars(stars) === 1 ? 2 : 3);
+
+  /**
+   * Build ONE encounter from enemy kinds, e.g. ['weakness', 'weakness'] or ['armor', 'weakness'] or ['boss', 'weakness'].
+   * Every enemy gets a different weakness. The group is capped by maxGroup(stars). The shape matches what planAdventure returns:
+   * { enemies, rescue, rescueSlot, hasBoss, skills }, ready for RPG.newBattle({ enemies, team, level, rescue }).
+   * opts: { prefer: skill ids to avoid if the grade has enough skills (e.g. the previous fight's), rescue: ally id freed by winning (or null) }.
+   */
+  function makeEncounter(band, stars, kinds, opts) {
+    const o = opts || {};
+    const s = clampStars(stars);
+    const list = kinds.slice(0, maxGroup(s));
+    const used = [];
+    const enemies = list.map((kind) => {
+      const e = makeEnemy(band, s, kind, used, o.prefer);
+      if (kind !== 'armor') used.push(e.rule.id);
+      return e;
+    });
+    return { enemies, rescue: o.rescue || null, rescueSlot: !!o.rescue, hasBoss: list.includes('boss'), skills: used };
+  }
+
+  /**
+   * Build the five encounters of an adventure. Groups have 1 to 3 enemies, each with a different weakness (at 1 star, at most 2 enemies).
+   * Two encounters are rescues: the ally freed is the next one the player does not own (the boss always guards Pebble first).
+   */
+  function planAdventure(band, stars, owned) {
+    const s = clampStars(stars);
+    const have = owned || [];
+    const cand = rescueCandidates(band, have);
+    let last = null;
+    const encounters = ADVENTURE.map((slot) => {
+      const enc = makeEncounter(band, s, slot.kinds, { prefer: [last].filter(Boolean) });
+      enc.rescueSlot = !!slot.rescue;
+      last = enc.skills[enc.skills.length - 1] || last;
+      return enc;
+    });
+    const first = cand.shift() || null;
+    encounters[2].rescue = first;
+    encounters[4].rescue = have.includes('boss') ? cand.shift() || null : 'boss';
+    return encounters;
+  }
+
   function makeHand(rule, stars) {
-    const size = stars === 3 ? 6 : 5;
-    const nCorrect = stars === 3 ? pick([1, 2]) : pick([2, 3]);
+    const size = TUNE.HAND_SIZE[stars - 1];
+    const [lo, hi] = TUNE.CORRECT_PER_HAND[stars - 1];
+    const nCorrect = rnd(lo, hi);
     const cards = [];
     const seen = new Set();
     const add = (gen) => {
@@ -232,126 +315,197 @@
         tries++;
       } while (seen.has(c.label) && tries < 40);
       seen.add(c.label);
-      cards.push(Object.assign({}, c, { correct: !!rule.check(c), power: rnd(1, 3) }));
+      cards.push(Object.assign({}, c, { correct: !!rule.check(c) }));
     };
     for (let i = 0; i < nCorrect; i++) add(rule.correct);
     for (let i = 0; i < size - nCorrect; i++) add(rule.wrong);
-    // a tempting wrong card at every level: the strongest-looking card is never a free pick
-    const wrong = cards.filter((c) => !c.correct);
-    if (wrong.length && !wrong.some((c) => c.power === 3)) pick(wrong).power = 3;
     return shuffle(cards);
   }
 
   /* ---------- battle ---------- */
 
-  function specialistBonus(teamIds, enemy) {
-    const n = teamIds.filter((id) => {
-      const c = creatureById(id);
-      return c && enemy.themes.includes(c.id);
-    }).length;
-    return Math.min(2, n);
-  }
+  const living = (b) => b.foes.filter((f) => f.alive);
 
   function startTurn(b) {
-    const e = b.enemy;
-    b.hand = makeHand(e.rule, b.stars);
-    b.charging = false;
-    b.puzzle = null;
-    if (e.charge && b.turn % e.charge.every === 0) {
-      b.charging = true;
-      b.puzzle = MGP.makeBalance(b.band, b.stars);
+    if (!b.foes[b.target] || !b.foes[b.target].alive) b.target = b.foes.findIndex((f) => f.alive);
+    // one hand per living enemy, dealt once per turn: switching targets never re-rolls a hand
+    b.hands = b.foes.map((f) => (f.alive ? makeHand(f.enemy.rule, b.stars) : []));
+    if (b.hintNext > 0) {
+      b.hands.forEach((h) => {
+        for (let n = 0; n < b.hintNext; n++) {
+          const wrong = h.map((c, i) => (c.correct ? -1 : i)).filter((i) => i >= 0);
+          if (wrong.length > 1) h.splice(pick(wrong), 1); // always leave at least one wrong card so the choice stays real
+        }
+      });
+      b.hintNext = 0;
     }
+    b.puzzle = null;
+    b.foes.forEach((f) => {
+      f.charging = false;
+      if (f.alive && f.enemy.charge && b.turn % f.enemy.charge.every === 0) {
+        f.charging = true;
+        b.puzzle = MGP.makeBalance(b.band, b.stars);
+      }
+    });
   }
 
   function newBattle(o) {
     const level = o.level || 1;
-    const team = (o.team || []).slice(0, TEAM_SIZE);
+    const enemies = o.enemies || [o.enemy];
     const b = {
       band: o.band,
       stars: o.stars,
-      enemy: o.enemy,
-      team,
       level,
+      team: (o.team || []).slice(0, TEAM_SIZE),
       teamMax: maxHp(level),
       teamHp: maxHp(level),
-      enemyMax: o.enemy.hp,
-      enemyHp: o.enemy.hp,
-      bonus: specialistBonus(team, o.enemy),
+      shield: 0,
+      foes: enemies.map((enemy, i) => ({ i, enemy, hp: enemy.hp, max: enemy.hp, alive: true, stunned: false, charging: false })),
+      rescue: o.rescue || null,
+      target: 0,
+      ally: 0,
       turn: 1,
       hits: 0,
       misses: 0,
+      streak: 0,
+      hintNext: 0,
       over: null,
-      stunned: false,
     };
     startTurn(b);
     return b;
   }
 
+  /** Choose which enemy to attack (a free action; the hand for each enemy was dealt at the start of the turn). */
+  function setTarget(b, i) {
+    if (b.over || !b.foes[i] || !b.foes[i].alive) return false;
+    b.target = i;
+    return true;
+  }
+  /** Choose which ally acts (a free action). */
+  function setAlly(b, j) {
+    if (b.over || j < 0 || j >= b.team.length) return false;
+    b.ally = j;
+    return true;
+  }
+  const currentHand = (b) => b.hands[b.target] || [];
+
   /** Solving the boss's Balance puzzle cancels its charge and stuns it for this turn. */
   function cancelCharge(b) {
-    if (!b.charging) return false;
-    b.charging = false;
+    const f = b.foes.find((x) => x.alive && x.charging);
+    if (!f) return false;
+    f.charging = false;
+    f.stunned = true;
     b.puzzle = null;
-    b.stunned = true;
     return true;
   }
 
-  /** Play hand[i]. Returns an event describing what happened (the UI explains it to the player). */
+  function damageFoe(f, amount, ev) {
+    const dealt = Math.min(f.hp, amount);
+    f.hp -= dealt;
+    const killed = f.hp <= 0;
+    if (killed) f.alive = false;
+    ev.hits.push({ i: f.i, amount, killed });
+  }
+
+  /** Play hand[i] against the current target with the current ally. Returns an event the UI animates and explains. */
   function play(b, i) {
     if (b.over) return null;
-    const card = b.hand[i];
+    const hand = currentHand(b);
+    const card = hand[i];
     if (!card) return null;
-    const e = b.enemy;
-    const ev = { card, correct: card.correct, dmg: 0, heal: 0, taken: 0, charged: false, stunned: false, over: null, msg: '' };
+    const foe = b.foes[b.target];
+    const allyId = b.team[b.ally];
+    const ally = creatureById(allyId);
+    const ev = { card, correct: card.correct, target: b.target, ally: allyId, effect: null, specialist: false, hits: [], healed: 0, shieldGained: 0, stunned: null, hint: false, msg: '', attacks: [], over: null };
+
     if (card.correct) {
-      ev.dmg = HIT * (card.power + b.bonus);
-      b.enemyHp = Math.max(0, b.enemyHp - ev.dmg);
+      ev.msg = foe.enemy.rule.ok(card);
+      let dmg = TUNE.BASE_DMG;
+      if (ally && foe.enemy.themes.includes(ally.id)) {
+        dmg += TUNE.SPECIALIST_BONUS;
+        ev.specialist = true;
+      }
+      const effect = ally ? ally.effect : null;
+      ev.effect = effect;
+      if (effect === 'crit') dmg = Math.round(dmg * 1.5);
+      if (effect === 'combo') dmg += Math.min(6, 2 * b.streak);
+      if (effect === 'slice') dmg = Math.max(dmg, Math.ceil(foe.max / 4));
+      const others = living(b).filter((f) => f !== foe);
+      damageFoe(foe, dmg, ev);
+      if (effect === 'sweep') others.forEach((f) => damageFoe(f, Math.max(1, Math.floor(dmg / 2)), ev));
+      if (effect === 'split' && others.length) damageFoe(others.slice().sort((x, y) => x.hp - y.hp)[0], Math.max(1, Math.floor(dmg / 2)), ev);
+      if (effect === 'heal') {
+        ev.healed = Math.min(TUNE.HEAL_AMOUNT, b.teamMax - b.teamHp);
+        b.teamHp += ev.healed;
+      }
+      if (effect === 'shield') {
+        ev.shieldGained = Math.min(TUNE.SHIELD_MAX, b.shield + 1) - b.shield;
+        b.shield += ev.shieldGained;
+      }
+      if (effect === 'stun' && foe.alive) {
+        foe.stunned = true;
+        ev.stunned = foe.i;
+      }
+      if (effect === 'hint') {
+        b.hintNext = 1;
+        ev.hint = true;
+      }
       b.hits++;
-      ev.msg = e.rule.ok(card);
+      b.streak++;
     } else {
-      ev.heal = Math.min(HEAL, b.enemyMax - b.enemyHp);
-      b.enemyHp += ev.heal;
+      ev.msg = foe.enemy.rule.why(card);
       b.misses++;
-      ev.msg = e.rule.why(card);
+      b.streak = 0;
     }
-    if (b.enemyHp <= 0) {
+
+    if (!living(b).length) {
       b.over = ev.over = 'win';
       return ev;
     }
-    if (b.charging) {
-      ev.taken = e.charge.dmg;
-      ev.charged = true;
-    } else if (b.stunned) {
-      ev.stunned = true;
-    } else {
-      ev.taken = e.atk;
-    }
-    b.stunned = false;
-    b.charging = false;
-    b.teamHp = Math.max(0, b.teamHp - ev.taken);
-    if (b.teamHp <= 0) {
-      b.over = ev.over = 'lose';
-      return ev;
+
+    // every living enemy hits back, one after another
+    for (const f of living(b)) {
+      const a = { i: f.i, dmg: 0, blocked: false, skipped: false, charged: false };
+      if (f.stunned) {
+        a.skipped = true;
+      } else {
+        a.charged = f.charging;
+        a.dmg = f.charging ? f.enemy.charge.dmg : f.enemy.atk;
+        if (b.shield > 0) {
+          b.shield--;
+          a.blocked = true;
+          a.dmg = 0;
+        }
+        b.teamHp = Math.max(0, b.teamHp - a.dmg);
+      }
+      f.stunned = false;
+      f.charging = false;
+      ev.attacks.push(a);
+      if (b.teamHp <= 0) {
+        b.over = ev.over = 'lose';
+        return ev;
+      }
     }
     b.turn++;
     startTurn(b);
     return ev;
   }
 
-  /** XP and unlocks for a won battle. XP rewards fighting well, not just showing up. */
+  /** XP for a won battle (every enemy counts). XP rewards fighting well, not just showing up. The rescued ally comes from the encounter. */
   function rewards(b) {
-    const k = b.enemy.kind;
-    let xp = XP_BASE[k];
-    if (b.misses === 0) xp += k === 'boss' ? 20 : 10;
+    let xp = 0;
+    b.foes.forEach((f) => (xp += TUNE.XP_BASE[f.enemy.kind]));
+    const boss = b.foes.some((f) => f.enemy.kind === 'boss');
+    if (b.misses === 0) xp += boss ? 20 : 10;
     else if (b.misses === 1) xp += 5;
-    return { xp, creature: k === 'boss' ? 'boss' : b.enemy.rule.id, kind: k, clean: b.misses === 0 };
+    return { xp, creature: b.rescue || null, boss, clean: b.misses === 0 };
   }
 
-  /** Apply rewards for this device. Returns { levelUps, joined } where joined is a creature or null. */
+  /** Apply rewards for this device. Returns { levelUps, joined } where joined is the freed ally or null. */
   function applyRewards(r, rw, dev) {
     const levelUps = addXp(r, rw.xp, dev);
     Save.incCounter(r.wins, dev, 1);
-    if (rw.kind === 'boss') Save.incCounter(r.bosses, dev, 1);
+    if (rw.boss) Save.incCounter(r.bosses, dev, 1);
     let joined = null;
     if (rw.creature && creatureById(rw.creature) && !r.creatures.includes(rw.creature)) {
       r.creatures.push(rw.creature);
@@ -362,13 +516,13 @@
     return { levelUps, joined };
   }
 
-  const sampleText = (band, stars) => 'A monster appears! ' + weakTitle(MG.makeLevelRule(band, stars, null)) + '. Which card do you play?';
+  const sampleText = (band, stars) => 'A group of monsters appears! One of them is ' + weakTitle(MG.makeLevelRule(band, stars, null)).replace(/^Weak/, 'weak') + '. Tap it, then play the card that fits.';
 
   const api = {
-    PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS, HIT, HEAL, CHARGE,
+    TUNE, ADVENTURE, PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS,
     creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
-    makeEnemy, makeHand, armorRule, weakTitle, sampleText,
-    newBattle, play, cancelCharge, specialistBonus, rewards, applyRewards,
+    makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, maxGroup, makeEncounter, planAdventure,
+    newBattle, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
   };
   if (isNode) module.exports = api;
   else root.RPG = api;

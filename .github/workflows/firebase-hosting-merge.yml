@@ -1,0 +1,30 @@
+# Deploys the site to Firebase Hosting (https://math-quest-family.web.app) every time something is merged into main,
+# but only if the node tests pass. The secret was created by `firebase init hosting:github`.
+name: Test, then deploy to Firebase Hosting
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run the node test suites
+        run: |
+          set -e
+          for t in tests/*.test.js; do echo "== $t"; node "$t"; done
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MATH_QUEST_FAMILY }}
+          channelId: live
+          projectId: math-quest-family

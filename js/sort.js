@@ -32,7 +32,7 @@
   function nextPuzzle() {
     const st = ctx.profile.settings;
     S.n++;
-    S.p = MGS.makeSort(st.band, st.stars);
+    S.p = MGR.makeSort(st.band, st.stars);
     S.tested = [];
     S.wrong = 0;
     S.out = new Set();
@@ -57,15 +57,15 @@
 
   function update() {
     $('sortTests').textContent = '🔬 ' + S.tested.length + ' tested';
-    const ready = S.tested.length >= MGS.MIN_TESTS;
+    const ready = S.tested.length >= MGR.MIN_TESTS;
     $('sortKnow').disabled = !ready;
-    $('sortKnow').textContent = ready ? 'I know the rule!' : 'Test ' + (MGS.MIN_TESTS - S.tested.length) + ' more to guess the rule';
+    $('sortKnow').textContent = ready ? 'I know the rule!' : 'Test ' + (MGR.MIN_TESTS - S.tested.length) + ' more to guess the rule';
   }
 
   function test(v, btn) {
     if (!S || S.tested.includes(v)) return;
     S.tested.push(v);
-    const ok = MGS.gate(S.p, v);
+    const ok = MGR.gate(S.p, v);
     Sfx.play(ok ? 'correct' : 'wrong');
     btn.disabled = true;
     btn.classList.add('used');
@@ -102,7 +102,7 @@
     if (!S) return;
     const prof = ctx.profile;
     if (i === S.p.correct) {
-      const stars = MGS.starsFor(S.tested.length, S.wrong, S.p.tray.length);
+      const stars = MGR.starsFor(S.tested.length, S.wrong, S.p.tray.length);
       S.stars += stars;
       Store.record(prof, 'sort', true);
       Store.bump(Store.game(prof, 'sort'), 'levels');
@@ -124,8 +124,8 @@
     Store.record(prof, 'sort', false);
     ctx.onSave();
     btn.disabled = true;
-    const why = MGS.explainWrong(S.p, i, S.tested);
-    if (S.wrong >= MGS.MAX_WRONG) {
+    const why = MGR.explainWrong(S.p, i, S.tested);
+    if (S.wrong >= MGR.MAX_WRONG) {
       Sfx.play('lose');
       const last = S.n >= ROUND;
       UI.panel({

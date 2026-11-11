@@ -36,7 +36,7 @@ const merge = Save.mergeData;
   assert.strictEqual(d.schemaVersion, 2);
   assert.strictEqual(d.profiles.length, 2);
   const a = d.profiles.find((p) => p.id === 'pA');
-  assert.deepStrictEqual(a.settings, { band: '4-5', stars: 2, theme: 'cute', monsters: 'off' });
+  assert.deepStrictEqual(a.settings, { band: '4-5', stars: 2, theme: 'cute', monsters: 'off', motion: 'full' });
   assert.deepStrictEqual(Save.statTotals(a, 'multiples'), { right: 7, wrong: 3 });
   assert.strictEqual(Save.sumCounter(a.games.munchers.levels), 5);
   assert.strictEqual(a.games.munchers.streak, 2);
@@ -78,7 +78,7 @@ function makeOps(dev) {
     if (roll < 0.2) Save.addStat(p, SKILLS[Math.floor(r() * SKILLS.length)], dev, r() < 0.6);
     else if (roll < 0.3) bump('munchers', 'levels');
     else if (roll < 0.38) bump('balance', 'levels');
-    else if (roll < 0.46) bump('machine', 'levels');
+    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); } }
     else if (roll < 0.56) {
       const o = g('rpg');
       o.creatures = [...new Set([...(o.creatures || []), CREATURES[Math.floor(r() * CREATURES.length)]])];
@@ -235,6 +235,41 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.deepStrictEqual(e.team, ['a', 'b', 'c'], 'a team holds at most 3');
   const f = Save.mergeGame('rpg', { creatures: ['a', 'b'] }, { creatures: ['c'] });
   assert.strictEqual(f.team, undefined, 'merging never invents a team; the game computes its own default when reading');
+}
+
+/* ---------- Quest world map: cleared nodes and gold stars only grow, and merge as unions ---------- */
+{
+  const a = { creatures: [], cleared: ['m1', 'm2'], gold: ['m1'] };
+  const b = { creatures: [], cleared: ['m2', 'm3'], gold: ['m3'] };
+  const ab = Save.mergeGame('rpg', a, b);
+  assert.deepStrictEqual(ab.cleared, ['m1', 'm2', 'm3'], 'cleared nodes union across devices');
+  assert.deepStrictEqual(ab.gold, ['m1', 'm3'], 'gold stars union across devices');
+  assert.deepStrictEqual(Save.mergeGame('rpg', b, a), ab, 'merge order does not matter');
+  assert.deepStrictEqual(Save.mergeGame('rpg', ab, ab), ab, 'merging twice changes nothing');
+  assert.deepStrictEqual(Save.mergeGame('rpg', { creatures: [] }, { creatures: [], cleared: ['m1'] }).cleared, ['m1'], 'a device with no map progress loses nothing');
+}
+
+/* ---------- merging in place keeps object identity (a running game must keep saving into live data) ---------- */
+{
+  const mk = (id, name) => Save.newProfile({ id, name, avatar: 'x', now: 1 });
+  const local = Save.newData();
+  local.profiles.push(mk('p1', 'One'), mk('p2', 'Two'));
+  const held = local.profiles[0]; // what a game holds
+  const heldArray = local.profiles;
+  const remote = clone(local);
+  Save.incCounter((remote.profiles[0].games.munchers = { levels: {} }).levels, 'pad', 7);
+  remote.profiles.push(mk('p3', 'Three'));
+  remote.deleted.p2 = 99; remote.profiles = remote.profiles.filter((p) => p.id !== 'p2');
+  const merged = Save.mergeData(local, remote);
+  Save.assignInPlace(local, merged);
+  assert.strictEqual(local.profiles, heldArray, 'the profiles array is the same object');
+  assert.strictEqual(local.profiles[0], held, 'an existing profile is updated in place, not replaced');
+  assert.strictEqual(Save.sumCounter(held.games.munchers.levels), 7, 'and it holds the merged progress');
+  assert.deepStrictEqual(local.profiles.map((p) => p.id), ['p1', 'p3'], 'removed players go, new players arrive');
+  assert.deepStrictEqual(Save.canon(local), Save.canon(merged), 'the result equals the merge');
+  // a game that keeps saving into `held` after a merge still saves into live data
+  Save.incCounter(held.games.munchers.levels, 'lap', 1);
+  assert.strictEqual(Save.sumCounter(local.profiles[0].games.munchers.levels), 8);
 }
 
 console.log(`OK: migration verified; merge is commutative, associative and idempotent over ${laws} random multi-device histories; ` +

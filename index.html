@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Math Quest</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/motion.css">
 </head>
 <body data-theme="block">
   <button id="soundBtn" class="sound-btn" type="button" aria-label="Sound is on. Tap to mute" aria-pressed="true">&#128266;</button>
@@ -19,6 +20,27 @@
         <button id="backupBtn" class="btn ghost" type="button">Save a backup file</button>
         <label class="btn ghost file">Load a backup<input id="restoreInput" type="file" accept="application/json,.json" hidden></label>
       </div>
+      <details id="syncBox" class="grownups sync">
+        <summary>Sync between devices (grown-ups) <span id="syncPill" class="pill" hidden></span></summary>
+        <div id="syncUnavailable" hidden>
+          <p class="help">Cloud sync is not connected on this website yet. Use the backup file above to move progress between devices.</p>
+        </div>
+        <div id="syncOff" hidden>
+          <p>Keep the same players and progress on every device (laptop, iPad, phone). Progress is encrypted on the device before it is uploaded, so nobody can read it without your family password.</p>
+          <div class="row">
+            <button id="syncSetupBtn" class="btn small" type="button">Set up sync on this device</button>
+            <button id="syncJoinBtn" class="btn ghost small" type="button">Add this device to my family</button>
+          </div>
+        </div>
+        <div id="syncOn" hidden>
+          <p id="syncStatus" role="status" aria-live="polite"></p>
+          <div class="row">
+            <button id="syncNowBtn" class="btn small" type="button">Sync now</button>
+            <button id="syncShowBtn" class="btn ghost small" type="button">Show family password</button>
+            <button id="syncStopBtn" class="btn danger small" type="button">Stop syncing on this device</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- MENU: games + settings for one player -->
@@ -38,6 +60,12 @@
           <span class="g-ico"><img class="g-img" src="assets/kenney/animals/frog.png" alt=""></span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="defense" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/animals/owl.png" alt=""></span>
+          <span class="g-name">Number Defense</span>
+          <span class="g-desc">Numbers march at your castle. Build the towers whose rules stop them.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="balance" type="button">
@@ -64,6 +92,19 @@
           <span class="g-desc">Cut the pizza so every friend gets a fair share.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="lemonade" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/lemonade/pitcher.png" alt=""></span>
+          <span class="g-name">Lemonade Stand</span>
+          <span class="g-desc">Run a stand: make change, buy the right amount, and set the price that earns the most.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+      </div>
+
+      <h2>Settings</h2>
+      <div class="setting">
+        <span class="s-label">Motion</span>
+        <div id="setMotion" class="chips"></div>
+        <p class="help">"Reduce motion" turns off bouncing, shaking and sliding in every game. If your device already asks apps to reduce motion, we follow that too.</p>
       </div>
 
       <details class="grownups">
@@ -91,6 +132,12 @@
         <span class="s-label">Example of what you'll see</span>
         <p id="sampleRule" class="sample-rule"></p>
         <button id="sampleMore" class="btn ghost small" type="button">Show another example</button>
+      </div>
+
+      <div id="questArtBox" class="setting" hidden>
+        <h2>3. Pick a look</h2>
+        <div id="setQuestArt" class="chips"></div>
+        <p id="questArtHelp" class="help">Only changes the pictures. The game stays the same.</p>
       </div>
 
       <div id="extras">
@@ -132,6 +179,28 @@
       </div>
     </section>
 
+    <!-- GAME: Number Defense -->
+    <section id="td" class="screen" hidden>
+      <div class="hud">
+        <button id="tdBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="tdNo" class="pill"></span>
+        <span id="tdGold" class="pill"></span>
+        <span id="tdGate" class="hearts" aria-label="Castle hearts"></span>
+      </div>
+      <h2 class="rule-title">Defend the castle</h2>
+      <p class="rule-hint">Each tower only hurts numbers that fit its rule. Cover every incoming number, but gold is limited.</p>
+      <div class="s-label">Incoming wave (in order)</div>
+      <div id="tdPreview" class="td-preview"></div>
+      <div id="tdLane" class="td-lane"></div>
+      <p id="tdHelp" class="help center" role="status" aria-live="polite"></p>
+      <div class="row center">
+        <button id="tdGo" class="btn big" type="button">&#9654; Send the wave</button>
+        <button id="tdClear" class="btn ghost" type="button">Clear towers</button>
+        <button id="tdSpeed" class="btn ghost small" type="button">Normal</button>
+      </div>
+      <div id="tdShop" class="td-shop"></div>
+    </section>
+
     <!-- GAME: Machine Builder -->
     <section id="machine" class="screen" hidden>
       <div class="hud">
@@ -154,6 +223,33 @@
       </div>
     </section>
 
+    <!-- GAME: Lemonade Stand -->
+    <section id="lemonade" class="screen" hidden>
+      <div class="hud">
+        <button id="lemBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="lemNo" class="pill"></span>
+      </div>
+      <h2 id="lemTitle" class="rule-title"></h2>
+      <div class="lem-scene" aria-hidden="false">
+        <img class="lem-cloud c1" src="assets/kenney/lemonade/cloud1.png" alt="">
+        <img class="lem-cloud c2" src="assets/kenney/lemonade/cloud3.png" alt="">
+        <div class="lem-row">
+          <div id="lemQueue" class="lem-queue" aria-hidden="true"></div>
+          <div class="lem-stand" aria-hidden="true">
+            <div class="lem-awning"></div>
+            <div class="lem-counter"><img src="assets/kenney/lemonade/pitcher.png" alt=""><span>LEMONADE</span><img src="assets/kenney/lemonade/cup.png" alt=""></div>
+          </div>
+
+        </div>
+        <div class="lem-whowrap"><img id="lemWho" class="lem-who" src="assets/kenney/lemonade/animals/pig.png" alt=""><img id="lemEmote" class="lem-emote" alt="" hidden></div>
+        <p id="lemText" class="lem-bubble"></p>
+        <img class="lem-bush" src="assets/kenney/lemonade/bush.png" alt="">
+      </div>
+      <div id="lemBody" class="lem-body"></div>
+      <p id="lemMsg" class="sums" role="status" aria-live="polite"></p>
+      <div class="controls"><button id="lemGo" class="btn big" type="button"></button></div>
+    </section>
+
     <!-- GAME: Creature Quest (RPG) -->
     <section id="quest" class="screen" hidden>
       <div id="qHome">
@@ -169,10 +265,26 @@
         <span class="s-label">Your team</span>
         <div id="qHomeTeam" class="q-team"></div>
         <div class="row">
-          <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Begin adventure</button>
+          <button id="qMapBtn" class="btn big" type="button">&#128506;&#65039; World map</button>
+          <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Quick adventure</button>
           <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
         </div>
-        <p class="note">An adventure is 5 battles: three monsters, an armored monster, and a boss.</p>
+        <p class="note">The world map is a story: walk from spot to spot, fight groups of monsters and rescue friends. A quick adventure is 5 battles in a row. In both, a friend is trapped in a cage in some fights: win to set them free!</p>
+      </div>
+
+      <div id="qMap" hidden>
+        <div class="hud">
+          <button id="qMapBack" class="btn ghost small" type="button">&larr; Quest</button>
+          <span id="qMapStars" class="pill"></span>
+        </div>
+        <div class="map-title">
+          <button id="qMapPrev" class="btn ghost small" type="button" aria-label="Previous region">&#9664;</button>
+          <div><h2 id="qMapName"></h2><p id="qMapBlurb" class="help"></p></div>
+          <button id="qMapNext" class="btn ghost small" type="button" aria-label="Next region">&#9654;</button>
+        </div>
+        <div id="qMapBoard" class="mapboard"></div>
+        <p id="qMapHint" class="note map-hint" role="status" aria-live="polite"></p>
+        <p class="note map-key">&#9876;&#65039; battle &nbsp; &#128737;&#65039; armored &nbsp; &#128081; boss &nbsp; &#128477;&#65039; rescue &nbsp; &#128172; story &nbsp; &#9978; camp &nbsp; &#10003; cleared &nbsp; &#11088; perfect</p>
       </div>
 
       <div id="qPrep" hidden>
@@ -181,8 +293,8 @@
           <span id="qRun" class="pill"></span>
         </div>
         <div id="qPreview" class="q-preview">
-          <span id="qPvEmoji" class="e-emoji"></span>
-          <div><div id="qPvName" class="e-name"></div><div class="note">Its weakness:</div><div id="qPvWeak" class="pv-weak"></div></div>
+          <div id="qPvFoes" class="pv-foes"></div>
+          <p id="qPvRescue" class="pv-rescue" hidden></p>
         </div>
         <h2 id="qPrepTitle"></h2>
         <p id="qPrepHelp" class="help"></p>
@@ -199,13 +311,10 @@
           <span id="qRunPill" class="pill"></span>
           <span id="qTurn" class="pill"></span>
         </div>
-        <div class="enemy">
-          <span id="qEnemyEmoji" class="e-emoji"></span>
-          <div class="e-info">
-            <div id="qEnemyName" class="e-name"></div>
-            <div class="bar" aria-hidden="true"><div id="qEnemyHp" class="fill hp"></div></div>
-            <div id="qEnemyHpText" class="note"></div>
-          </div>
+        <div id="qScene" class="scene">
+          <div id="qFoes" class="foes"></div>
+          <div id="qMates" class="mates" aria-hidden="true"></div>
+          <div id="qFloats" class="floats" aria-hidden="true"></div>
         </div>
         <div class="weak">
           <div id="qWeakTitle" class="weak-title"></div>
@@ -225,14 +334,16 @@
           <p id="qChargeSums" class="sums"></p>
           <button id="qgLock" class="btn" type="button">Lock it in</button>
         </div>
-        <p class="s-label hand-label">Your attack cards <span class="opt">(more &#9876;&#65039; = more power, but only a card that fits the weakness hits)</span></p>
+        <p id="qHandLabel" class="s-label hand-label"></p>
         <div id="qHand" class="hand"></div>
         <p id="qLog" class="log" role="status" aria-live="polite"></p>
+        <p class="s-label">Who acts? <span class="opt">(&#11088; = an expert against the monster you picked)</span></p>
+        <div id="qAllies" class="allies"></div>
         <div class="team-bar">
-          <div id="qTeam" class="q-team"></div>
           <div class="hp"><span class="s-label">Team health</span><div class="bar" aria-hidden="true"><div id="qTeamHp" class="fill good"></div></div><span id="qTeamHpText" class="note"></span></div>
+          <div id="qShield" class="shield" aria-live="polite"></div>
         </div>
-        <p class="note">Tip: keys 1 to 6 play a card.</p>
+        <p class="note">Tip: tap a monster to attack it, tap a friend to choose who acts. Keys 1 to 6 play a card.</p>
       </div>
     </section>
 
@@ -290,85 +401,6 @@
       <div class="controls">
         <button id="shGo" class="btn big" type="button">Share it!</button>
         <p class="note">Work it out first. The totals only show after you share, and you get 3 tries.</p>
-    <!-- GAME: Creature Quest (RPG) -->
-    <section id="quest" class="screen" hidden>
-      <div id="qHome">
-        <div class="hud"><button id="qBack" class="btn ghost small" type="button">&larr; Setup</button></div>
-        <h1>Creature Quest</h1>
-        <p class="lead">Monsters have a weakness. Pick the attack card that fits it, and your team strikes hard!</p>
-        <div class="q-level">
-          <span id="qLevel" class="pill"></span>
-          <div class="xpbar"><div id="qXp"></div></div>
-          <span id="qXpText" class="note"></span>
-        </div>
-        <p id="qStats" class="note"></p>
-        <span class="s-label">Your team</span>
-        <div id="qHomeTeam" class="q-team"></div>
-        <div class="row">
-          <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Begin adventure</button>
-          <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
-        </div>
-        <p class="note">An adventure is 5 battles: three monsters, an armored monster, and a boss.</p>
-      </div>
-
-      <div id="qPrep" hidden>
-        <div class="hud">
-          <button id="qPrepBack" class="btn ghost small" type="button">&larr; Back</button>
-          <span id="qRun" class="pill"></span>
-        </div>
-        <div id="qPreview" class="q-preview">
-          <span id="qPvEmoji" class="e-emoji"></span>
-          <div><div id="qPvName" class="e-name"></div><div class="note">Its weakness:</div><div id="qPvWeak" class="pv-weak"></div></div>
-        </div>
-        <h2 id="qPrepTitle"></h2>
-        <p id="qPrepHelp" class="help"></p>
-        <div id="qRoster" class="roster"></div>
-        <div class="playbar">
-          <p id="qPrepSummary" class="summary"></p>
-          <button id="qFight" class="btn big" type="button"></button>
-        </div>
-      </div>
-
-      <div id="qBattle" hidden>
-        <div class="hud">
-          <button id="qFlee" class="btn ghost small" type="button">&larr; Leave</button>
-          <span id="qRunPill" class="pill"></span>
-          <span id="qTurn" class="pill"></span>
-        </div>
-        <div class="enemy">
-          <span id="qEnemyEmoji" class="e-emoji"></span>
-          <div class="e-info">
-            <div id="qEnemyName" class="e-name"></div>
-            <div class="bar" aria-hidden="true"><div id="qEnemyHp" class="fill hp"></div></div>
-            <div id="qEnemyHpText" class="note"></div>
-          </div>
-        </div>
-        <div class="weak">
-          <div id="qWeakTitle" class="weak-title"></div>
-          <div id="qWeakHint" class="rule-hint"></div>
-        </div>
-        <div id="qCharge" class="charge" hidden>
-          <strong>&#9889; Big attack incoming!</strong>
-          <p>Level the scale to cancel it and stun the boss. Or just pick a card and take the hit.</p>
-          <p id="qChargeEq" class="charge-eq"></p>
-          <div class="guess">
-            <button id="qgBigMinus" class="btn ghost" type="button" aria-label="minus 10">&minus;10</button>
-            <button id="qgMinus" class="btn ghost big" type="button" aria-label="minus 1">&minus;</button>
-            <div id="qgVal" class="gval"></div>
-            <button id="qgPlus" class="btn ghost big" type="button" aria-label="plus 1">+</button>
-            <button id="qgBigPlus" class="btn ghost" type="button" aria-label="plus 10">+10</button>
-          </div>
-          <p id="qChargeSums" class="sums"></p>
-          <button id="qgLock" class="btn" type="button">Lock it in</button>
-        </div>
-        <p class="s-label hand-label">Your attack cards <span class="opt">(more &#9876;&#65039; = more power, but only a card that fits the weakness hits)</span></p>
-        <div id="qHand" class="hand"></div>
-        <p id="qLog" class="log" role="status" aria-live="polite"></p>
-        <div class="team-bar">
-          <div id="qTeam" class="q-team"></div>
-          <div class="hp"><span class="s-label">Team health</span><div class="bar" aria-hidden="true"><div id="qTeamHp" class="fill good"></div></div><span id="qTeamHpText" class="note"></span></div>
-        </div>
-        <p class="note">Tip: keys 1 to 6 play a card.</p>
       </div>
     </section>
 
@@ -402,6 +434,44 @@
     </div>
   </main>
 
+  <dialog id="syncSetup">
+    <div id="ssIntro">
+      <h2>Set up sync</h2>
+      <p>Choose a <b>family password</b> of at least 10 characters. A short sentence only your family would think of works well, and spaces are fine. Anyone who knows it can see and change your kids' progress, so keep it private.</p>
+      <label>Family password <input id="ssPassword" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <p id="ssHint" class="help" aria-live="polite">At least 10 characters. Capital letters do not matter.</p>
+      <p>You will type it once on each other device (laptop, iPad, phone).</p>
+      <p id="ssError" class="error" role="alert" hidden></p>
+      <div class="row">
+        <button id="ssCreatePw" class="btn" type="button" disabled>Use this password</button>
+        <button id="ssCancel" class="btn ghost" type="button">Cancel</button>
+      </div>
+      <p class="help">Rather not make one up? <button id="ssCreate" class="linklike" type="button">Make a random family code for me instead</button></p>
+    </div>
+    <div id="ssCode" hidden>
+      <h2 id="ssCodeTitle">Your family password</h2>
+      <p id="ssCodeText" class="code" aria-label="Your family password"></p>
+      <div class="row">
+        <button id="ssCopy" class="btn ghost small" type="button">Copy</button>
+        <button id="ssSave" class="btn ghost small" type="button">Save as a text file</button>
+      </div>
+      <p id="ssWarn" class="help">Write this down or save it somewhere safe. You will need it to add other devices. You can also see it again on this device under "Show family password".</p>
+      <label id="ssSavedLabel" class="check"><input type="checkbox" id="ssSaved"> I saved it</label>
+      <div class="row"><button id="ssDone" class="btn" type="button" disabled>Done</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="syncJoin">
+    <h2>Add this device</h2>
+    <p>Enter your family password (or the 16-letter family code, if you made one). Players already on this device will be combined with your family's players.</p>
+    <label>Family password or code <input id="sjCode" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+    <p id="sjError" class="error" role="alert" hidden></p>
+    <div class="row">
+      <button id="sjGo" class="btn" type="button">Add this device</button>
+      <button id="sjCancel" class="btn ghost" type="button">Cancel</button>
+    </div>
+  </dialog>
+
   <dialog id="newPlayer">
     <form id="npForm" method="dialog">
       <h2>New player</h2>
@@ -418,14 +488,24 @@
 
   <script src="js/engine.js"></script>
   <script src="js/save.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-backend.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/sync-ui.js"></script>
   <script src="js/sfx.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/puzzles.js"></script>
   <script src="js/rpg.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/shop.js"></script>
   <script src="js/balance.js"></script>
+  <script src="js/lemonade.js"></script>
   <script src="js/machine.js"></script>
+  <script src="js/tdlogic.js"></script>
+  <script src="js/td.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/worldmap.js"></script>
   <script src="js/sortrule.js"></script>
   <script src="js/sort.js"></script>
   <script src="js/cutshare.js"></script>

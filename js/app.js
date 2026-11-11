@@ -13,9 +13,9 @@
   const GAMES = {
     quest: {
       name: 'Creature Quest', ico: 'medals/m3', extras: false, mod: () => Quest,
-      how: ['Every monster has a <b>weakness</b>, like "multiples of 6".', '<b>Pick the attack card</b> that fits it. More ⚔️ means more power, but a card that does not fit does nothing and heals the monster!', 'Win battles to <b>level up</b>, befriend <b>creatures</b>, and take on the boss.'],
-      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
-      stars: [['★ Easier', 'Weaker monsters, 5 cards to pick from.'], ['★★ Medium', 'Tougher monsters and trickier cards.'], ['★★★ Harder', 'Strong monsters, 6 cards, and cards that nearly fit.']],
+      how: ['Monsters come in <b>groups</b>, and each has its own <b>weakness</b>, like "multiples of 6". <b>Tap a monster</b> to attack it.', '<b>Pick the card</b> that fits its weakness. A right card does damage. A wrong card does nothing, and <b>every monster hits back</b>!', 'Choose which <b>friend</b> acts: each has a special power. <b>Rescue caged friends</b> to grow your team and win the boss fight.'],
+      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves, thirds and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
+      stars: [['★ Easier', 'Smaller numbers, 2 monsters at most, 5 cards.'], ['★★ Medium', 'Bigger numbers, up to 3 monsters.'], ['★★★ Harder', 'The trickiest numbers, up to 3 monsters, 6 cards.']],
       sample: (s) => RPG.sampleText(s.band, s.stars),
     },
     munchers: {
@@ -32,6 +32,20 @@
       stars: [['★ Easier', 'Smaller numbers.'], ['★★ Medium', 'Bigger numbers and more blocks.'], ['★★★ Harder', 'The trickiest numbers and more blocks.']],
       sample: (s) => MGP.makeBalance(s.band, s.stars).text,
     },
+    lemonade: {
+      name: 'Lemonade Stand', ico: 'lemonade/pitcher', extras: false, mod: () => Lemonade,
+      how: ['Each <b>day</b> has four linked jobs: set the <b>price</b>, buy the right amount for the customers it brings, then make <b>change</b> for two of them.', 'Build change from coins, or pick a number with − and +.', 'Wrong answers show the arithmetic, so you can try again.'],
+      band: { 'K-1': 'Change from $1 in coins, and small pitcher counts.', '2-3': 'Change to the cent, and how many pitchers for the crowd.', '4-5': 'Several cups at once, lemons per pitcher, and a sign that costs money.', '6': 'Percent-off sales, recipe ratios, and bigger profits.' },
+      stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
+      sample: (s) => MGS.makeStock(s.band, s.stars).text,
+    },
+    defense: {
+      name: 'Number Defense', ico: 'animals/owl', extras: false, mod: () => Defense,
+      how: ['Numbers march toward your castle. The <b>incoming wave</b> is shown before it starts.', 'Every tower has a <b>rule</b>, like "multiples of 3". It only stops numbers that fit. Gold is limited, so pick towers that cover the whole wave.', '<b>Send the wave</b> and watch. Numbers that slip through are explained.'],
+      band: { 'K-1': 'Even, odd, more than and less than, counting by 5s and 10s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, odd numbers, more and less than.', '4-5': 'Multiples up to 9, prime numbers, factors of a number.', '6': 'Primes, squares, powers of 2, bigger multiples, negatives, factors.' },
+      stars: [['★ Easier', '7 numbers, a little spare gold.'], ['★★ Medium', '9 numbers, less spare gold.'], ['★★★ Harder', '11 numbers and only just enough gold.']],
+      sample: (s) => { const w = TDL.makeWave(s.band, s.stars); return 'Stop ' + w.enemies.slice(0, 5).map(TDL.fmt).join(', ') + '… with ' + w.budget + ' gold. Towers: ' + w.shop.map((r) => r.name).join(', '); },
+    },
     machine: {
       name: 'Machine Builder', ico: 'balance/pipe01', extras: false, mod: () => Machine,
       how: ['You get a <b>start number</b>, a <b>target</b>, and a few operation cards.', '<b>Tap cards</b> to build a chain. Each one changes the number.', 'Reach the target in as <b>few steps</b> as you can for more stars.'],
@@ -44,7 +58,7 @@
       how: ['The gate has a <b>secret rule</b>. Pick a number to send through and see if it passes or is stopped.', 'Test a few numbers and <b>look for the pattern</b>. Testing fewer numbers earns more stars.', 'Then <b>pick the rule</b> from four choices. A wrong pick shows you a number that proves it wrong.'],
       band: { 'K-1': 'Even or odd, bigger or smaller than a number, counting by 5s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, and numbers in between.', '4-5': 'Multiples up to 9, prime and square numbers, factors.', '6': 'Rules with "and", "or" and "not", like prime or square.' },
       stars: [['★ Easier', 'Simple one-part rules.'], ['★★ Medium', 'Trickier rules.'], ['★★★ Harder', 'The trickiest rules, some with two parts.']],
-      sample: (s) => { const p = MGS.makeSort(s.band, s.stars); return 'The gate lets through… ' + p.rule.text; },
+      sample: (s) => { const p = MGR.makeSort(s.band, s.stars); return 'The gate lets through… ' + p.rule.text; },
     },
     share: {
       name: 'Cut & Share', ico: '🍕', extras: false, mod: () => Share,
@@ -59,18 +73,19 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'machine', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
   function applyTheme(p) {
     document.body.dataset.theme = p ? p.settings.theme : 'block';
+    document.documentElement.dataset.motion = p && p.settings.motion === 'reduced' ? 'reduced' : 'full';
   }
 
   /* ---------- home ---------- */
 
-  function renderHome() {
-    applyTheme(null);
+  /** Rebuild the player list and save note (safe to call any time; does not switch screens or scroll). */
+  function renderPlayers() {
     const list = $('#players');
     list.innerHTML = '';
     Store.profiles.forEach((p) => {
@@ -93,6 +108,11 @@
     if (!Store.ok) note.textContent = '⚠️ Your browser is blocking saving. Progress will be lost when you close this page.';
     else if (Store.lastSaved) note.textContent = 'Saved on this device · last saved ' + new Date(Store.lastSaved).toLocaleString();
     else note.textContent = 'Everything is saved privately on this device. No accounts, no ads.';
+  }
+
+  function renderHome() {
+    applyTheme(null);
+    renderPlayers();
     show('home');
   }
 
@@ -175,6 +195,7 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');
     stats.innerHTML = '';
     const ids = Store.statSkills(current);
@@ -182,11 +203,11 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || MGS.SKILLS[k] || MGC.SKILLS[k] || RPG.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved, ' + count('rpg', 'wins') + ' Quest battles won';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
     show('menu');
   }
 
@@ -209,10 +230,13 @@
     applyTheme(current);
     const s = current.settings;
     const save = () => { Store.save(); updateSetup(); };
-    $('#setupIco').innerHTML = '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">';
+    $('#setupIco').innerHTML = g.ico.includes('/') ? '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">' : g.ico;
     $('#setupTitle').textContent = g.name;
     $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
     $('#extras').hidden = !g.extras;
+    $('#questArtBox').hidden = currentGame !== 'quest';
+    chips($('#setQuestArt'), Object.keys(Art.THEMES).map((k) => [k, (k === 'cute' ? '🐰 ' : '🗡️ ') + Art.THEMES[k].name]), Art.themeId(current), (v) => { Store.setSettings(current, { questArt: v }); $('#questArtHelp').textContent = Art.THEMES[v].blurb + ' Only changes the pictures. The game stays the same.'; save(); });
+    $('#questArtHelp').textContent = Art.THEMES[Art.themeId(current)].blurb + ' Only changes the pictures. The game stays the same.';
     optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setSettings(current, { band: v }); save(); });
     optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setSettings(current, { stars: v }); save(); });
     chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { Store.setSettings(current, { theme: v }); applyTheme(current); save(); });
@@ -221,7 +245,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', machine: 'machine', sort: 'sort', share: 'share', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);
@@ -243,6 +267,9 @@
 
   function boot() {
     Store.load();
+    // a background sync changed the data: refresh the player list if it is showing (profile objects are updated in place)
+    document.addEventListener('mq:data-changed', () => { if (!$('#home').hidden) renderPlayers(); });
+    if (window.SyncUI) SyncUI.init();
     $('#npForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = $('#npName').value.trim();
@@ -267,7 +294,7 @@
     paintSound();
     document.addEventListener('click', (e) => {
       const t = e.target.closest && e.target.closest('.btn, .chip, .game-card, .player-card, .opt-card, .creature');
-      if (t && t !== sb && !t.disabled) Sfx.play('click');
+      if (t && t !== sb && t.id !== 'munchBtn' && !t.disabled) Sfx.play('click');
     });
     $('#setupBack').addEventListener('click', () => openMenu(current.id));
     $('#sampleMore').addEventListener('click', updateSetup);

@@ -1,0 +1,80 @@
+/* Per-game motion that lives outside css/style.css (a conflict hotspot). Rules, durations and the review process: docs/animation-guide.md.
+   Easing and duration tokens (--ease-out, --ease-pop, --t-fast ...) are defined in css/style.css. Everything is gated by
+   prefers-reduced-motion: no-preference, and the profile's "Reduce motion" setting (html[data-motion="reduced"]) finishes every
+   animation instantly. Games never wait on animation events. */
+
+/* ---------------- Machine Builder ---------------- */
+#macTarget { position: relative; } /* confetti host */
+#macTarget .conf { z-index: 4; }
+@media (prefers-reduced-motion: no-preference) {
+  /* one-shot classes are added and removed by a timer in JS, so nothing replays by accident. The idle glow is a ring fading in and out (opacity only: cheap) */
+  #macTarget::after { content: ""; position: absolute; inset: -5px; border: 4px solid rgba(255, 213, 79, .8); border-radius: 16px; pointer-events: none; animation: mac-glow 2.6s ease-in-out infinite; }
+  .op-card.enter { animation: mac-drop 220ms var(--ease-pop) var(--d, 0ms) backwards; }
+  .op-card.used { animation: mac-used 160ms var(--ease-out); }
+  .mac-big.roll { animation: mac-roll 260ms var(--ease-out); }
+  .mac-big.pop-in { animation: mac-pop 300ms var(--ease-pop); }
+  .mac-big.hit { animation: mac-hit 500ms var(--ease-pop); }
+  .mac-arrow.nudge { animation: mac-nudge 200ms var(--ease-out); }
+  .mac-path li.new { animation: mac-slide 200ms var(--ease-out); }
+}
+@keyframes mac-drop { from { transform: translateY(-14px) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mac-used { 0% { transform: scale(1); } 40% { transform: scale(1.1, .92); } 100% { transform: scale(1); } }
+@keyframes mac-roll { from { transform: translateY(var(--from, 38%)) scale(.9); opacity: .2; } 70% { transform: translateY(-3%) scale(1.06); opacity: 1; } to { transform: none; } }
+@keyframes mac-pop { from { transform: scale(.7); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } to { transform: none; } }
+@keyframes mac-hit { 0% { transform: scale(1); } 35% { transform: scale(1.18, .9); } 65% { transform: scale(.96, 1.08); } 100% { transform: scale(1); } }
+@keyframes mac-glow { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes mac-nudge { 40% { transform: translateX(7px); } }
+@keyframes mac-slide { from { transform: translateX(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------------- Lemonade Stand ----------------
+   Existing customer motion (walk in/out, emote pop, queue shuffle) stays in css/style.css; this adds feedback for the player's own actions.
+   One-shot classes are added and removed by timers in js/lemonade.js. */
+.lem-scene { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  .coin.tap { animation: lem-tap 150ms var(--ease-out); }
+  .coin.drop, .lem-stock .drop { animation: lem-drop 240ms var(--ease-pop); }
+  .lem-total.tick, .gval.tick { animation: lem-tick 180ms var(--ease-out); }
+  .opt-card.lem-shake { animation: lem-shake 300ms ease-in-out; }
+  .opt-card.lem-pop { animation: lem-cardpop 260ms var(--ease-pop); }
+  .sums.in { animation: lem-in 220ms var(--ease-out); }
+  #lemGo.attn { animation: lem-attn 440ms var(--ease-pop); }
+  /* idle life for the customer at the counter once the walk-in is over (the :not() keeps the leave animation winning) */
+  .lem-who.walk:not(.leave) { animation: lem-walk .9s ease-out both, lem-bob 2.2s ease-in-out .9s infinite; }
+}
+@keyframes lem-tap { 40% { transform: scale(1.12, .9); } }
+@keyframes lem-drop { from { transform: translateY(-22px) scale(.8, 1.15); opacity: 0; } 60% { transform: translateY(0) scale(1.1, .9); opacity: 1; } to { transform: none; } }
+@keyframes lem-tick { 40% { transform: scale(1.15); } }
+@keyframes lem-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes lem-cardpop { 40% { transform: scale(1.06); } }
+@keyframes lem-in { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes lem-attn { 40% { transform: scale(1.08, .94); } 70% { transform: scale(.98, 1.04); } }
+@keyframes lem-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* ---------------- Number Defense ----------------
+   Existing: enemies glide linearly one square per tick (right for a constant march), dead enemies pop and fade, leaks shake the lane.
+   Added: cause and effect you can see (a shot flies from tower to enemy, the kill lands when the shot does), tower recoil, a march waddle,
+   enemy entrance, gate hurt, placing/picking/gold feedback. Timings come from --tick, set by js/td.js per step, so Fast mode shortens them. */
+.td-shot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #ffd54f; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); pointer-events: none; z-index: 6; }
+@media (prefers-reduced-motion: no-preference) {
+  .td-lane.running .td-enemy:not(.dead):not(.leak) img { animation: td-waddle var(--tick, 520ms) ease-in-out infinite; }
+  .td-enemy.enter { animation: td-in 200ms var(--ease-out); }
+  .td-enemy.dead { transition-delay: calc(var(--tick, 520ms) * .35); } /* the kill lands when the shot does */
+  .td-lane:not(.running) .td-slot.filled img { animation: td-idle 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+  .td-lane .td-slot.filled.placed img { animation: td-place 260ms var(--ease-pop); transform-origin: 50% 100%; } /* after idle: same specificity, later wins */
+  .td-slot.recoil img { animation: td-recoil 230ms var(--ease-out); transform-origin: 50% 100%; }
+  .td-shot { animation: td-fly var(--fly, 180ms) var(--ease-out) forwards; }
+  .td-card.pick { animation: lem-cardpop 180ms var(--ease-pop); }
+  .td-chip.dead { animation: td-chip 220ms var(--ease-pop); }
+  #tdGold.tick, #tdGate.tick { animation: lem-tick 190ms var(--ease-out); }
+  #tdGold.shake { animation: lem-shake 300ms ease-in-out; }
+  .td-gate.ouch { animation: td-ouch 340ms var(--ease-out); }
+}
+@media (prefers-reduced-motion: reduce) { .td-enemy.dead, .td-enemy.leak { transition: none; } }
+@keyframes td-waddle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes td-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes td-idle { 50% { transform: translateY(-2px); } }
+@keyframes td-place { from { transform: translateY(-18px) scale(.8, 1.2); opacity: 0; } 60% { transform: translateY(0) scale(1.12, .88); opacity: 1; } to { transform: none; } }
+@keyframes td-recoil { 0% { transform: scale(1); } 30% { transform: scale(1.12, .88); } 60% { transform: scale(.94, 1.1); } 100% { transform: scale(1); } }
+@keyframes td-fly { from { transform: translate(0, 0) scale(.6); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1); opacity: .9; } }
+@keyframes td-chip { 40% { transform: scale(1.15); } }
+@keyframes td-ouch { 0% { transform: translate(-50%, -50%) scale(1); } 35% { transform: translate(-50%, -50%) scale(1.2, .85); } 70% { transform: translate(-50%, -50%) scale(.95, 1.08); } 100% { transform: translate(-50%, -50%) scale(1); } }

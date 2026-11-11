@@ -15,7 +15,7 @@
   'use strict';
 
   const SCHEMA_VERSION = 2;
-  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on' };
+  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on', motion: 'full' };
 
   const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
   const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -66,11 +66,13 @@
   registerGame('munchers', { levels: 'counter', streak: 'lww' });
   registerGame('balance', { levels: 'counter' });
   registerGame('machine', { levels: 'counter' });
+  registerGame('lemonade', { days: 'counter', perfect: 'counter' });
+  registerGame('td', { waves: 'counter', perfect: 'counter' });
   registerGame('sort', { levels: 'counter' });
   registerGame('share', { levels: 'counter' });
   registerGame(
     'rpg',
-    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww' },
+    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' }, // cleared / gold: world-map node ids (grow-only sets)
     (g) => {
       // the team can only hold creatures you own, at most 3. This only FILTERS: it never invents a team (a defaulted value
       // saved as if a player chose it would make the merge order matter). Games compute their default team when reading.
@@ -211,6 +213,26 @@
     return { schemaVersion: SCHEMA_VERSION, profiles, deleted, lastSaved: Math.max(num(a.lastSaved), num(b.lastSaved)) || null };
   }
 
+  /**
+   * Make `target` equal to `source` while keeping the identity of `target` and of each profile object in it. Needed because a game
+   * holds a reference to the player's profile object: if a sync swapped in a brand-new object, everything the game saved afterwards
+   * would go to the old one and be lost.
+   */
+  function assignInPlace(target, source) {
+    const byId = new Map((target.profiles || []).map((p) => [p.id, p]));
+    const profiles = (source.profiles || []).map((sp) => {
+      const ex = byId.get(sp.id);
+      if (!ex) return clone(sp);
+      Object.keys(ex).forEach((k) => delete ex[k]);
+      return Object.assign(ex, clone(sp));
+    });
+    Object.keys(target).forEach((k) => { if (k !== 'profiles') delete target[k]; });
+    Object.keys(source).forEach((k) => { if (k !== 'profiles') target[k] = clone(source[k]); });
+    if (!Array.isArray(target.profiles)) target.profiles = [];
+    target.profiles.splice(0, target.profiles.length, ...profiles);
+    return target;
+  }
+
   /** Canonical form (so equal states compare equal). */
   const canon = (d) => mergeData(d, newData());
 
@@ -279,7 +301,7 @@
 
   const api = {
     SCHEMA_VERSION, DEFAULT_SETTINGS,
-    registerGame, newData, newProfile, mergeData, mergeProfile, mergeGame, canon, normalize,
+    registerGame, newData, newProfile, mergeData, mergeProfile, mergeGame, assignInPlace, canon, normalize,
     incCounter, sumCounter, mergeCounter, addStat, statTotals, pickLww, stable,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
