@@ -45,6 +45,7 @@ node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliation, rescues, and that perfect play always wins while ignoring the math loses
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
+node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 node tests/sync.test.js      # verifies cloud sync: encryption, family codes, and pull/merge/push against a fake backend
 node tests/firebase-backend.test.js  # verifies the Firebase adapter against a fake of Firebase's sign-in and Firestore (conflicts, offline, tokens)

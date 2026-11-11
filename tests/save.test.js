@@ -237,6 +237,18 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.strictEqual(f.team, undefined, 'merging never invents a team; the game computes its own default when reading');
 }
 
+/* ---------- Quest world map: cleared nodes and gold stars only grow, and merge as unions ---------- */
+{
+  const a = { creatures: [], cleared: ['m1', 'm2'], gold: ['m1'] };
+  const b = { creatures: [], cleared: ['m2', 'm3'], gold: ['m3'] };
+  const ab = Save.mergeGame('rpg', a, b);
+  assert.deepStrictEqual(ab.cleared, ['m1', 'm2', 'm3'], 'cleared nodes union across devices');
+  assert.deepStrictEqual(ab.gold, ['m1', 'm3'], 'gold stars union across devices');
+  assert.deepStrictEqual(Save.mergeGame('rpg', b, a), ab, 'merge order does not matter');
+  assert.deepStrictEqual(Save.mergeGame('rpg', ab, ab), ab, 'merging twice changes nothing');
+  assert.deepStrictEqual(Save.mergeGame('rpg', { creatures: [] }, { creatures: [], cleared: ['m1'] }).cleared, ['m1'], 'a device with no map progress loses nothing');
+}
+
 /* ---------- merging in place keeps object identity (a running game must keep saving into live data) ---------- */
 {
   const mk = (id, name) => Save.newProfile({ id, name, avatar: 'x', now: 1 });

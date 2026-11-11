@@ -1,6 +1,7 @@
 /* Creature Quest UI (v2): quest home, team picker / pre-battle, and turn-based battles against groups of monsters.
  * All rules live in js/rpg.js; this file draws the screens, animates what happened, and handles taps.
- * Art is placeholder emoji and CSS for now (see docs/game-ideas.md, "Art plan"). */
+ * Art comes from js/art.js: pixel "classic" or smooth "cute" sprites and backdrops, chosen in Setup. A missing image falls back
+ * to the emoji, so the game always works. Sprites are only a layer on the same ids and classes as before. */
 (function (root) {
   'use strict';
   const $ = (id) => document.getElementById(id);
@@ -20,6 +21,12 @@
 
   const rpg = () => ctx.profile.games.rpg;
   const sel = () => ctx.profile.settings;
+  const theme = () => Art.themeId(ctx.profile);
+  // every enemy has art by its skill; armored enemies and bosses have their own
+  const enemyArt = (e) => (e.kind === 'boss' ? 'boss' : e.kind === 'armor' ? 'armor' : e.rule.id);
+  const enemySprite = (e) => Art.sprite(theme(), 'enemy', enemyArt(e), e.emoji, e.name);
+  const allySprite = (c) => Art.sprite(theme(), 'ally', c.id, c.emoji, c.name);
+  const putSprite = (slot, node) => { slot.textContent = ''; slot.appendChild(node); };
   const alliesOf = (ids) => ids.map((id) => RPG.creatureById(id)).filter(Boolean);
 
   function init() {
@@ -69,7 +76,7 @@
     alliesOf(ids).forEach((c) => {
       const d = document.createElement('span');
       d.className = 'q-mate';
-      d.textContent = c.emoji;
+      d.appendChild(allySprite(c));
       d.title = c.name + ': ' + c.effectName + '. ' + c.effectText;
       d.setAttribute('aria-label', c.name);
       el.appendChild(d);
@@ -116,7 +123,7 @@
         const d = document.createElement('div');
         d.className = 'pv-foe';
         d.innerHTML = '<span class="e-emoji"></span><div><div class="e-name"></div><div class="pv-weak"></div></div>';
-        d.querySelector('.e-emoji').textContent = e.emoji;
+        putSprite(d.querySelector('.e-emoji'), enemySprite(e));
         d.querySelector('.e-name').textContent = e.name + kindTag(e);
         d.querySelector('.pv-weak').textContent = e.weakness;
         box.appendChild(d);
@@ -145,7 +152,8 @@
       b.setAttribute('aria-pressed', Q.selected.includes(c.id));
       const match = has && foes.some((e) => e.themes.includes(c.id));
       b.innerHTML = '<span class="c-emoji"></span><span class="c-name"></span><span class="c-sub"></span><span class="c-eff"></span>';
-      b.querySelector('.c-emoji').textContent = has ? c.emoji : '❓';
+      if (has) putSprite(b.querySelector('.c-emoji'), allySprite(c));
+      else b.querySelector('.c-emoji').textContent = '❓';
       b.querySelector('.c-name').textContent = has ? c.name : '???';
       b.querySelector('.c-sub').textContent = has ? 'Expert at ' + c.strong + (match ? ' ⭐' : '') : 'Trapped in a cage somewhere. Win battles with a ' + (c.id === 'boss' ? 'boss' : 'cage') + ' to free them.';
       b.querySelector('.c-eff').textContent = has ? c.effectName + ': ' + c.effectText : '';
@@ -181,7 +189,20 @@
     Q.busy = false;
     Q.log = 'Tap a monster to attack it, pick a friend, then play a card that fits its weakness.';
     showView('qBattle');
+    paintScene();
     renderBattle();
+  }
+
+  /** The backdrop follows the toughest monster in the fight: boss and armored fights happen in the dungeon / castle. */
+  function paintScene() {
+    const t = theme();
+    const T = Art.THEMES[t];
+    const kinds = Q.battle.foes.map((f) => f.enemy.kind);
+    const kind = kinds.includes('boss') ? 'boss' : kinds.includes('armor') ? 'armor' : 'weakness';
+    const scene = $('qScene');
+    scene.dataset.art = t;
+    const bg = Art.src(t, 'bg', T.bgFor[kind] || Object.keys(T.bg)[0]);
+    scene.style.backgroundImage = bg ? 'url(' + bg + ')' : '';
   }
 
   function setGuess(v) {
@@ -241,7 +262,7 @@
       el.disabled = !f.alive;
       el.setAttribute('aria-label', e.name + ', ' + f.hp + ' of ' + f.max + ' health. ' + e.weakness);
       el.innerHTML = '<span class="e-tags"></span><span class="e-emoji"></span><span class="e-name"></span><div class="bar" aria-hidden="true"><div class="fill hp"></div></div><span class="e-hp"></span><span class="e-weak"></span>';
-      el.querySelector('.e-emoji').textContent = e.emoji;
+      putSprite(el.querySelector('.e-emoji'), enemySprite(e));
       el.querySelector('.e-name').textContent = e.name;
       el.querySelector('.fill').style.width = Math.round((100 * f.hp) / f.max) + '%';
       el.querySelector('.e-hp').textContent = 'HP ' + f.hp + '/' + f.max;
@@ -264,7 +285,7 @@
       el.className = 'ally' + (j === b.ally ? ' on' : '');
       el.setAttribute('aria-pressed', j === b.ally);
       el.innerHTML = '<span class="a-emoji"></span><span><span class="a-name"></span><span class="a-eff"></span></span>';
-      el.querySelector('.a-emoji').textContent = c.emoji;
+      putSprite(el.querySelector('.a-emoji'), allySprite(c));
       el.querySelector('.a-name').textContent = c.name + ' · ' + c.effectName;
       el.querySelector('.a-eff').textContent = c.effectText;
       if (foe && foe.alive && foe.enemy.themes.includes(c.id)) {
