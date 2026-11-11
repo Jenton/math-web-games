@@ -589,3 +589,13 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
    screen added later: a back button that is the first child of a .screen, and any .hud row. */
 .screen > .btn.small:first-child { margin-bottom: 18px; }
 .hud { margin-bottom: 14px; }
+
+/* ---- Breadcrumbs: Players > Games > this game ---- */
+nav.crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; margin: 0 0 2px; padding-right: 52px; /* keeps clear of the sound button */ }
+.hud > nav.crumbs { flex: 1 1 100%; margin-bottom: 4px; }
+.screen > nav.crumbs:first-child { margin-bottom: 18px; }
+.crumb { font: inherit; font-size: .95rem; font-weight: 700; min-height: 40px; padding: 4px 10px; border-radius: 999px; border: 2px solid transparent; background: transparent; color: var(--accent); cursor: pointer; touch-action: manipulation; display: inline-flex; align-items: center; }
+button.crumb:hover { background: rgba(255,255,255,.7); border-color: var(--accent); }
+button.crumb:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+.crumb.cur { color: var(--ink); cursor: default; }
+.crumb-sep { color: var(--muted); font-weight: 700; }

@@ -9,7 +9,7 @@ const MIN_GAP = 12;
 const measure = () => {
   const seen = new Set();
   const out = [];
-  document.querySelectorAll('.screen > .btn.small:first-child, .hud > .btn.small:first-child').forEach((b) => {
+  document.querySelectorAll('.screen > .btn.small:first-child, .hud > .btn.small:first-child, .screen > nav.crumbs:first-child, .hud > nav.crumbs:first-child').forEach((b) => {
     if (!b.offsetParent || seen.has(b)) return;
     seen.add(b);
     const row = b.parentElement.classList.contains('hud') ? b.parentElement : b;
