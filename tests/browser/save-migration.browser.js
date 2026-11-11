@@ -105,10 +105,12 @@ async function newPage(browser, seed) {
     for (const i of seen.get(target)) await page.locator('#macOps button').nth(i).click();
   };
   await solveMachine();
+  await page.waitForSelector('#panel:not([hidden])'); // the result panel opens after a short celebration
   assert.match(await page.textContent('#panelTitle'), /Target reached/);
   let before = sum((await v2(page)).profiles[0].games.machine.levels);
   await page.click('#panelBtn2'); // Try this one again
   await solveMachine();
+  await page.waitForSelector('#panel:not([hidden])');
   let after = sum((await v2(page)).profiles[0].games.machine.levels);
   assert.strictEqual(after, before, 'solving the same puzzle again does not count twice (counters only go up)');
   await page.click('#panelBtn'); await page.click('#macBack'); await page.click('#setupBack');
