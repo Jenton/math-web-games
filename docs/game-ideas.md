@@ -27,14 +27,39 @@ something is built. Details and design notes for each item are further down in t
 - [x] Shortlist art from the Kenney All-in-1 bundle (done by a local Claude Code session on the owner's Mac; output: `docs/art-shortlist.md` plus contact sheets), then choose packs for each theme (cute, classic fantasy, default mix) and copy only chosen files into `assets/`
 - [x] Art theme setting at game start (cute / classic fantasy / mix)
 - [x] Stage 2: 1-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, card power removed, retuned and simulated
-- [x] Stage 3 (first version): 11 allies with effects (sweep, split, crit, heal, hint, shield, combo, slice, stun), ally picker, "no team can make a fight unwinnable" tests. Still to do: grow to 20+ allies
-- [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure, and a Mario-World-style **world map** (`js/worldmap.js`, two regions: Multiples Meadow and Haunted Keep) launches v2 group fights through `RPG.makeEncounter`, with story, camp, elite, rescue and boss nodes, gold stars for flawless fights, and a boss that opens the next region (classic pixel or cute art). **Camps** give the next fight a head start (a shield, or a wrong card taken out of the first hand), and optional **puzzle spots** reuse Balance and Machine Builder (10 XP, gold star for a first-try Balance solve or the fewest Machine steps). Still to do: more regions and story chapters, more allies
+- [x] Stage 3 (first version): 11 allies with effects (sweep, split, crit, heal, hint, shield, combo, slice, stun), ally picker, "no team can make a fight unwinnable" tests. **22 allies now**: eleven "story friends" were added (Bruno, Peep, Scout, Quackers, Tusk, Bongo, Waddle, Oink, Zeb, Mossy, Bison), freed only on the world map in Prime Peaks, Fraction Forest and Ember Mountain. Each is an expert at an existing skill (`theme`) and uses an existing effect, so no new combat rules were needed
+- [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure, and a Mario-World-style **world map** (`js/worldmap.js`, five regions: Multiples Meadow, Haunted Keep, Prime Peaks, Fraction Forest and Ember Mountain) launches v2 group fights through `RPG.makeEncounter`, with story, camp, elite, rescue and boss nodes, gold stars for flawless fights, and a boss that opens the next region (classic pixel or cute art). **Camps** give the next fight a head start (a shield, or a wrong card taken out of the first hand), and optional **puzzle spots** reuse Balance and Machine Builder (10 XP, gold star for a first-try Balance solve or the fewest Machine steps). Each new region has a story intro, story spots, and a boss outro that points to the next place. Still to do: customization, deeper story chapters
 - [x] Map progress is saved (cleared nodes and gold stars are grow-only sets) and the in-progress Quick adventure is saved too (`rpg.run`, last write wins; a Continue button picks up at the next battle, for the same grade and stars). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
 - [ ] Tune the numbers after playtesting (`TUNE` in `js/rpg.js`)
 - [ ] Character customization (cosmetic only)
 - [ ] Spellcraft enemies (exact-HP), Machine Builder bosses
 - [ ] Ally upgrades (growth with use)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea below; no design yet)
+
+### Creature Quest: backlog for a focused chat
+Everything below is open. State of play: v2 rules, sprites in two themes, the world map (5 regions, 22 allies), saved Quick adventure, camp buffs and puzzle spots are all built and merged. Nothing has been playtested with the kids yet, so **playtest first, then pick from this list**.
+
+**Design work (needs a decision before building)**
+- [ ] **Tune the numbers** after real play (`TUNE` in `js/rpg.js`). The simulations say a perfect player wins 100%, a learner who misses a third wins about 90/83/82% (1/2/3 stars), and ignoring the math wins about 40/20/16%.
+- [ ] **Character customization**, cosmetic only (outfits, colors, hats), unlocked by progress, never sold as advantage.
+- [ ] **Spellcraft enemies** (exact-HP) and **Machine Builder bosses**: more enemy types on the same engine (see "Enemy types").
+- [ ] **A non-combat variant for the younger player** (see the idea further down; no design yet).
+- [ ] **Deeper story chapters**: today each region has an intro, a few story spots and a boss outro. Recurring characters, a through-line, and consequences for choices are not built.
+- [ ] **Smarter camps**: only two buffs exist (a shield, or one wrong card taken out). Ideas: a buff chosen from two options, a camp where you swap team members, a camp that teaches a math tip.
+- [ ] **More puzzle-spot kinds** (Sort & Rule, Cut & Share, Number Defense wave, Lemonade change) now that those games exist. Today only Balance and Machine Builder.
+- [ ] **More allies** beyond 22, ideally with genuinely new effects (every story friend reuses an existing effect). Each needs art in both themes and must keep "perfect play wins with any single ally" true (`tests/rpg.test.js`).
+- [ ] **More regions**: new map art, new rescue friends, and an ending beyond Ember Mountain.
+
+**Known rough edges (small fixes)**
+- Some enemy names and sprites do not match (for example "Round Snail" shows a white round monster in the cute theme). The classic theme's allies are recolored heroes, so several look alike.
+- Classic backdrops are only meadow and dungeon (other regions use a map tint); the cute theme has five.
+- A puzzle spot or fight can be replayed for XP again. That is fine for now, but watch for farming.
+- A saved Quick adventure restarts the *battle* you were in (not mid-turn), and its plan is regenerated on resume.
+- A region's intro shows once per visit to the quest, not once ever (it is not saved).
+- No sound is specific to Quest yet beyond the shared hit, wrong, correct, win and lose sounds.
+- The Playwright suites cover the map and whole adventures; allies' special effects are covered by node tests only, not clicked through in a browser.
+
+**Rules to keep** (from the v2 decisions): the math never depends on the team; a right answer always works; a wrong answer does no damage and explains itself; no timers; every new region, ally and puzzle goes through `docs/new-game-checklist.md` (scene brief, phone screenshots of each state). Work in `js/worldmap.js` (data) and `js/quest.js` (screens); `js/rpg.js` is the tested engine, so keep changes there small and add tests.
 
 ### Existing games, possible extensions
 - [ ] Balance: drag-blocks-onto-pans version for the youngest players, negative weights (balloons), limited guesses, two-player "first to level it"
@@ -43,7 +68,7 @@ something is built. Details and design notes for each item are further down in t
 
 ### New games
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
-- [ ] Number Line Runner
+- [x] Number Line Runner (`js/runlogic.js` + `tests/runner.test.js`, `js/runner.js`, `css/runner.css`, `tests/browser/runner.browser.js`): rope-over-a-river number line, aim at a tick and jump, four flags per run, hops and landings, all four bands. Not built: collectibles, a scrolling longer world, number-line estimation without ticks, two-player.
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
@@ -61,6 +86,16 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Optional timer / challenge mode as an opt-in flag per game
 - [ ] Offline-first install (PWA) for the iPad
 - [ ] Public web address (for example GitHub Pages) so the iPad can open it without files. Needs a go-ahead first, since it makes the site public.
+
+### Creature Quest: owner feedback, Nov 2026 (second playtest)
+- **Turn order:** wanted a true turn-based RPG: every ally attacks, then every enemy. Built: a turn is one action per ally (fresh hand each), then the monster phase.
+  Monster strength was retuned (`TUNE.ENEMY_ATK`, `ENEMY_HP`, `CHARGE`) so the win rates of the simulated players stay where they were (see `tests/rpg.test.js`).
+- **Cards change with the selected monster:** the owner was unsure. Kept on purpose: every monster has its own weakness, so its cards must belong to it, which keeps the
+  math as the choice. The hand label now names the acting friend and the monster ("Owlbert attacks! Cards for the Scale Serpent..."). Revisit after the next playtest.
+- **Reset:** Quest home, "For grown-ups", "Start Creature Quest over" (confirmed). Resets only Creature Quest; sync-safe via `resetAt` (see `docs/sync-design.md`).
+- **Difficulty of "weak to numbers greater / less than":** cards were drawn from the whole range, so the wrong ones were far from the target. Now difficulty is
+  closeness and size (`COMPARE` in `js/engine.js`): 1 star far apart, 3 stars within 5 and "equal to" traps; grade 2-3 uses bigger numbers than K-1 (up to three digits).
+  This rule is shared with Munchers, so Munchers got harder at 2-3 stars the same way.
 
 ### Playtest notes (add what the kids say and do)
 Write observations here so any chat can act on them. Suggested format: date, who played, game, what happened.
@@ -154,9 +189,10 @@ be no team that makes a fight unwinnable. Add this to the "can it be played with
 2. The player taps an **enemy to target it**. The hand is built for that enemy's weakness (reuses `js/engine.js` rules).
    For armored enemies the card rule is the existing armor rule in `js/rpg.js`.
 3. The player picks which **ally acts** (default: the first, so the youngest player can skip this) and plays a card.
+   *(Changed Nov 2026, see "Turn order" below: every ally now gets one action per turn.)*
 4. **Right card:** damage to the target plus the acting ally's effect. **Wrong card:** no damage, and the explanation
    is shown (as today).
-5. **Every living enemy then attacks**, one after another, with visible animation and damage numbers. A wrong turn is
+5. **Every living enemy then attacks** (after EVERY ally has acted, see "Turn order"), one after another, with visible animation and damage numbers. A wrong turn is
    costly because all enemies still hit back, which is what makes guessing a bad strategy now that power is gone.
 6. Win by defeating all enemies. Lose = retry at full health (keep the gentle failure behavior).
 
@@ -344,10 +380,12 @@ The v2 decisions above are implemented except for art and the world map. What ex
 - **An adventure is 5 encounters** with groups of monsters: 1 enemy; 2; armored + 1 (a rescue); 3 (2 at 1 star); boss + a minion (a rescue). Each enemy has
   **its own weakness** and no two enemies in a fight share a skill. Lose and you retry the same encounter at full health (nothing lost).
 - **Turn:** tap a monster to target it (its hand was dealt at the start of the turn, so retargeting never re-rolls), tap an ally to choose who acts, play a
-  card. **A right card does damage (6); a wrong card does none** and is explained. **Card power and the enemy-heals penalty are gone.** Then **every living monster
-  hits back in turn** (2 for ordinary, 3 for armored and bosses), with a lunge animation, floating damage numbers and a team-health flash.
+  card. **A right card does damage (6); a wrong card does none** and is explained. **Card power and the enemy-heals penalty are gone.** **Turn order (Nov 2026):**
+  every ally acts once (any order; an ally who has acted is greyed out), each action gets a FRESH hand, and only then **every living monster hits back in turn**
+  (8 for ordinary, 9 for armored and bosses, 14 for a boss charge, with a full team of 3), with a lunge animation, floating damage numbers and a team-health flash.
+  A team of fewer than 3 acts fewer times per turn, so monster damage is scaled by team size (`RPG.enemyDmg`) and a small team stays winnable.
 - **Ally effects on a right answer** (all 11 allies have one; none is required): Hopper *sweep* (every other enemy takes half), Splish *split* (the weakest other enemy takes half),
-  Primo *crit* (+50%), Pairo *heal* (+3), Owlbert *hint* (next turn every hand loses a wrong card), Puffy and Shelly *shield* (block the next attack, max 2), Octo *combo*
+  Primo *crit* (+50%), Pairo *heal* (+3), Owlbert *hint* (the next hand loses a wrong card), Puffy and Shelly *shield* (block the next attack, max 2), Octo *combo*
   (+2 per right answer in a row, max +6), Fraxie *slice* (at least a quarter of the enemy's health), Powzer and Pebble *stun* (the target skips its next attack).
   An ally whose theme matches the target's skill is an **expert**: +3 damage and a star in the picker.
 - **Scripted rescues instead of random allies:** two encounters per adventure free a caged ally (the armored fight frees the next ally you do not own, the boss fight frees
@@ -360,7 +398,7 @@ The v2 decisions above are implemented except for art and the world map. What ex
   level (stars change the math and the hand: 5, 5, 6 cards; 1-2 right cards at 1 star, exactly 1 at 2 and 3 stars). Fewer right cards per hand is what makes guessing lose, and it does not hurt a player
   who knows the math (measured). All numbers are in the `TUNE` object at the top of `js/rpg.js`. A world map or any other caller can build a fight with `RPG.makeEncounter(band, stars, kinds, { prefer, rescue })`.
 - **Art and map:** sprites and themed backdrops (classic pixel or cute, chosen in Setup), your team standing in the scene with animated retaliation, and a world map of nodes that each launch a group fight (see the Stage 4 line above). **Not built yet:** story chapters, customization,
-  more allies (11 now; 20+ planned), Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
+  more allies beyond the 22, Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
 ---
 

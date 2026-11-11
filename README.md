@@ -34,11 +34,14 @@ creatures already earned are kept.
   ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Lemonade Stand**: run a stand day by day. Each day has four linked jobs: set the price, buy stock for the crowd it brings, and make change for
   two customers (coins or a number picker). Wrong answers show the arithmetic.
+- **Number Line Runner**: the number line is a rope over a river. The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
+  Jump, and the hero leaps and lands exactly there. The spot is never marked, so you read the ticks (whole numbers, fractions, mixed numbers,
+  decimals, percents, negatives). A miss splashes and the message counts how many ticks you were off.
 - **Escape Room**: locked in a pixel dungeon room with three chests. Tap a chest and your hero walks over; crack its lock (a number
   pattern, a keypad code built from arithmetic clues, a scale, or a machine chain) to open it. Open all three and the exit door opens.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
-  through"). Tap a monster to target it, pick a friend to act, and play the card that fits: a right card does damage, a wrong one does none, and every
-  monster hits back. Friends have special powers (hit all, shield, heal, stun, hints...). Five encounters per adventure, including a boss whose big attack a
+  through"). Tap a monster to target it, and play the card that fits: a right card does damage, a wrong one does none. Classic turn order: every friend attacks once,
+  then every monster attacks. A grown-up can start Creature Quest over from its home screen ("For grown-ups"). Friends have special powers (hit all, shield, heal, stun, hints...). Five encounters per adventure, including a boss whose big attack a
   Balance puzzle cancels, and two cages: win to free a friend. XP, levels, and a team of up to 3.
 - **Sort & Rule**: a gate has a secret rule; test numbers, spot the pattern, then pick the rule (fewer tests = more stars)
 - **Cut & Share**: cut pizzas into equal slices so every friend gets a fair share (fewest cuts is computed exactly)
@@ -58,8 +61,9 @@ node tests/engine.test.js    # verifies every Munchers rule at every band/star l
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/newgames.test.js  # Sort & Rule has one fitting rule; Cut & Share par is minimal; Balance worked steps
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
-node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliation, rescues, and that perfect play always wins while ignoring the math loses
+node tests/rpg.test.js       # verifies Quest: every ally effect, the round-based turn order, enemy retaliation, starting over, rescues, and that perfect play always wins while ignoring the math loses
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
+node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress

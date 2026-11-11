@@ -118,27 +118,50 @@
     };
   }
 
-  /* ---------- greater / less than (positive, or negative = number line) ---------- */
+  /* ---------- greater / less than ----------
+   * Difficulty is how CLOSE the cards sit to the target number, and how big the numbers are. At 1 star the cards are far on either side, so you can
+   * judge by eye. At 3 stars every card is within a few of the target and the target itself shows up as a trap ("is 12 greater than 12?").
+   * cfg per grade band, one entry per star: target range [lo, hi], spread (how far from the target a card may be), traps (chance a wrong card
+   * is exactly the target). Negative targets (grade 6) use the number line. */
+  const COMPARE = {
+    'K-1': { target: [[5, 12], [8, 20], [10, 30]], spread: [8, 6, 5], traps: [0.1, 0.2, 0.25] },
+    '2-3': { target: [[20, 60], [50, 200], [100, 900]], spread: [30, 15, 8], traps: [0.1, 0.2, 0.25] },
+    '6': { target: [[-8, 4], [-15, 8], [-30, 12]], spread: [10, 7, 5], traps: [0.1, 0.2, 0.25], neg: true },
+  };
 
-  function compareRule(neg) {
+  function compareRule(band) {
+    const cfg = COMPARE[band];
     return (stars) => {
+      const neg = !!cfg.neg;
       const dir = pick(['greater', 'less']);
-      const N = neg ? rnd(-6, 3) : rnd(5, 15);
-      const spread = neg ? [6, 9, 12][stars - 1] : [5, 7, 9][stars - 1];
-      const lo = neg ? N - spread : Math.max(0, N - spread);
-      const hi = N + spread;
+      const [tlo, thi] = cfg.target[stars - 1];
+      const N = rnd(tlo, thi);
+      const spread = cfg.spread[stars - 1];
       const isMatch = (n) => (dir === 'greater' ? n > N : n < N);
-      const set = (f) => {
-        const a = [];
-        for (let n = lo; n <= hi; n++) if (f(n)) a.push(n);
-        return a;
+      const sign = dir === 'greater' ? 1 : -1;
+      // a card on the matching side of N, 1..spread away (never below 1 for counting numbers)
+      const right = () => {
+        for (let i = 0; i < 20; i++) {
+          const n = N + sign * rnd(1, spread);
+          if (neg || n >= 1) return num(n);
+        }
+        return num(N + sign);
+      };
+      // a card on the wrong side, 1..spread away, or sometimes N itself
+      const wrong = () => {
+        if (Math.random() < cfg.traps[stars - 1]) return num(N);
+        for (let i = 0; i < 20; i++) {
+          const n = N - sign * rnd(1, spread);
+          if (neg || n >= 1) return num(n);
+        }
+        return num(N);
       };
       return {
         id: 'compare',
         title: 'Eat numbers ' + dir + ' than ' + fmt(N),
         hint: neg ? 'Think of the number line: bigger numbers are further right.' : 'Careful: the number itself is not ' + dir + ' than itself!',
-        correct: () => num(pick(set(isMatch))),
-        wrong: () => num(pick(set((n) => !isMatch(n)))),
+        correct: right,
+        wrong,
         check: (c) => isMatch(c.value),
         why: (c) => {
           const n = c.value;
@@ -348,13 +371,13 @@
     'K-1': [
       expressionsRule({ ops: ['+'], ranges: [[3, 6], [5, 10], [8, 15]] }),
       parityRule,
-      compareRule(false),
+      compareRule('K-1'),
     ],
     '2-3': [
       multiplesRule({ ks: [[2, 5, 10], [2, 3, 4, 5, 10], [3, 4, 6]], max: [50, 60, 60] }),
       expressionsRule({ ops: ['+', '-', '*'], ranges: [[6, 20], [10, 40], [20, 100]] }),
       roundingRule,
-      compareRule(false),
+      compareRule('2-3'),
     ],
     '4-5': [
       multiplesRule({ ks: [[3, 4, 6], [6, 7, 8, 9], [7, 8, 9, 11, 12]], max: [60, 100, 144] }),
@@ -365,7 +388,7 @@
     '6': [
       fractionsRule,
       exponentsRule,
-      compareRule(true),
+      compareRule('6'),
       primesRule([60, 100, 150]),
       factorsRule([[36, 48, 60], [72, 84, 96, 120], [144, 180, 210, 240]]),
     ],

@@ -234,14 +234,17 @@
       <p class="rule-hint">Each tower only hurts numbers that fit its rule. Cover every incoming number, but gold is limited.</p>
       <div class="s-label">Incoming wave (in order)</div>
       <div id="tdPreview" class="td-preview"></div>
-      <div id="tdLane" class="td-lane"></div>
+      <div class="td-board">
+        <div id="tdLane" class="td-lane"></div>
+        <div id="tdShop" class="td-shop"></div>
+      </div>
       <p id="tdHelp" class="help center" role="status" aria-live="polite"></p>
       <div class="row center">
         <button id="tdGo" class="btn big" type="button">&#9654; Send the wave</button>
+        <button id="tdRemove" class="btn ghost" type="button" hidden>Remove this tower</button>
         <button id="tdClear" class="btn ghost" type="button">Clear towers</button>
         <button id="tdSpeed" class="btn ghost small" type="button">Normal</button>
       </div>
-      <div id="tdShop" class="td-shop"></div>
     </section>
 
     <!-- GAME: Machine Builder -->
@@ -314,6 +317,12 @@
           <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
         </div>
         <p class="note">The world map is a story: walk from spot to spot, fight groups of monsters and rescue friends. A quick adventure is 5 battles in a row. In both, a friend is trapped in a cage in some fights: win to set them free!</p>
+        <p class="note">In a battle, every friend takes a turn to attack, then every monster takes a turn.</p>
+        <details class="grownups">
+          <summary>For grown-ups</summary>
+          <p class="help">Starting over puts Creature Quest back to the beginning: level 1, the starting friends and an empty map. Other games are not touched.</p>
+          <button id="qReset" class="btn danger small" type="button">Start Creature Quest over</button>
+        </details>
       </div>
 
       <div id="qMap" hidden>

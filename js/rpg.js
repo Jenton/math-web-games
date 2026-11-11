@@ -5,7 +5,8 @@
  *  - The math NEVER depends on the team. Every enemy has its own weakness and the hand you are dealt for it is the same whichever ally acts.
  *    Allies change what a right answer DOES (hit all, split, crit, heal, shield, stun, hint...), so no team can make a fight unwinnable.
  *  - Fights have 1 to 3 enemies, each with its own weakness. You tap an enemy to target it, pick an ally, and play a card.
- *  - After your turn EVERY living enemy hits back. A wrong turn is costly because all of them still attack, so guessing loses.
+ *  - Classic turn order: in your phase EVERY ally acts once (in any order you like), then in the enemy phase EVERY living enemy acts once.
+ *    Each ally's action gets a freshly dealt hand, so a right card cannot simply be played again. A wrong card wastes that ally's action.
  *
  * Enemy kinds:
  *   weakness : rule from the Munchers rule set for the player's grade band (js/engine.js)
@@ -33,13 +34,15 @@
     TEAM_HP_PER_LEVEL: 2,
     TEAM_HP_CAP: 50,
     // enemy strength is the SAME at every star level: stars make the math (and the hand) harder, not the fight longer
-    ENEMY_HP: { weakness: [10, 10, 10], armor: [12, 12, 12], boss: [22, 22, 22] },
+    ENEMY_HP: { weakness: [12, 12, 12], armor: [14, 14, 14], boss: [26, 26, 26] },
     HAND_SIZE: [5, 5, 6], // cards dealt, by stars 1..3
     // how many cards fit the weakness (min, max), by stars 1..3. Fewer right cards makes guessing a losing plan and does not hurt a player who
     // knows the math. 1 star keeps 1-2 right cards so a beginner who can only half-judge each card still has a fair chance.
     CORRECT_PER_HAND: [[1, 2], [1, 1], [1, 1]],
-    ENEMY_ATK: { weakness: 2, armor: 3, boss: 3 },
-    CHARGE: { every: 3, dmg: 7 },
+    // Monsters act once per ROUND (after every friend has acted), not after every card, so each hit is about 4x what it was in the old
+    // one-card-then-everyone-attacks turns. A team of fewer than 3 gets fewer cards per round, so hits are scaled down to match (see scaled()).
+    ENEMY_ATK: { weakness: 8, armor: 9, boss: 9 },
+    CHARGE: { every: 3, dmg: 14 },
     XP_BASE: { weakness: 8, armor: 12, boss: 25 },
   };
   const TEAM_SIZE = 3;
@@ -72,15 +75,30 @@
     { id: 'factors', name: 'Splish', emoji: '🦦', blurb: 'Splits numbers into equal pieces.', strong: 'factors', effect: 'split', effectName: 'Split', effectText: 'Also hits the weakest other enemy for half damage.' },
     { id: 'primes', name: 'Primo', emoji: '🦄', blurb: 'One of a kind, just like a prime.', strong: 'prime numbers', effect: 'crit', effectName: 'Lucky strike', effectText: '50% more damage.' },
     { id: 'even-odd', name: 'Pairo', emoji: '🐼', blurb: 'Always sorts things into pairs.', strong: 'even and odd', effect: 'heal', effectName: 'Share', effectText: 'Heals your team a little.' },
-    { id: 'compare', name: 'Owlbert', emoji: '🦉', blurb: 'Can tell which is bigger at a glance.', strong: 'greater and less', effect: 'hint', effectName: 'Wise hint', effectText: 'Next turn, every hand has a wrong card removed.' },
+    { id: 'compare', name: 'Owlbert', emoji: '🦉', blurb: 'Can tell which is bigger at a glance.', strong: 'greater and less', effect: 'hint', effectName: 'Wise hint', effectText: 'The next hand has a wrong card removed.' },
     { id: 'rounding', name: 'Puffy', emoji: '🐡', blurb: 'Rounds off to the nearest friend.', strong: 'rounding', effect: 'shield', effectName: 'Puff up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
     { id: 'expressions', name: 'Octo', emoji: '🐙', blurb: 'Eight arms, lots of sums.', strong: 'sums and expressions', effect: 'combo', effectName: 'Many arms', effectText: '+2 damage for each right answer in a row (up to +6).' },
     { id: 'fractions', name: 'Fraxie', emoji: '🐰', blurb: 'Cuts carrots into equal slices.', strong: 'fractions', effect: 'slice', effectName: 'Slice', effectText: 'Takes at least a quarter of the enemy\'s health.' },
     { id: 'exponents', name: 'Powzer', emoji: '🐲', blurb: 'Grows stronger with every power.', strong: 'exponents', effect: 'stun', effectName: 'Roar', effectText: 'The enemy skips its next attack.' },
     { id: 'armor', name: 'Shelly', emoji: '🐢', blurb: 'Knows just how to crack a shield.', strong: 'armored enemies', effect: 'shield', effectName: 'Shell up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
     { id: 'boss', name: 'Pebble', emoji: '🪨', blurb: 'A tiny golem pup. Great against bosses.', strong: 'bosses', effect: 'stun', effectName: 'Rumble', effectText: 'The enemy skips its next attack.' },
+    // Story friends: rescued on the world map (never in a Quick adventure). `theme` is the skill they are an expert at (the first eleven are
+    // named after their skill, so they need none), `story` marks them, and `where` says which map region frees them.
+    { id: 'bruno', name: 'Bruno', emoji: '🐻', blurb: 'A big softie who counts by hugs.', strong: 'multiples', theme: 'multiples', story: true, where: 'Prime Peaks', effect: 'stun', effectName: 'Bear hug', effectText: 'The enemy skips its next attack.' },
+    { id: 'peep', name: 'Peep', emoji: '🐥', blurb: 'Comes in pairs, always.', strong: 'even and odd', theme: 'even-odd', story: true, where: 'Fraction Forest', effect: 'shield', effectName: 'Fluff up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
+    { id: 'scout', name: 'Scout', emoji: '🐶', blurb: 'Sniffs out every factor.', strong: 'factors', theme: 'factors', story: true, where: 'Prime Peaks', effect: 'hint', effectName: 'Sniff out', effectText: 'Next turn, every hand has a wrong card removed.' },
+    { id: 'quackers', name: 'Quackers', emoji: '🦆', blurb: 'Rounds up a whole pond.', strong: 'rounding', theme: 'rounding', story: true, where: 'Fraction Forest', effect: 'combo', effectName: 'Quack attack', effectText: '+2 damage for each right answer in a row (up to +6).' },
+    { id: 'tusk', name: 'Tusk', emoji: '🐘', blurb: 'Never forgets a power of two.', strong: 'exponents', theme: 'exponents', story: true, where: 'Ember Mountain', effect: 'sweep', effectName: 'Stomp', effectText: 'Also hits every other enemy for half damage.' },
+    { id: 'bongo', name: 'Bongo', emoji: '🐵', blurb: 'Swings between sums and products.', strong: 'sums and expressions', theme: 'expressions', story: true, where: 'Fraction Forest', effect: 'split', effectName: 'Swing', effectText: 'Also hits the weakest other enemy for half damage.' },
+    { id: 'waddle', name: 'Waddle', emoji: '🐧', blurb: 'Shares the fish equally.', strong: 'fractions', theme: 'fractions', story: true, where: 'Fraction Forest', effect: 'heal', effectName: 'Warm huddle', effectText: 'Heals your team a little.' },
+    { id: 'oink', name: 'Oink', emoji: '🐷', blurb: 'Digs up prime numbers like truffles.', strong: 'prime numbers', theme: 'primes', story: true, where: 'Prime Peaks', effect: 'slice', effectName: 'Truffle dig', effectText: 'Takes at least a quarter of the enemy\'s health.' },
+    { id: 'zeb', name: 'Zeb', emoji: '🦓', blurb: 'Black or white, bigger or smaller.', strong: 'greater and less', theme: 'compare', story: true, where: 'Ember Mountain', effect: 'crit', effectName: 'Stripe strike', effectText: '50% more damage.' },
+    { id: 'mossy', name: 'Mossy', emoji: '🫎', blurb: 'Antlers like a pair of scissors.', strong: 'armored enemies', theme: 'armor', story: true, where: 'Ember Mountain', effect: 'stun', effectName: 'Antler crash', effectText: 'The enemy skips its next attack.' },
+    { id: 'bison', name: 'Bison', emoji: '🦬', blurb: 'The ground shakes when it charges.', strong: 'bosses', theme: 'boss', story: true, where: 'Ember Mountain', effect: 'sweep', effectName: 'Stampede', effectText: 'Also hits every other enemy for half damage.' },
   ];
   const creatureById = (id) => CREATURES.find((c) => c.id === id);
+  /** The skill an ally is an expert at: their own id for the first eleven, `theme` for the story friends. */
+  const themeOf = (idOrCreature) => { const c = typeof idOrCreature === 'string' ? creatureById(idOrCreature) : idOrCreature; return c ? c.theme || c.id : null; };
 
   const ENEMY_ART = {
     multiples: { name: 'Skipper Goblin', emoji: '👺' },
@@ -103,6 +121,7 @@
   const starters = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).slice(0, 3);
   /** Creatures a player can still find at this grade: that band's monsters, plus armor and boss. */
   const reachable = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).concat(['armor', 'boss']);
+  const STORY_FRIENDS = CREATURES.filter((c) => c.story).map((c) => c.id); // freed on the world map only
 
   /**
    * Saved fields: xpEarned/wins/bosses (per-device counters, they only ever go up), creatures (a set), team (+teamAt, last write wins).
@@ -115,6 +134,26 @@
     if (!Array.isArray(r.creatures) || !r.creatures.length) r.creatures = starters(profile.settings.band);
     r.creatures = [...new Set(r.creatures)].filter((id) => creatureById(id));
     if (Array.isArray(r.team)) r.team = [...new Set(r.team)].filter((id) => r.creatures.includes(id)).slice(0, TEAM_SIZE);
+    return r;
+  }
+
+  /**
+   * Start Creature Quest over: back to the starting friends, level 1 and an empty world map. Done IN PLACE on profile.games.rpg.
+   * Counters must never go down on their own (see js/save.js), so this stamps `resetAt`: when two devices merge, the newer reset wins and the
+   * older device's progress does not come back. Other games and the per-skill practice stats are untouched.
+   */
+  function resetState(profile, now) {
+    const r = ensureState(profile);
+    ['xpEarned', 'wins', 'bosses'].forEach((k) => (r[k] = {}));
+    r.creatures = starters(profile.settings.band);
+    r.cleared = [];
+    r.gold = [];
+    delete r.team;
+    delete r.teamAt;
+    delete r.run; // the Quick adventure in progress goes too
+    delete r.runAt;
+    r.resetAt = Math.max(Date.now(), (r.resetAt || 0) + 1);
+    if (now !== undefined) r.resetAt = now;
     return r;
   }
 
@@ -346,9 +385,9 @@
 
   const living = (b) => b.foes.filter((f) => f.alive);
 
-  function startTurn(b) {
+  /** Deal one fresh hand per living enemy (switching targets never re-rolls a hand; only an ally's action does). Owlbert's hint is used up here. */
+  function dealHands(b) {
     if (!b.foes[b.target] || !b.foes[b.target].alive) b.target = b.foes.findIndex((f) => f.alive);
-    // one hand per living enemy, dealt once per turn: switching targets never re-rolls a hand
     b.hands = b.foes.map((f) => (f.alive ? makeHand(f.enemy.rule, b.stars) : []));
     if (b.hintNext > 0) {
       b.hands.forEach((h) => {
@@ -359,6 +398,13 @@
       });
       b.hintNext = 0;
     }
+  }
+
+  /** Start a new round: nobody has acted yet, the boss may charge (the charge lasts the whole round), and the first hands are dealt. */
+  function startTurn(b) {
+    b.acted = b.team.map(() => false);
+    b.ally = 0;
+    dealHands(b);
     b.puzzle = null;
     b.foes.forEach((f) => {
       f.charging = false;
@@ -401,9 +447,9 @@
     b.target = i;
     return true;
   }
-  /** Choose which ally acts (a free action). */
+  /** Choose which ally acts next (a free action). Each ally acts once per turn. */
   function setAlly(b, j) {
-    if (b.over || j < 0 || j >= b.team.length) return false;
+    if (b.over || j < 0 || j >= b.team.length || b.acted[j]) return false; // a friend who has already acted this turn must wait
     b.ally = j;
     return true;
   }
@@ -418,6 +464,9 @@
     b.puzzle = null;
     return true;
   }
+
+  /** A smaller team acts fewer times per turn, so monsters hit proportionally softer: damage per card played stays the same for any team size. */
+  const scaled = (b, dmg) => Math.max(1, Math.floor((dmg * b.team.length) / TEAM_SIZE));
 
   function damageFoe(f, amount, ev) {
     const dealt = Math.min(f.hp, amount);
@@ -436,12 +485,12 @@
     const foe = b.foes[b.target];
     const allyId = b.team[b.ally];
     const ally = creatureById(allyId);
-    const ev = { card, correct: card.correct, target: b.target, ally: allyId, effect: null, specialist: false, hits: [], healed: 0, shieldGained: 0, stunned: null, hint: false, msg: '', attacks: [], over: null };
+    const ev = { card, correct: card.correct, target: b.target, ally: allyId, effect: null, specialist: false, hits: [], healed: 0, shieldGained: 0, stunned: null, hint: false, msg: '', attacks: [], turnEnded: false, nextAlly: null, over: null };
 
     if (card.correct) {
       ev.msg = foe.enemy.rule.ok(card);
       let dmg = TUNE.BASE_DMG;
-      if (ally && foe.enemy.themes.includes(ally.id)) {
+      if (ally && foe.enemy.themes.includes(themeOf(ally))) {
         dmg += TUNE.SPECIALIST_BONUS;
         ev.specialist = true;
       }
@@ -483,14 +532,24 @@
       return ev;
     }
 
-    // every living enemy hits back, one after another
+    // this ally's action is done. If a friend is still waiting, the turn goes on with a fresh hand: the enemies do not act yet.
+    b.acted[b.ally] = true;
+    const waiting = b.acted.findIndex((x) => !x);
+    if (waiting >= 0) {
+      b.ally = ev.nextAlly = waiting;
+      dealHands(b);
+      return ev;
+    }
+
+    // everyone has acted: now every living enemy takes its turn, one after another
+    ev.turnEnded = true;
     for (const f of living(b)) {
       const a = { i: f.i, dmg: 0, blocked: false, skipped: false, charged: false };
       if (f.stunned) {
         a.skipped = true;
       } else {
         a.charged = f.charging;
-        a.dmg = f.charging ? f.enemy.charge.dmg : f.enemy.atk;
+        a.dmg = scaled(b, f.charging ? f.enemy.charge.dmg : f.enemy.atk);
         if (b.shield > 0) {
           b.shield--;
           a.blocked = true;
@@ -540,9 +599,9 @@
 
   const api = {
     TUNE, ADVENTURE, PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS,
-    creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
+    creatureById, themeOf, STORY_FRIENDS, starters, reachable, ensureState, resetState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
     makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, maxGroup, makeEncounter, planAdventure,
-    newBattle, BUFFS, applyBuff, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
+    newBattle, BUFFS, applyBuff, setTarget, setAlly, currentHand, play, cancelCharge, enemyDmg: scaled, rewards, applyRewards,
   };
   if (isNode) module.exports = api;
   else root.RPG = api;

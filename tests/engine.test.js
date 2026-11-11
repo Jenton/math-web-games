@@ -28,4 +28,33 @@ for (const band of MG.BANDS) {
     }
   }
 }
+
+// Greater / less than: more stars means cards that sit closer to the target (and the target itself as a trap), never the same difficulty at every level.
+{
+  const meanGap = (band, stars) => {
+    let sum = 0, n = 0, traps = 0;
+    for (let i = 0; i < 400; i++) {
+      let r;
+      do r = MG.makeLevelRule(band, stars, null); while (r.id !== 'compare');
+      const N = Number(r.title.replace(/.*than /, '').replace('\u2212', '-'));
+      for (let k = 0; k < 6; k++) {
+        const c = k < 2 ? r.correct() : r.wrong();
+        assert.strictEqual(!!r.check(c), k < 2, band + ' ' + stars + ' ' + r.title + ' card ' + c.label);
+        sum += Math.abs(c.value - N); n++;
+        if (c.value === N) traps++;
+      }
+    }
+    return { gap: sum / n, traps: traps / n };
+  };
+  for (const band of ['K-1', '2-3', '6']) {
+    const g = [1, 2, 3].map((s) => meanGap(band, s));
+    assert.ok(g[0].gap > g[1].gap && g[1].gap > g[2].gap, `${band}: cards get closer to the target as stars go up (${g.map((x) => x.gap.toFixed(1))})`);
+    assert.ok(g[2].gap <= 5, `${band} 3 stars: every card is within 5 of the target`);
+    assert.ok(g[2].traps > g[0].traps, `${band}: the "equal to the target" trap shows up more at 3 stars`);
+  }
+  // grade 2-3 uses bigger numbers than K-1
+  let big = 0;
+  for (let i = 0; i < 100; i++) { let r; do r = MG.makeLevelRule('2-3', 3, null); while (r.id !== 'compare'); big = Math.max(big, r.correct().value); }
+  assert.ok(big >= 100, 'grade 2-3 at 3 stars compares three-digit numbers');
+}
 console.log(`OK: ${rulesSeen} rule instances verified across all bands and star levels.`);

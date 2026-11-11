@@ -8,6 +8,8 @@ const alive = (b) => b.foes.filter((f) => f.alive);
 const correctIdx = (h) => h.map((c, i) => (c.correct ? i : -1)).filter((i) => i >= 0);
 const wrongIdx = (h) => h.map((c, i) => (c.correct ? -1 : i)).filter((i) => i >= 0);
 const pickOne = (a) => a[rnd(0, a.length - 1)];
+/** Allies who have not acted yet this turn (each friend acts once per turn, then the enemies act). */
+const ready = (b) => b.team.map((id, j) => j).filter((j) => !b.acted[j]);
 
 /** Can the player solve this turn's Balance puzzle? (always possible: puzzles have a unique solution) */
 function solveCharge(b) {
@@ -20,13 +22,13 @@ const policies = {
   /** Always answers right. Targets the enemy that will die soonest, and the ally whose theme matches (else the first). */
   perfect: (b) => {
     const tgt = alive(b).slice().sort((x, y) => x.hp - y.hp)[0].i;
-    const match = b.team.findIndex((id) => b.foes[tgt].enemy.themes.includes(id));
-    return { target: tgt, ally: match >= 0 ? match : 0, card: pickOne(correctIdx(b.hands[tgt])), solves: true };
+    const match = ready(b).find((j) => b.foes[tgt].enemy.themes.includes(RPG.themeOf(b.team[j])));
+    return { target: tgt, ally: match !== undefined ? match : ready(b)[0], card: pickOne(correctIdx(b.hands[tgt])), solves: true };
   },
   /** Always answers right, but acts with a random ally and a random enemy (the effects can never be required). */
   perfectAnyAlly: (b) => {
     const tgt = pickOne(alive(b)).i;
-    return { target: tgt, ally: rnd(0, b.team.length - 1), card: pickOne(correctIdx(b.hands[tgt])), solves: true };
+    return { target: tgt, ally: pickOne(ready(b)), card: pickOne(correctIdx(b.hands[tgt])), solves: true };
   },
   /** A learner: answers wrong with probability q (and does not always solve the boss puzzle). */
   learner: (q) => (b) => {
@@ -34,12 +36,12 @@ const policies = {
     const h = b.hands[tgt];
     const wrong = wrongIdx(h);
     const card = Math.random() < q && wrong.length ? pickOne(wrong) : pickOne(correctIdx(h));
-    return { target: tgt, ally: 0, card, solves: Math.random() < 0.8 };
+    return { target: tgt, ally: ready(b)[0], card, solves: Math.random() < 0.8 };
   },
   /** Ignores the math: random enemy, random ally, random card; never solves the puzzle. */
   random: (b) => {
     const tgt = pickOne(alive(b)).i;
-    return { target: tgt, ally: rnd(0, b.team.length - 1), card: rnd(0, b.hands[tgt].length - 1), solves: false };
+    return { target: tgt, ally: pickOne(ready(b)), card: rnd(0, b.hands[tgt].length - 1), solves: false };
   },
 };
 

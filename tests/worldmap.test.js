@@ -25,11 +25,11 @@ W.REGIONS.forEach((reg) => {
 W.REGIONS.forEach((reg) => reg.nodes.filter((n) => W.kindsOf(n)).forEach((n) => {
   ['K-1', '2-3', '4-5', '6'].forEach((band) => [1, 2, 3].forEach((stars) => {
     for (let i = 0; i < 20; i++) {
-      const enc = RPG.makeEncounter(band, stars, W.kindsOf(n), { rescue: n.type === 'rescue' ? n.ally : null });
+      const enc = RPG.makeEncounter(band, stars, W.kindsOf(n), { rescue: n.ally || null });
       assert.ok(enc.enemies.length >= 1 && enc.enemies.length <= Math.min(W.kindsOf(n).length, RPG.maxGroup(stars)), n.id + ' group size follows the star cap');
       const skills = enc.enemies.filter((e) => e.kind !== 'armor').map((e) => e.rule.id);
       assert.strictEqual(new Set(skills).size, skills.length, n.id + ': no two monsters share a weakness');
-      assert.strictEqual(enc.rescue, n.type === 'rescue' ? n.ally : null, n.id + ' rescue passes straight through');
+      assert.strictEqual(enc.rescue, n.ally || null, n.id + ' rescue passes straight through');
       const b = RPG.newBattle({ band, stars, enemies: enc.enemies, team: ['multiples'], level: 1, rescue: enc.rescue });
       assert.strictEqual(b.foes.length, enc.enemies.length);
     }
@@ -60,6 +60,25 @@ W.REGIONS.forEach((reg) => reg.nodes.forEach((n) => {
 }));
 assert.ok(W.REGIONS.some((r) => r.nodes.some((n) => n.type === 'puzzle' && n.puzzle === 'balance')) && W.REGIONS.some((r) => r.nodes.some((n) => n.type === 'puzzle' && n.puzzle === 'machine')), 'both kinds of puzzle spot exist');
 assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'puzzle', x: 1, y: 1, next: ['b'], script: ['hi'] }, { id: 'b', type: 'boss', x: 2, y: 2, next: [] }] }]).some((m) => /puzzle must be/.test(m)), 'the validator flags a puzzle with no kind');
+// every friend is freed somewhere: the first eleven keep their older places, and each story friend is freed exactly once, in the region RPG says
+{
+  const freers = [];
+  W.REGIONS.forEach((reg) => reg.nodes.filter((n) => n.ally).forEach((n) => freers.push({ ally: n.ally, region: reg.name })));
+  assert.strictEqual(new Set(freers.map((f) => f.ally)).size, freers.length, 'no friend is freed twice');
+  RPG.STORY_FRIENDS.forEach((id) => {
+    const f = freers.find((x) => x.ally === id);
+    assert.ok(f, id + ' is freed on the map');
+    assert.strictEqual(f.region, RPG.creatureById(id).where, id + ' says where it is freed');
+  });
+  assert.strictEqual(RPG.STORY_FRIENDS.length, 11);
+  assert.strictEqual(RPG.CREATURES.length, 22, 'eleven first friends plus eleven story friends');
+  // the story reads in order: every region after the first opens from the boss before it, and every boss tells how the next place appears
+  W.REGIONS.forEach((reg, i) => {
+    if (i < W.REGIONS.length - 1) assert.ok(W.bossOf(reg).outro && W.bossOf(reg).outro.length > 20, reg.id + ' boss has an outro');
+    if (i >= 2) assert.ok(reg.intro && reg.intro.length >= 1, reg.id + ' has an intro');
+    reg.nodes.filter((n) => n.type === 'story').forEach((n) => assert.ok(n.script.length >= 1));
+  });
+}
 // the validator really catches mistakes
 assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'battle', x: 1, y: 1, next: ['zz'] }] }]).length > 0, 'validator flags a dangling link and a missing boss');
 
@@ -123,6 +142,7 @@ assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'battle', 
       const a = reg.art[t];
       assert.ok(a, reg.id + ' has ' + t + ' map art');
       if (t === 'classic') assert.ok(Art.src('classic', 'map', a.map), reg.id + ' classic map image exists');
+      if (a.bg) assert.ok(Art.get(t, 'bg', a.bg), reg.id + ' ' + t + ' backdrop ' + a.bg + ' exists');
       (reg.decor || []).forEach(([k]) => t !== 'cute' || assert.ok(Art.get('cute', 'map', k), 'decor ' + k + ' is in the cute manifest'));
     });
     const all = [];
