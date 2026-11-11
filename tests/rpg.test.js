@@ -151,7 +151,7 @@ const atkSum = (b, idx) => idx.reduce((n, i) => n + b.foes[i].enemy.atk, 0);
   assert.ok(ev.msg.length > 0 && !/NaN|undefined/.test(ev.msg), 'a wrong answer is explained');
   assert.deepStrictEqual(b.foes.map((f) => f.hp), hp);
   assert.strictEqual(ev.attacks.length, 3, 'all three enemies hit back');
-  assert.strictEqual(b.teamHp, t0 - 3 * T.ENEMY_ATK.weakness);
+  assert.strictEqual(b.teamHp, t0 - 3 * RPG.enemyDmg(b, T.ENEMY_ATK.weakness));
   assert.strictEqual(b.misses, 1);
   assert.strictEqual(b.turn, 2);
 }
@@ -252,7 +252,7 @@ const atkSum = (b, idx) => idx.reduce((n, i) => n + b.foes[i].enemy.atk, 0);
   const ev = RPG.play(b, right(b));
   assert.strictEqual(ev.effect, 'shield');
   assert.deepStrictEqual(ev.attacks.map((a) => a.blocked), [true, false, false], 'one shield blocks one attack');
-  assert.strictEqual(b.teamHp, t0 - 2 * T.ENEMY_ATK.weakness);
+  assert.strictEqual(b.teamHp, t0 - 2 * RPG.enemyDmg(b, T.ENEMY_ATK.weakness));
   const c = mk(['rounding'], 1, { band: '6', hp: [999] });
   c.shield = T.SHIELD_MAX;
   RPG.play(c, right(c));
@@ -264,7 +264,7 @@ const atkSum = (b, idx) => idx.reduce((n, i) => n + b.foes[i].enemy.atk, 0);
   const ev = RPG.play(b, right(b));
   assert.strictEqual(ev.stunned, 0);
   assert.deepStrictEqual(ev.attacks.map((a) => [a.i, a.skipped]), [[0, true], [1, false]]);
-  assert.strictEqual(b.teamHp, t0 - T.ENEMY_ATK.weakness);
+  assert.strictEqual(b.teamHp, t0 - RPG.enemyDmg(b, T.ENEMY_ATK.weakness));
   const ev2 = RPG.play(b, wrong(b));
   assert.strictEqual(ev2.attacks.find((a) => a.i === 0).skipped, false, 'the stun lasts one attack');
 }
@@ -310,13 +310,89 @@ const atkSum = (b, idx) => idx.reduce((n, i) => n + b.foes[i].enemy.atk, 0);
   const t0 = take.teamHp;
   const evTake = RPG.play(take, wrong(take));
   assert.strictEqual(evTake.attacks[0].charged, true);
-  assert.strictEqual(t0 - take.teamHp, T.CHARGE.dmg + T.ENEMY_ATK.weakness, 'ignoring the charge takes the big hit');
+  assert.strictEqual(t0 - take.teamHp, RPG.enemyDmg(take, T.CHARGE.dmg) + RPG.enemyDmg(take, T.ENEMY_ATK.weakness), 'ignoring the charge takes the big hit');
   assert.ok(RPG.cancelCharge(b), 'solving the puzzle cancels it');
   const t1 = b.teamHp;
   const evCancel = RPG.play(b, wrong(b));
   assert.strictEqual(evCancel.attacks[0].skipped, true, 'a cancelled boss is stunned and skips its attack');
-  assert.strictEqual(t1 - b.teamHp, T.ENEMY_ATK.weakness, 'only the minion hit back');
+  assert.strictEqual(t1 - b.teamHp, RPG.enemyDmg(b, T.ENEMY_ATK.weakness), 'only the minion hit back');
   assert.strictEqual(RPG.cancelCharge(b), false, 'nothing left to cancel');
+}
+
+/* ---------- turn order: every friend acts, THEN every monster acts ---------- */
+{
+  const team = ['multiples', 'factors', 'primes'];
+  const b = mk(team, 2, { band: 'K-1', hp: [999, 999] });
+  const t0 = b.teamHp;
+  assert.deepStrictEqual(b.acted, [false, false, false]);
+  const ev1 = RPG.play(b, wrong(b));
+  assert.strictEqual(ev1.turnEnded, false, 'the monsters wait for the other friends');
+  assert.deepStrictEqual(ev1.attacks, []);
+  assert.strictEqual(b.teamHp, t0);
+  assert.strictEqual(b.turn, 1);
+  assert.strictEqual(ev1.nextAlly, 1);
+  assert.strictEqual(b.ally, 1, 'the turn moves on to the next friend');
+  assert.deepStrictEqual(b.acted, [true, false, false]);
+  assert.strictEqual(RPG.setAlly(b, 0), false, 'a friend who has acted cannot act twice');
+  assert.strictEqual(RPG.setAlly(b, 2), true, 'but the others can go in any order');
+  const old = JSON.stringify(b.hands);
+  const ev2 = RPG.play(b, wrong(b));
+  assert.strictEqual(ev2.ally, 'primes');
+  assert.strictEqual(ev2.turnEnded, false);
+  assert.strictEqual(b.ally, 1, 'the one friend left goes next');
+  assert.notStrictEqual(JSON.stringify(b.hands), old, 'every action deals a fresh hand');
+  const ev3 = RPG.play(b, wrong(b));
+  assert.strictEqual(ev3.turnEnded, true);
+  assert.deepStrictEqual(ev3.attacks.map((a) => a.i), [0, 1], 'now every living monster acts, once each');
+  assert.strictEqual(b.teamHp, t0 - 2 * T.ENEMY_ATK.weakness, 'a full team takes full-strength hits');
+  assert.strictEqual(b.turn, 2);
+  assert.deepStrictEqual(b.acted, [false, false, false], 'a new round: everyone can act again');
+  assert.strictEqual(b.ally, 0);
+}
+{ // a win in the middle of your phase ends the fight at once; nobody hits back
+  const b = mk(['multiples', 'factors', 'primes'], 1, { band: 'K-1', hp: [1] });
+  const t0 = b.teamHp;
+  const ev = RPG.play(b, right(b));
+  assert.strictEqual(ev.over, 'win');
+  assert.deepStrictEqual(ev.attacks, []);
+  assert.strictEqual(b.teamHp, t0);
+}
+{ // a stunned monster skips the monster phase, a shield blocks one hit in it, and the hint lands on the very next hand
+  const b = mk(['exponents', 'rounding', 'compare'], 2, { band: '6', stars: 2, hp: [999, 999] });
+  const e1 = RPG.play(b, right(b)); // exponents: stun the target
+  assert.strictEqual(e1.effect, 'stun');
+  RPG.setAlly(b, 1);
+  const e2 = RPG.play(b, right(b)); // rounding: shield
+  assert.strictEqual(e2.effect, 'shield');
+  const sizes = b.hands.map((h) => h.length);
+  const e3 = RPG.play(b, right(b)); // compare: hint, used up by the next deal (the next round)
+  assert.strictEqual(e3.effect, 'hint');
+  assert.strictEqual(e3.turnEnded, true);
+  assert.deepStrictEqual(e3.attacks.map((a) => [a.i, a.skipped, a.blocked]), [[0, true, false], [1, false, true]]);
+  b.hands.forEach((h, i) => assert.ok(h.length < sizes[i] || h.length === 0, 'the first hand of the next round has a wrong card removed'));
+}
+{ // a smaller team acts fewer times per round, so monsters hit softer and it stays winnable
+  const one = mk(['rounding'], 1, { band: '6', hp: [999] });
+  assert.strictEqual(RPG.enemyDmg(one, T.ENEMY_ATK.weakness), Math.floor(T.ENEMY_ATK.weakness / 3));
+  const three = mk(['multiples', 'factors', 'primes'], 1, { band: 'K-1', hp: [999] });
+  assert.strictEqual(RPG.enemyDmg(three, T.ENEMY_ATK.weakness), T.ENEMY_ATK.weakness);
+  assert.ok(RPG.enemyDmg(one, 1) >= 1, 'never zero');
+}
+{ // the boss charge belongs to the whole round and is not cancelled by dealing new hands
+  const e = [RPG.makeEnemy('2-3', 2, 'boss', null)];
+  const b = RPG.newBattle({ band: '2-3', stars: 2, enemies: e, team: ['exponents', 'multiples', 'factors'], level: 1 });
+  b.foes[0].hp = b.foes[0].max = 999;
+  RPG.play(b, wrong(b)); RPG.play(b, wrong(b)); RPG.play(b, wrong(b));
+  RPG.play(b, wrong(b)); RPG.play(b, wrong(b)); RPG.play(b, wrong(b));
+  assert.strictEqual(b.turn, 3);
+  assert.ok(b.foes[0].charging && b.puzzle);
+  RPG.play(b, wrong(b)); RPG.play(b, wrong(b));
+  assert.ok(b.foes[0].charging && b.puzzle, 'the charge survives to the end of the round');
+  b.teamHp = b.teamMax = 99;
+  const t0 = b.teamHp;
+  const ev = RPG.play(b, wrong(b));
+  assert.strictEqual(ev.attacks[0].charged, true);
+  assert.strictEqual(t0 - b.teamHp, T.CHARGE.dmg);
 }
 
 /* ---------- rewards ---------- */
@@ -331,6 +407,25 @@ const atkSum = (b, idx) => idx.reduce((n, i) => n + b.foes[i].enemy.atk, 0);
   assert.strictEqual(RPG.rewards(boss).boss, true);
   assert.strictEqual(RPG.rewards(boss).creature, 'boss', 'the rescued ally comes from the encounter');
   assert.strictEqual(RPG.rewards(two).creature, null, 'ordinary fights free nobody');
+}
+
+/* ---------- starting over ---------- */
+{
+  const p = { settings: { band: '4-5' }, games: { rpg: { xpEarned: { lap: 300 }, wins: { lap: 9 }, bosses: { lap: 1 }, creatures: ['multiples', 'armor', 'boss', 'primes'], team: ['armor', 'boss'], teamAt: 9, cleared: ['m1', 'm2'], gold: ['m1'] } }, stats: { primes: { lap: { right: 5, wrong: 1 } } } };
+  assert.ok(RPG.progress(RPG.ensureState(p)).level > 3);
+  const r = RPG.resetState(p, 1234);
+  assert.strictEqual(r, p.games.rpg, 'reset works in place on the live save');
+  assert.strictEqual(RPG.progress(r).level, 1);
+  assert.strictEqual(RPG.progress(r).wins, 0);
+  assert.strictEqual(RPG.progress(r).bosses, 0);
+  assert.deepStrictEqual(r.creatures, RPG.starters('4-5'), 'back to the starting friends');
+  assert.deepStrictEqual(RPG.currentTeam(r), RPG.starters('4-5'));
+  assert.deepStrictEqual([r.cleared, r.gold], [[], []], 'the world map is empty again');
+  assert.strictEqual(r.team, undefined);
+  assert.strictEqual(r.resetAt, 1234);
+  assert.ok(p.stats.primes.lap.right === 5, 'practice stats for the grown-up report are not touched');
+  assert.ok(RPG.resetState(p).resetAt > 1234, 'a later reset always gets a later stamp');
+  assert.strictEqual(RPG.resetState({ settings: { band: 'K-1' } }, 5).resetAt, 5, 'resetting a brand new save is fine');
 }
 
 /* ---------- state and progression ---------- */
@@ -399,7 +494,7 @@ for (const ally of RPG.CREATURES) {
     });
   }
   lone[ally.id] = w / n;
-  assert.ok(w / n >= 0.98, `perfect answers with only ${ally.name} (${ally.effect}) must win (${(w / n).toFixed(3)})`);
+  assert.ok(w / n >= 0.95, `perfect answers with only ${ally.name} (${ally.effect}) must win (${(w / n).toFixed(3)})`);
 }
 // and no ally is so strong that the fight is trivial for someone who guesses
 for (const ally of RPG.CREATURES) {

@@ -153,6 +153,9 @@ Wiring is done in `js/sync-ui.js`, and the adapter that sets `window.MathQuestBa
   `RPG.currentTeam`), because that makes the merge order matter.
 - Register the game's merge rule in `js/save.js` with `Save.registerGame(id, { field: 'counter' | 'set' | 'max' | 'lww' })` and add cases to
   `tests/save.test.js`. A game with no rule falls back to "the newer whole object wins", which can lose progress.
+- **Starting a game over** (Creature Quest: `RPG.resetState`): counters cannot go down, so the game stamps an epoch field (`resetAt`, a 'max' field) and registers it with
+  `Save.registerGame(id, fields, post, { epoch: 'resetAt' })`. On merge, the side with the newer epoch wins entirely; progress made on another device BEFORE the reset is dropped,
+  progress after it merges normally. Resetting is explicit and confirmed in the UI. Per-skill practice stats are not part of the reset.
 - Level in Creature Quest is **derived** from total XP (`RPG.progress`), never stored.
 - Migration filed v1 counters under the migrating device. If the same v1 backup is restored on two devices before they sync, those starting counts
   are summed once per device (cosmetic inflation). We chose that over the alternative, which could silently drop real progress.

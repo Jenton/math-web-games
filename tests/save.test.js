@@ -266,6 +266,31 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.deepStrictEqual(Save.mergeGame('rpg', { creatures: [] }, { creatures: [], cleared: ['m1'] }).cleared, ['m1'], 'a device with no map progress loses nothing');
 }
 
+/* ---------- starting Creature Quest over: a reset beats older progress on every device, in any merge order ---------- */
+{
+  const old = { xpEarned: { lap: 90 }, wins: { lap: 4 }, bosses: {}, creatures: ['multiples', 'armor'], team: ['armor'], teamAt: 5, cleared: ['m1', 'm2'], gold: ['m1'] };
+  const reset = { xpEarned: {}, wins: {}, bosses: {}, creatures: ['multiples', 'factors', 'primes'], cleared: [], gold: [], resetAt: 100 };
+  const ab = Save.mergeGame('rpg', old, reset);
+  assert.deepStrictEqual(ab, Save.mergeGame('rpg', reset, old), 'merge order does not matter');
+  assert.deepStrictEqual(ab.cleared, [], 'old map progress does not come back');
+  assert.deepStrictEqual(ab.xpEarned, {});
+  assert.deepStrictEqual(ab.creatures, ['factors', 'multiples', 'primes']);
+  assert.strictEqual(ab.team, undefined, 'the old team does not come back either');
+  assert.strictEqual(ab.resetAt, 100);
+  assert.deepStrictEqual(Save.mergeGame('rpg', ab, ab), ab, 'idempotent');
+  // progress made AFTER the reset (same resetAt on both sides) merges normally
+  const later = Object.assign({}, reset, { xpEarned: { pad: 30 }, cleared: ['m1'] });
+  const both = Save.mergeGame('rpg', later, reset);
+  assert.deepStrictEqual(both.cleared, ['m1']);
+  assert.deepStrictEqual(both.xpEarned, { pad: 30 });
+  // a second, later reset wins over the first
+  const again = Save.mergeGame('rpg', later, Object.assign({}, reset, { creatures: ['multiples', 'factors', 'primes'], resetAt: 200 }));
+  assert.deepStrictEqual(again.cleared, []);
+  assert.strictEqual(again.resetAt, 200);
+  // a save that never had a reset behaves exactly as before
+  assert.strictEqual(Save.mergeGame('rpg', { creatures: ['a'] }, { creatures: ['b'] }).resetAt, 0);
+}
+
 /* ---------- merging in place keeps object identity (a running game must keep saving into live data) ---------- */
 {
   const mk = (id, name) => Save.newProfile({ id, name, avatar: 'x', now: 1 });

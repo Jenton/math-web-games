@@ -9,6 +9,9 @@
  *   max     : best value (stars, high score). Merge = max.
  *   lww     : last write wins, stored with a sibling "<field>At" timestamp. Merge = newer; ties break deterministically.
  *
+ * A game MAY declare an "epoch" field (a 'max' field holding a timestamp) so a player can start that game over: the side with the newer epoch
+ * wins outright, and the older side's progress is dropped (it was made before the reset). Resetting is explicit and confirmed in the UI.
+ *
  * Merge is commutative, associative and idempotent (tested), so devices can sync in any order and converge.
  */
 (function (root) {
@@ -59,8 +62,8 @@
 
   const SCHEMAS = {};
   /** fields: { fieldName: 'counter' | 'set' | 'max' | 'lww' }. post(game) may repair invariants after a merge (must be idempotent). */
-  function registerGame(id, fields, post) {
-    SCHEMAS[id] = { fields, post };
+  function registerGame(id, fields, post, opts) {
+    SCHEMAS[id] = { fields, post, epoch: (opts || {}).epoch || null };
   }
 
   registerGame('munchers', { levels: 'counter', streak: 'lww' });
@@ -73,12 +76,13 @@
   registerGame('escape', { rooms: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
-    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' }, // cleared / gold: world-map node ids (grow-only sets)
+    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set', resetAt: 'max' }, // cleared / gold: world-map node ids (grow-only sets); resetAt: when Creature Quest was last started over
     (g) => {
       // the team can only hold creatures you own, at most 3. This only FILTERS: it never invents a team (a defaulted value
       // saved as if a player chose it would make the merge order matter). Games compute their default team when reading.
       if (Array.isArray(g.team)) g.team = g.team.filter((id) => (g.creatures || []).includes(id)).slice(0, 3);
-    }
+    },
+    { epoch: 'resetAt' }
   );
 
   function mergeField(type, key, a, b, out) {
@@ -110,6 +114,14 @@
       // game without a registered merge rule: the newer whole object wins (register a schema to do better)
       const [v] = pickLww(a, num(a._at), b, num(b._at));
       return clone(v);
+    }
+    if (sc.epoch) {
+      // a reset: whichever side was reset more recently wins entirely (progress made before the reset must not come back).
+      // The epoch field itself is a 'max' field, so it survives the merge with the emptied side.
+      const ea = num(a[sc.epoch]);
+      const eb = num(b[sc.epoch]);
+      if (ea > eb) b = {};
+      else if (eb > ea) a = {};
     }
     const lwwAt = new Set(Object.keys(sc.fields).filter((k) => sc.fields[k] === 'lww').map((k) => k + 'At'));
     Object.keys(sc.fields).forEach((k) => mergeField(sc.fields[k], k, a, b, out));
