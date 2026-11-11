@@ -29,6 +29,9 @@ The math *is* the gameplay. Live at https://math-quest-family.web.app (Firebase 
 7. **No timers by default, no accounts, no ads, no tracking, original characters only** (Kenney art is CC0; record packs used in `assets/CREDITS.md`).
 8. **Shared "registry" files** are conflict hotspots: `index.html`, `js/app.js` (`GAMES`, `SCREEN_OF`), `js/save.js`, `README.md`, `docs/game-ideas.md`, `css/style.css`. Add your changes in one commented block, and when merging keep both sides.
 
+## Firebase skills
+Only six Firebase skills are kept in `.claude/skills` (auth, basics, firestore, hosting, rules creation, rules auditor), because this is a static site with Firestore sync. Add others back from `firebase/agent-skills` only if a feature needs them.
+
 ## Tests
 ```
 for t in tests/*.test.js; do node "$t" || break; done      # what CI runs; must be green
