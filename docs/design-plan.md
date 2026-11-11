@@ -81,6 +81,15 @@ based on recent success. Parents can override.
 
 ## Decisions after review (v1)
 
+**Current decisions (these win over anything earlier in this file or in `docs/design-review.md`):**
+- Original characters only; no licensed IP. Art is Kenney CC0 (smooth vector for the puzzle games, pixel for Quest classic, Escape Room and Number Defense). Emoji is only a fallback.
+- No timers by default. Difficulty is grade band x 1-3 stars, set by the player; auto-adapt only after playtesting.
+- No-reading mode is **dropped** (the younger player reads), although numbers can be spoken (`Sfx.say`).
+- Progress is private by default (localStorage plus a backup file); opt-in encrypted cloud sync is built and live (`docs/sync-design.md`).
+- Every game must pass the "can it be played without the math?" test (`docs/design-review.md` item 1) and the polish bar in `docs/new-game-checklist.md`.
+
+Earlier decisions, kept for history:
+
 - **No-reading mode: dropped.** The younger player reads, so written prompts are fine at every level.
 - **v1 limits are deliberate, and meant to be revisited after playtesting.** Each is built as a
   setting or extension point so it can be lifted without a rewrite:

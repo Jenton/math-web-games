@@ -14,6 +14,8 @@
 
   const BAL_MAX = { 'K-1': 12, '2-3': 40, '4-5': 20, '6': 30 }; // upper limit of the guess stepper
 
+  const BAL_TRIES = 3; // guesses per puzzle: guessing and nudging is not a strategy
+
   const sideVal = (s, v) => s.x * v + s.c;
 
   function sideText(s) {
@@ -109,6 +111,20 @@
     };
   }
 
+  /** Worked solution, as short plain steps ("take the same thing off both sides"). */
+  function balanceSteps(p) {
+    let A = p.L;
+    let B = p.R;
+    if (B.x > A.x) [A, B] = [B, A]; // put the side with more mystery blocks first
+    const steps = ['The scale says ' + sideText(A) + ' = ' + sideText(B) + '.'];
+    const k = A.x - B.x;
+    if (B.x > 0) steps.push('Take ' + (B.x === 1 ? 'one ?' : B.x + ' × ?') + ' off both sides. Now ' + sideText({ x: k, c: A.c }) + ' = ' + B.c + '.');
+    if (A.c > 0) steps.push('Take ' + A.c + ' off both sides. Now ' + sideText({ x: k, c: 0 }) + ' = ' + (B.c - A.c) + '.');
+    if (k > 1) steps.push('Share ' + (B.c - A.c) + ' into ' + k + ' equal groups: ' + (B.c - A.c) + ' ÷ ' + k + ' = ' + p.x + '.');
+    steps.push('So one ? weighs ' + p.x + '.');
+    return steps;
+  }
+
   /* ================= Machine Builder ================= */
 
   const mk = (label, f) => ({ label, f });
@@ -177,7 +193,7 @@
     return applyOp(p.ops[i], v, p.band);
   }
 
-  const api = { makeBalance, checkBalance, sideVal, sideText, makeMachine, stepMachine, fmt, BAL_MAX, SKILLS: { balance: 'Balance: finding the unknown', machine: 'Machine Builder: operation chains' } };
+  const api = { makeBalance, checkBalance, balanceSteps, BAL_TRIES, sideVal, sideText, makeMachine, stepMachine, fmt, BAL_MAX, SKILLS: { balance: 'Balance: finding the unknown', machine: 'Machine Builder: operation chains' } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MGP = api;
 })(typeof window !== 'undefined' ? window : globalThis);

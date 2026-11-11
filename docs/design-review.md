@@ -1,5 +1,8 @@
 # Adversarial Review of the Design Plan
 
+> Historical critique from the planning stage. Where it conflicts with the "Current decisions" block in `docs/design-plan.md`, that block wins
+> (for example, no-reading mode was dropped and cloud sync was later built). The "can it be played without the math?" test is still required.
+
 Reviewer stance: skeptical second person in the room. Ordered by how much
 each issue could sink the project.
 

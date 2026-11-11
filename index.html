@@ -46,7 +46,7 @@
 
     <!-- MENU: games + settings for one player -->
     <section id="menu" class="screen" hidden>
-      <button id="menuBack" class="btn ghost small" type="button">&larr; Players</button>
+      <nav class="crumbs" data-level="menu" data-back="menuBack" aria-label="Where you are"></nav>
       <div class="who"><span id="menuAv" class="av"></span><h1 id="menuName"></h1></div>
 
       <h2>Pick a game</h2>
@@ -87,6 +87,18 @@
           <span class="g-desc">Chain operations to turn the start number into the target.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="sort" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/medals/m2.png" alt=""></span>
+          <span class="g-name">Sort &amp; Rule</span>
+          <span class="g-desc">Test numbers on the gate, then work out its secret rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="share" type="button">
+          <span class="g-ico">&#127829;</span>
+          <span class="g-name">Cut &amp; Share</span>
+          <span class="g-desc">Cut the pizza so every friend gets a fair share.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
         <button class="game-card" data-game="lemonade" type="button">
           <span class="g-ico"><img class="g-img" src="assets/kenney/lemonade/pitcher.png" alt=""></span>
           <span class="g-name">Lemonade Stand</span>
@@ -112,7 +124,7 @@
 
     <!-- SETUP: one screen to choose how to play, then Play -->
     <section id="setup" class="screen" hidden>
-      <button id="setupBack" class="btn ghost small" type="button">&larr; Games</button>
+      <nav class="crumbs" data-level="setup" data-back="setupBack" aria-label="Where you are"></nav>
       <div class="who"><span id="setupIco" class="g-ico"></span><h1 id="setupTitle"></h1></div>
 
       <ol id="setupHow" class="how"></ol>
@@ -151,11 +163,11 @@
     <!-- GAME: Balance -->
     <section id="balance" class="screen" hidden>
       <div class="hud">
-        <button id="balBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="balBack" data-game="balance" aria-label="Where you are"></nav>
         <span id="balNo" class="pill"></span>
       </div>
       <h2 class="rule-title">Make the scale level</h2>
-      <p class="rule-hint">Every <b>yellow block</b> is a mystery weight (<b>?</b>) and they all weigh the same. What does one weigh?</p>
+      <p class="rule-hint">Every <b>yellow block</b> is a mystery weight (<b>?</b>) and they all weigh the same. Work out what one weighs. The scale only tips when you lock in!</p>
       <div id="scale" class="scale" aria-hidden="true">
         <div class="beam"><div id="panL" class="pan"></div><div id="panR" class="pan"></div></div>
         <div class="post"></div>
@@ -170,14 +182,14 @@
       </div>
       <div class="controls">
         <button id="balCheck" class="btn big" type="button">Lock it in</button>
-        <p class="note">Change the number and watch the scale tip. Arrow keys work too; press Enter to lock in.</p>
+        <p class="note">Work it out, set the number, then lock it in. You only get 3 tries. Arrow keys work too; Enter locks in.</p>
       </div>
     </section>
 
     <!-- GAME: Escape Room Locks -->
     <section id="escape" class="screen" hidden>
       <div class="hud">
-        <button id="escBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="escBack" data-game="escape" aria-label="Where you are"></nav>
         <span id="escNo" class="pill"></span>
         <span id="escLocks" class="pill" aria-label="Locks"></span>
       </div>
@@ -189,7 +201,7 @@
     <!-- GAME: Number Defense -->
     <section id="td" class="screen" hidden>
       <div class="hud">
-        <button id="tdBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="tdBack" data-game="defense" aria-label="Where you are"></nav>
         <span id="tdNo" class="pill"></span>
         <span id="tdGold" class="pill"></span>
         <span id="tdGate" class="hearts" aria-label="Castle hearts"></span>
@@ -211,7 +223,7 @@
     <!-- GAME: Machine Builder -->
     <section id="machine" class="screen" hidden>
       <div class="hud">
-        <button id="macBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="macBack" data-game="machine" aria-label="Where you are"></nav>
         <span id="macNo" class="pill"></span>
         <span id="macPar" class="pill"></span>
       </div>
@@ -233,7 +245,7 @@
     <!-- GAME: Lemonade Stand -->
     <section id="lemonade" class="screen" hidden>
       <div class="hud">
-        <button id="lemBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <nav class="crumbs" data-level="play" data-back="lemBack" data-game="lemonade" aria-label="Where you are"></nav>
         <span id="lemNo" class="pill"></span>
       </div>
       <h2 id="lemTitle" class="rule-title"></h2>
@@ -260,7 +272,7 @@
     <!-- GAME: Creature Quest (RPG) -->
     <section id="quest" class="screen" hidden>
       <div id="qHome">
-        <div class="hud"><button id="qBack" class="btn ghost small" type="button">&larr; Setup</button></div>
+        <div class="hud"><nav class="crumbs" data-level="play" data-back="qBack" data-game="quest" aria-label="Where you are"></nav></div>
         <h1>Creature Quest</h1>
         <p class="lead">Monsters have a weakness. Pick the attack card that fits it, and your team strikes hard!</p>
         <div class="q-level">
@@ -370,10 +382,71 @@
       </div>
     </section>
 
+    <!-- GAME: Sort & Rule -->
+    <section id="sort" class="screen" hidden>
+      <div class="hud">
+        <nav class="crumbs" data-level="play" data-back="sortBack" data-game="sort" aria-label="Where you are"></nav>
+        <span id="sortNo" class="pill"></span>
+        <span id="sortTests" class="pill"></span>
+      </div>
+      <h2 class="rule-title">What does the gate let through?</h2>
+      <p class="rule-hint">Send numbers through the gate and watch. When you think you know its secret rule, say so. Fewer tests earn more stars.</p>
+      <div class="sort-lanes">
+        <div class="lane"><span class="s-label">✅ Let through</span><div id="sortPass" class="lane-box"></div></div>
+        <div class="sort-scene" aria-hidden="true">
+          <img id="sortGuard" class="px sort-guard" src="assets/kenney/escape/t96.png" alt="" draggable="false">
+          <img id="sortGate" class="px sort-door" src="assets/kenney/escape/t46.png" alt="" draggable="false">
+          <img id="sortEmote" class="sort-emote" alt="" draggable="false" hidden>
+        </div>
+        <div class="lane"><span class="s-label">🚫 Stopped</span><div id="sortStop" class="lane-box"></div></div>
+      </div>
+      <p id="sortMsg" class="sums" role="status" aria-live="polite"></p>
+      <div id="sortTray" class="num-tray"></div>
+      <div id="sortChoices" hidden>
+        <h2 class="rule-title">The gate lets through&hellip;</h2>
+        <div id="sortOpts" class="opts"></div>
+      </div>
+      <div class="controls">
+        <button id="sortKnow" class="btn big" type="button">I know the rule!</button>
+        <button id="sortKeep" class="btn ghost" type="button" hidden>Keep testing</button>
+      </div>
+    </section>
+
+    <!-- GAME: Cut & Share -->
+    <section id="share" class="screen" hidden>
+      <div class="hud">
+        <nav class="crumbs" data-level="play" data-back="shBack" data-game="share" aria-label="Where you are"></nav>
+        <span id="shNo" class="pill"></span>
+        <span id="shTries" class="pill"></span>
+      </div>
+      <h2 id="shTitle" class="rule-title"></h2>
+      <p class="rule-hint">Cut every pizza into equal slices, then decide how many slices each friend gets. Every slice must be used and everyone must get the same. Fewer cuts earn more stars.</p>
+      <div id="shPizzas" class="pizzas"></div>
+      <div id="shFriends" class="friends" aria-hidden="true"></div>
+      <div class="share-set">
+        <span class="s-label">Cut each pizza into</span>
+        <div class="guess">
+          <button id="cutMinus" class="btn ghost big" type="button" aria-label="fewer slices">&minus;</button>
+          <div id="cutVal" class="gval"></div>
+          <button id="cutPlus" class="btn ghost big" type="button" aria-label="more slices">+</button>
+        </div>
+        <span class="s-label">Each friend gets</span>
+        <div class="guess">
+          <button id="eachMinus" class="btn ghost big" type="button" aria-label="fewer slices each">&minus;</button>
+          <div id="eachVal" class="gval"></div>
+          <button id="eachPlus" class="btn ghost big" type="button" aria-label="more slices each">+</button>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="shGo" class="btn big" type="button">Share it!</button>
+        <p class="note">Work it out first. The totals only show after you share, and you get 3 tries.</p>
+      </div>
+    </section>
+
     <!-- GAME: Munchers -->
     <section id="game" class="screen" hidden>
       <div class="hud">
-        <button id="gameMenu" class="btn ghost small" type="button">&larr; Menu</button>
+        <nav class="crumbs" data-level="play" data-back="gameMenu" data-game="munchers" aria-label="Where you are"></nav>
         <span id="levelNo" class="pill"></span>
         <span id="left" class="pill"></span>
         <span id="hearts" class="hearts" aria-label="hearts"></span>
@@ -474,6 +547,10 @@
   <script src="js/td.js"></script>
   <script src="js/art.js"></script>
   <script src="js/worldmap.js"></script>
+  <script src="js/sortrule.js"></script>
+  <script src="js/sort.js"></script>
+  <script src="js/cutshare.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
 </body>

@@ -90,7 +90,17 @@ async function newPage(browser, seed) {
   /* ===== 3. Balance, Machine Builder (including "Try this one again"), Munchers still work and save ===== */
   await page.click('#qBack'); await page.click('#setupBack');
   await page.click('[data-game=balance]'); await page.click('#playNow');
-  for (let i = 0; i < 60; i++) { await page.click('#gPlus'); await page.click('#balCheck'); if (await page.locator('#panel:not([hidden])').count()) break; }
+  // Balance now gives a few tries and does not tip as you change the number, so work the answer out from the equation (no spamming).
+  const solveBalance = async (pg) => {
+    const eq = (await pg.textContent('#balSums')).split('·')[0].trim();
+    const [l, r] = eq.split(' = ');
+    const ev = (s, v) => s.split(' + ').reduce((t, x) => t + (x.includes('?') ? (x.includes('×') ? +x.split(' × ')[0] : 1) * v : +x), 0);
+    let v = 0;
+    while (ev(l, v) !== ev(r, v)) v++;
+    for (let i = 0; i < v; i++) await pg.click('#gPlus');
+    await pg.click('#balCheck');
+  };
+  await solveBalance(page);
   assert.match(await page.textContent('#panelTitle'), /Balanced/);
   await page.click('#panelBtn'); await page.click('#balBack'); await page.click('#setupBack');
 
