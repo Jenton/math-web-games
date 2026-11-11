@@ -33,3 +33,5 @@ Next:
 4. **Registry files are shared hotspots:** `index.html` (script tags and screens), `js/app.js` (the `GAMES` table), `js/save.js` (`registerGame`), `README.md`, `docs/game-ideas.md`, `css/style.css`. Keep your additions in one block with its own comment, and when two sides conflict there, **keep both**.
 5. **New games** must save through the `Store` helpers, register a merge rule in `js/save.js`, and add tests (see "How the code works now" in `docs/sync-design.md`).
 6. **Never force-push** a shared branch. If the remote has commits you lack, merge them.
+7. **Deploys are automatic.** Merging to `main` runs `.github/workflows/firebase-hosting-merge.yml`, which publishes only the folder built by `tools/build-site.sh`. Do not deploy from the repo folder (it publishes `.git`), and do not add files the site needs under `docs/`, `tests/`, `tools/` or a dot-folder: they are never published. `tests/site-build.test.js` checks that everything the game references is in the published folder.
+

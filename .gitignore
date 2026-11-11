@@ -3,3 +3,6 @@
 assets/Kenney*/
 assets/incoming/
 .DS_Store
+
+# output of tools/build-site.sh when run inside the repo (the published folder)
+_site/
