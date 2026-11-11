@@ -49,3 +49,32 @@
 @keyframes lem-in { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes lem-attn { 40% { transform: scale(1.08, .94); } 70% { transform: scale(.98, 1.04); } }
 @keyframes lem-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* ---------------- Number Defense ----------------
+   Existing: enemies glide linearly one square per tick (right for a constant march), dead enemies pop and fade, leaks shake the lane.
+   Added: cause and effect you can see (a shot flies from tower to enemy, the kill lands when the shot does), tower recoil, a march waddle,
+   enemy entrance, gate hurt, placing/picking/gold feedback. Timings come from --tick, set by js/td.js per step, so Fast mode shortens them. */
+.td-shot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #ffd54f; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); pointer-events: none; z-index: 6; }
+@media (prefers-reduced-motion: no-preference) {
+  .td-lane.running .td-enemy:not(.dead):not(.leak) img { animation: td-waddle var(--tick, 520ms) ease-in-out infinite; }
+  .td-enemy.enter { animation: td-in 200ms var(--ease-out); }
+  .td-enemy.dead { transition-delay: calc(var(--tick, 520ms) * .35); } /* the kill lands when the shot does */
+  .td-lane:not(.running) .td-slot.filled img { animation: td-idle 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+  .td-lane .td-slot.filled.placed img { animation: td-place 260ms var(--ease-pop); transform-origin: 50% 100%; } /* after idle: same specificity, later wins */
+  .td-slot.recoil img { animation: td-recoil 230ms var(--ease-out); transform-origin: 50% 100%; }
+  .td-shot { animation: td-fly var(--fly, 180ms) var(--ease-out) forwards; }
+  .td-card.pick { animation: lem-cardpop 180ms var(--ease-pop); }
+  .td-chip.dead { animation: td-chip 220ms var(--ease-pop); }
+  #tdGold.tick, #tdGate.tick { animation: lem-tick 190ms var(--ease-out); }
+  #tdGold.shake { animation: lem-shake 300ms ease-in-out; }
+  .td-gate.ouch { animation: td-ouch 340ms var(--ease-out); }
+}
+@media (prefers-reduced-motion: reduce) { .td-enemy.dead, .td-enemy.leak { transition: none; } }
+@keyframes td-waddle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes td-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes td-idle { 50% { transform: translateY(-2px); } }
+@keyframes td-place { from { transform: translateY(-18px) scale(.8, 1.2); opacity: 0; } 60% { transform: translateY(0) scale(1.12, .88); opacity: 1; } to { transform: none; } }
+@keyframes td-recoil { 0% { transform: scale(1); } 30% { transform: scale(1.12, .88); } 60% { transform: scale(.94, 1.1); } 100% { transform: scale(1); } }
+@keyframes td-fly { from { transform: translate(0, 0) scale(.6); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1); opacity: .9; } }
+@keyframes td-chip { 40% { transform: scale(1.15); } }
+@keyframes td-ouch { 0% { transform: translate(-50%, -50%) scale(1); } 35% { transform: translate(-50%, -50%) scale(1.2, .85); } 70% { transform: translate(-50%, -50%) scale(.95, 1.08); } 100% { transform: translate(-50%, -50%) scale(1); } }
