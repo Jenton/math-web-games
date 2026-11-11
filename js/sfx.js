@@ -8,7 +8,8 @@
   const VOL = { sfx: 0.5, voice: 0.8, music: 0.18 };
   // name -> file (or several to pick from at random so repeats do not sound robotic)
   const MAP = {
-    correct: ['sfx/correct', 'sfx/correct2'], wrong: ['sfx/wrong', 'sfx/wrong2'], click: ['sfx/click'], open: ['sfx/open'],
+    correct: ['sfx/correct'], wrong: ['sfx/wrong'], // one fixed sound each: kids learn "coin ding = right", so no random variants here
+    click: ['sfx/click'], open: ['sfx/open'],
     close: ['sfx/close'], step: ['sfx/step'], solved: ['sfx/solved'], level: ['sfx/level'], place: ['sfx/place'], card: ['sfx/card'],
     lose: ['sfx/lose'], hurt: ['sfx/hurt'], hit: ['sfx/hit'], flip: ['sfx/flip'], win: ['sfx/win00', 'sfx/win03', 'sfx/win07'],
   };
@@ -56,7 +57,11 @@
       if (c) {
         if (c.state === 'suspended') c.resume();
         const buf = buffers[file];
-        if (!buf) { load(file); return; } // not decoded yet: skip this one, it will be ready next time
+        if (!buf) { // not decoded yet (first moments after the first tap): play it as soon as it is ready, unless that is too late to matter
+          const asked = Date.now();
+          load(file).then((b) => { if (b && Date.now() - asked < 600) fire(file, vol); });
+          return;
+        }
         const src = c.createBufferSource();
         const g = c.createGain();
         g.gain.value = vol;
