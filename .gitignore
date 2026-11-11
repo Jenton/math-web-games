@@ -1,6 +1,6 @@
 # Large third-party asset collections (for example the Kenney All-in-1 bundle) live OUTSIDE the repo.
 # Only the specific files we choose are copied into assets/<theme>/ and listed in assets/CREDITS.md.
-assets/Kenney*/
+assets/Kenney Game*/
 assets/incoming/
 .DS_Store
 

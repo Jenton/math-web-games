@@ -31,6 +31,8 @@ creatures already earned are kept.
   (par is computed exactly by search, so star ratings are fair)
 - **Number Defense**: tower defense where the math is choosing towers. Numbers march at your castle; each tower has a rule
   ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
+- **Escape Room**: locked in a pixel dungeon room with three chests. Tap a chest and your hero walks over; crack its lock (a number
+  pattern, a keypad code built from arithmetic clues, a scale, or a machine chain) to open it. Open all three and the exit door opens.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
   through"). Tap a monster to target it, pick a friend to act, and play the card that fits: a right card does damage, a wrong one does none, and every
   monster hits back. Friends have special powers (hit all, shield, heal, stun, hints...). Five encounters per adventure, including a boss whose big attack a
@@ -59,6 +61,7 @@ node tests/firebase-backend.test.js  # verifies the Firebase adapter against a f
 node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices
 node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 migration, all four games, backups, merging two devices
 node tests/browser/quest.browser.js          # optional, needs Playwright: plays whole Creature Quest adventures through the real buttons
+node tests/browser/map.browser.js            # optional, needs Playwright: plays a whole Creature Quest world-map region (story, groups, rescue, boss, next region)
 node tests/browser/spacing.browser.js        # optional, needs Playwright: every back button has breathing room above the content below it (any new screen is checked automatically)
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens; they need a cloud backend that is not connected yet), `js/storage.js`, `js/game.js`
