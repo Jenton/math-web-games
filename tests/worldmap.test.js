@@ -20,6 +20,28 @@ W.REGIONS.forEach((reg) => {
   // enemy kinds are ones rpg.js can build
   fights.forEach((n) => assert.ok(['weakness', 'armor', 'boss'].includes(W.enemyKind(n))));
 });
+// every fight node builds a real v2 encounter at every band and star level: a group, each monster with its own weakness
+W.REGIONS.forEach((reg) => reg.nodes.filter((n) => W.kindsOf(n)).forEach((n) => {
+  ['K-1', '2-3', '4-5', '6'].forEach((band) => [1, 2, 3].forEach((stars) => {
+    for (let i = 0; i < 20; i++) {
+      const enc = RPG.makeEncounter(band, stars, W.kindsOf(n), { rescue: n.type === 'rescue' ? n.ally : null });
+      assert.ok(enc.enemies.length >= 1 && enc.enemies.length <= Math.min(W.kindsOf(n).length, RPG.maxGroup(stars)), n.id + ' group size follows the star cap');
+      const skills = enc.enemies.filter((e) => e.kind !== 'armor').map((e) => e.rule.id);
+      assert.strictEqual(new Set(skills).size, skills.length, n.id + ': no two monsters share a weakness');
+      assert.strictEqual(enc.rescue, n.type === 'rescue' ? n.ally : null, n.id + ' rescue passes straight through');
+      const b = RPG.newBattle({ band, stars, enemies: enc.enemies, team: ['multiples'], level: 1, rescue: enc.rescue });
+      assert.strictEqual(b.foes.length, enc.enemies.length);
+    }
+  }));
+}));
+// story and camp spots are not fights, and an already-owned rescue joins nobody
+W.REGIONS.forEach((reg) => reg.nodes.filter((n) => n.type === 'story' || n.type === 'camp').forEach((n) => assert.strictEqual(W.kindsOf(n), null)));
+{
+  const owned = { creatures: ['compare'], team: [], xpEarned: {}, wins: {}, bosses: {} };
+  const enc = RPG.makeEncounter('2-3', 2, ['weakness'], { rescue: 'compare' });
+  const b = RPG.newBattle({ band: '2-3', stars: 2, enemies: enc.enemies, team: ['multiples'], level: 1, rescue: enc.rescue });
+  assert.strictEqual(RPG.applyRewards(owned, RPG.rewards(b), 'dev').joined, null, 'an owned friend does not join twice');
+}
 // the validator really catches mistakes
 assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'battle', x: 1, y: 1, next: ['zz'] }] }]).length > 0, 'validator flags a dangling link and a missing boss');
 

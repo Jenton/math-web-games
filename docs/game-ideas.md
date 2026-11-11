@@ -28,8 +28,8 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
 - [x] Stage 2: 1-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, card power removed, retuned and simulated
 - [x] Stage 3 (first version): 11 allies with effects (sweep, split, crit, heal, hint, shield, combo, slice, stun), ally picker, "no team can make a fight unwinnable" tests. Still to do: grow to 20+ allies
-- [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure. Still to do: the Mario-World-style world map (pixel art), node types (battle, elite, boss, rescue, story beat, puzzle, camp), story chapters per region, region data files
-- [ ] Save the in-progress adventure and map node progress (today only XP, level, allies and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
+- [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure, and a Mario-World-style **world map** (`js/worldmap.js`, two regions: Multiples Meadow and Haunted Keep) launches v2 group fights through `RPG.makeEncounter`, with story, camp, elite, rescue and boss nodes, gold stars for flawless fights, and a boss that opens the next region (classic pixel or cute art). Still to do: puzzle / bonus nodes, camps that heal or buff, more regions and story chapters, more allies
+- [~] Map progress is saved (cleared nodes and gold stars are grow-only sets). Still to do: save the in-progress Quick adventure (the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
 - [ ] Tune the numbers after playtesting (`TUNE` in `js/rpg.js`)
 - [ ] Character customization (cosmetic only)
 - [ ] Spellcraft enemies (exact-HP), Machine Builder bosses
@@ -356,7 +356,7 @@ The v2 decisions above are implemented except for art and the world map. What ex
   single ally; a learner who misses a third of the time wins about 90/83/82% at 1/2/3 stars; ignoring the math (random enemy, ally and card) wins about 40/20/16%. Enemy strength is the same at every star
   level (stars change the math and the hand: 5, 5, 6 cards; 1-2 right cards at 1 star, exactly 1 at 2 and 3 stars). Fewer right cards per hand is what makes guessing lose, and it does not hurt a player
   who knows the math (measured). All numbers are in the `TUNE` object at the top of `js/rpg.js`. A world map or any other caller can build a fight with `RPG.makeEncounter(band, stars, kinds, { prefer, rescue })`.
-- **Still placeholder:** emoji sprites and a CSS gradient scene. **Not built yet:** the art pass (backgrounds and sprites from the chosen CC0 packs), world map, story chapters, customization,
+- **Art and map:** sprites and themed backdrops (classic pixel or cute, chosen in Setup), your team standing in the scene with animated retaliation, and a world map of nodes that each launch a group fight (see the Stage 4 line above). **Not built yet:** story chapters, customization,
   more allies (11 now; 20+ planned), Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
 ---
