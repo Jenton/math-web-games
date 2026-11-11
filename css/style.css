@@ -253,3 +253,42 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .mac-path li { position: relative; padding-left: 14px; }
 .mac-path li:not(.empty)::before { content: ""; position: absolute; left: 0; top: .45em; bottom: .45em; width: 5px; border-radius: 3px; background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .fx, .scale.level .blk.mystery { animation: none; } .op-card { transition: none; } }
+
+/* ---- Number Defense ---- */
+.hud .hearts { letter-spacing: 2px; }
+.td-preview { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.td-chip { min-width: 38px; text-align: center; font-weight: 800; padding: 4px 8px; border-radius: 10px; background: var(--panel); border: 2px solid var(--line); }
+.td-chip.dead { opacity: .35; text-decoration: line-through; }
+.td-chip.leak { border-color: var(--bad); color: var(--bad); }
+.td-lane { position: relative; height: 170px; margin: 6px 46px 6px 0; }
+.td-lane.hit { animation: tdshake .35s; }
+@keyframes tdshake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.td-road { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; border-radius: 12px 0 0 12px; background: #c9a56b url("../assets/kenney/tiles/Wood.png") repeat-x left center / auto 100%; opacity: .9; box-shadow: inset 0 0 0 3px rgba(0,0,0,.15); }
+.td-gate { position: absolute; right: -46px; bottom: 4px; font-size: 2.6rem; line-height: 1; }
+.td-slots { position: absolute; left: 0; right: 0; top: 0; height: 90px; }
+.td-slot { position: absolute; top: 0; transform: translateX(-50%); width: 56px; height: 84px; border-radius: 14px; border: 3px dashed var(--accent); background: rgba(255,255,255,.7); cursor: pointer; padding: 0; font: inherit; touch-action: manipulation; }
+.td-slot .plus { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+.td-slot.filled { border-style: solid; background: #fff; }
+.td-slot img { width: 44px; height: 44px; object-fit: contain; display: block; margin: 2px auto 0; }
+.td-slot .tag { display: block; font-size: .62rem; overflow: hidden; font-weight: 700; line-height: 1.05; margin-top: 1px; }
+.td-slot.fire { box-shadow: 0 0 0 5px #ffd54f; transform: translateX(-50%) scale(1.12); }
+.td-slot:disabled { opacity: 1; cursor: default; }
+.td-slot:focus-visible, .td-card:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+.td-enemy { position: absolute; bottom: 8px; width: 46px; height: 46px; transform: translateX(-50%); transition: left .62s linear, opacity .25s, transform .25s; }
+.td-enemy img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.td-enemy .n { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); min-width: 1.7em; padding: 0 .3em; text-align: center; font-weight: 800; font-size: .8rem; line-height: 1.35; border-radius: 999px; background: #fff; border: 2px solid var(--ink); }
+.td-enemy.dead { opacity: 0; transform: translateX(-50%) scale(1.6); transition: opacity .35s, transform .35s; }
+.td-enemy.leak { opacity: 0; transition: left .6s linear, opacity .5s .2s; }
+.td-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; margin: 8px 0; }
+.td-card { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; font: inherit; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); padding: 8px 6px; cursor: pointer; touch-action: manipulation; }
+.td-card img { width: 40px; height: 40px; object-fit: contain; }
+.td-card .t { font-weight: 800; line-height: 1.1; }
+.td-card .d { font-size: .75rem; color: var(--muted); line-height: 1.15; }
+.td-card .c { font-weight: 800; }
+.td-card.on { border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--accent); }
+.td-card.poor { opacity: .55; }
+.td-card:disabled { cursor: default; }
+.help.center { text-align: center; }
+@media (prefers-reduced-motion: reduce) { .td-lane.hit, .td-slot.fire { animation: none; transform: translateX(-50%); } .td-enemy { transition: none; } }
+
+.panel-box p { white-space: pre-line; }
