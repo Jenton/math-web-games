@@ -11,8 +11,8 @@
     if (bound) return;
     bound = true;
     $('balBack').addEventListener('click', exit);
-    $('gMinus').addEventListener('click', () => { set(S.guess - 1); speak(); });
-    $('gPlus').addEventListener('click', () => { set(S.guess + 1); speak(); });
+    $('gMinus').addEventListener('click', () => { set(S.guess - 1); });
+    $('gPlus').addEventListener('click', () => { set(S.guess + 1); });
     $('gBig-').addEventListener('click', () => set(S.guess - 10));
     $('gBig+').addEventListener('click', () => set(S.guess + 10));
     $('balCheck').addEventListener('click', lockIn);
@@ -48,11 +48,6 @@
     $('balNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
     $('gBig-').hidden = $('gBig+').hidden = S.p.max <= 20;
     render();
-  }
-
-  /** Says the number out loud when it is 1-10, so a young reader can hear what they are trying. */
-  function speak() {
-    if (S && S.guess >= 1 && S.guess <= 10) Sfx.say(S.guess);
   }
 
   function set(v) {
