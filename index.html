@@ -27,6 +27,12 @@
 
       <h2>Pick a game</h2>
       <div class="games">
+        <button class="game-card" data-game="quest" type="button">
+          <span class="g-ico">&#9876;&#65039;</span>
+          <span class="g-name">Creature Quest</span>
+          <span class="g-desc">Build a team of creatures and battle monsters by picking the attack that fits their weakness.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
         <button class="game-card" data-game="munchers" type="button">
           <span class="g-ico">&#128056;</span>
           <span class="g-name">Munchers</span>
@@ -135,6 +141,88 @@
       </div>
     </section>
 
+    <!-- GAME: Creature Quest (RPG) -->
+    <section id="quest" class="screen" hidden>
+      <div id="qHome">
+        <div class="hud"><button id="qBack" class="btn ghost small" type="button">&larr; Setup</button></div>
+        <h1>Creature Quest</h1>
+        <p class="lead">Monsters have a weakness. Pick the attack card that fits it, and your team strikes hard!</p>
+        <div class="q-level">
+          <span id="qLevel" class="pill"></span>
+          <div class="xpbar"><div id="qXp"></div></div>
+          <span id="qXpText" class="note"></span>
+        </div>
+        <p id="qStats" class="note"></p>
+        <span class="s-label">Your team</span>
+        <div id="qHomeTeam" class="q-team"></div>
+        <div class="row">
+          <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Begin adventure</button>
+          <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
+        </div>
+        <p class="note">An adventure is 5 battles: three monsters, an armored monster, and a boss.</p>
+      </div>
+
+      <div id="qPrep" hidden>
+        <div class="hud">
+          <button id="qPrepBack" class="btn ghost small" type="button">&larr; Back</button>
+          <span id="qRun" class="pill"></span>
+        </div>
+        <div id="qPreview" class="q-preview">
+          <span id="qPvEmoji" class="e-emoji"></span>
+          <div><div id="qPvName" class="e-name"></div><div class="note">Its weakness:</div><div id="qPvWeak" class="pv-weak"></div></div>
+        </div>
+        <h2 id="qPrepTitle"></h2>
+        <p id="qPrepHelp" class="help"></p>
+        <div id="qRoster" class="roster"></div>
+        <div class="playbar">
+          <p id="qPrepSummary" class="summary"></p>
+          <button id="qFight" class="btn big" type="button"></button>
+        </div>
+      </div>
+
+      <div id="qBattle" hidden>
+        <div class="hud">
+          <button id="qFlee" class="btn ghost small" type="button">&larr; Leave</button>
+          <span id="qRunPill" class="pill"></span>
+          <span id="qTurn" class="pill"></span>
+        </div>
+        <div class="enemy">
+          <span id="qEnemyEmoji" class="e-emoji"></span>
+          <div class="e-info">
+            <div id="qEnemyName" class="e-name"></div>
+            <div class="bar" aria-hidden="true"><div id="qEnemyHp" class="fill hp"></div></div>
+            <div id="qEnemyHpText" class="note"></div>
+          </div>
+        </div>
+        <div class="weak">
+          <div id="qWeakTitle" class="weak-title"></div>
+          <div id="qWeakHint" class="rule-hint"></div>
+        </div>
+        <div id="qCharge" class="charge" hidden>
+          <strong>&#9889; Big attack incoming!</strong>
+          <p>Level the scale to cancel it and stun the boss. Or just pick a card and take the hit.</p>
+          <p id="qChargeEq" class="charge-eq"></p>
+          <div class="guess">
+            <button id="qgBigMinus" class="btn ghost" type="button" aria-label="minus 10">&minus;10</button>
+            <button id="qgMinus" class="btn ghost big" type="button" aria-label="minus 1">&minus;</button>
+            <div id="qgVal" class="gval"></div>
+            <button id="qgPlus" class="btn ghost big" type="button" aria-label="plus 1">+</button>
+            <button id="qgBigPlus" class="btn ghost" type="button" aria-label="plus 10">+10</button>
+          </div>
+          <p id="qChargeSums" class="sums"></p>
+          <button id="qgLock" class="btn" type="button">Lock it in</button>
+        </div>
+        <p class="s-label hand-label">Your attack cards <span class="opt">(more &#9876;&#65039; = more power, but only a card that fits the weakness hits)</span></p>
+        <div id="qHand" class="hand"></div>
+        <p id="qLog" class="log" role="status" aria-live="polite"></p>
+        <div class="team-bar">
+          <div id="qTeam" class="q-team"></div>
+          <div class="hp"><span class="s-label">Team health</span><div class="bar" aria-hidden="true"><div id="qTeamHp" class="fill good"></div></div><span id="qTeamHpText" class="note"></span></div>
+        </div>
+        <p class="note">Tip: keys 1 to 6 play a card.</p>
+      </div>
+    </section>
+
     <!-- GAME: Munchers -->
     <section id="game" class="screen" hidden>
       <div class="hud">
@@ -182,9 +270,11 @@
   <script src="js/storage.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/puzzles.js"></script>
+  <script src="js/rpg.js"></script>
   <script src="js/game.js"></script>
   <script src="js/balance.js"></script>
   <script src="js/machine.js"></script>
+  <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
