@@ -86,6 +86,14 @@ derivation, encryption, `syncOnce` (pull, decrypt, merge, apply locally, push wi
 backend that enforces the same rules as `firestore.rules`, with mutation checks (nine deliberate breakages are each caught). `Store` gained
 `snapshot()` and `onSave(fn)` for it. `js/sync.js` is deliberately **not loaded by `index.html` yet** (that is Stage 4).
 
+**Stage 4 (sync screens) is BUILT** except for the Firebase adapter: `js/sync-ui.js`, markup in `index.html` ("Sync between devices (grown-ups)" on the home
+screen, a set-up dialog that shows the family code with Copy and "Save as a text file" and requires "I saved my family code", an add-this-device dialog,
+a status pill, Sync now, Show family code, Stop syncing on this device). The page uses the backend published as `window.MathQuestBackend` (`{ get, put }`);
+**if the site defines none, the screen says cloud sync is not connected yet and everything else keeps working.** Browser-tested end to end with two simulated
+devices and a shared fake cloud: `node tests/browser/sync-ui.browser.js` (needs Playwright, which is not a repo dependency).
+Found and fixed while building it: `Store.mergeIn` used to swap in brand-new profile objects, so a game that was running when a sync landed would have kept
+saving into an orphaned object and lost that progress. Merges now update profile objects **in place** (`Save.assignInPlace`), guarded by a node test and a browser test.
+
 ### Behavior worth knowing (all tested)
 - **Merge, never overwrite:** every sync merges the cloud copy with this device before writing anything. Nothing is uploaded if nothing changed.
 - **Create vs join:** only "set up" may create a family. "Add this device" requires the family to exist, so a mistyped code can never silently start
@@ -106,8 +114,8 @@ backend.put(id, envelope, expectedRev) -> { ok: true } | { conflict: true }
 Errors: connectivity problems -> throw new Sync.SyncError('offline'); permission problems -> SyncError('denied'); anything else -> a normal Error.
 Anonymous sign-in must have completed before the first call (signInAnonymously once, then reuse the session).
 ```
-Wiring (Stage 4): load the Firebase web SDK, create the adapter, `Sync.createSyncer({ backend, getData: Store.snapshot, applyRemote: Store.mergeIn,
-storage: localStorage })`, call `Store.onSave(syncer.notifyChanged)`, `syncer.init()` on boot and `syncer.attach(window)`.
+Wiring is already done in `js/sync-ui.js`. The remaining work is a script that loads the Firebase web SDK, signs in anonymously, and sets `window.MathQuestBackend`
+to an object implementing this contract (load it before `js/app.js`). `window.MathQuestSyncDebounceMs` is a test-only override of the 4 s upload delay.
 
 ### How the code works now (read before adding a game)
 - Progress lives under `profile.games.<gameId>`. Use the `Store` helpers: `Store.game(profile, id)`, `Store.bump(game, field)` and `Store.total(game, field)`
@@ -135,7 +143,7 @@ document shape is fixed to `v`, `rev`, `iv`, `ct`; each update must bump `rev` b
    game to the new layout. Valuable on its own and best done before Quest v2 and the map add more progress data.
 2. **(DONE) Crypto + sync core against a local fake** (so it is testable without Firebase), including conflict and offline cases.
 3. **Firebase setup:** project, Hosting for the site, Firestore rules, deploy instructions.
-4. **Sync UI:** set up, add device, status indicator, manual sync, plus the existing backup file as recovery.
+4. **(DONE except the adapter) Sync UI:** set up, add device, status indicator, manual sync, plus the existing backup file as recovery.
 
 ## Open questions
 - Firebase project name, and whether to use a custom domain.

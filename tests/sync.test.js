@@ -13,39 +13,7 @@ const b64len = (s) => Buffer.from(s, 'base64').length;
 const cloudOf = async (dev, bk) => Sync.decryptEnvelope(await Sync.keysFromCreds(JSON.parse(dev.storage.getItem('mathQuest.sync'))), bk.docs.get([...bk.docs.keys()][0]));
 const until = async (cond, ms = 4000) => { const t = Date.now(); while (!cond()) { if (Date.now() - t > ms) throw new Error('timed out waiting'); await new Promise((r) => setTimeout(r, 5)); } };
 
-/* ---------- fake backend: same rules as firestore.rules ---------- */
-function makeBackend() {
-  const b = {
-    docs: new Map(), gets: 0, writes: 0, offline: false, beforePut: null,
-    async get(id) {
-      if (b.offline) throw new Sync.SyncError('offline');
-      if (!/^[a-f0-9]{64}$/.test(id)) throw new Sync.SyncError('denied', 'bad id');
-      b.gets++;
-      const d = b.docs.get(id);
-      return d ? clone(d) : null;
-    },
-    async put(id, env, expectedRev) {
-      if (b.offline) throw new Sync.SyncError('offline');
-      if (b.beforePut) await b.beforePut(id);
-      // rules: valid id, exact shape, v == 1, int rev, iv <= 64 chars, ct <= 900000 chars
-      if (!/^[a-f0-9]{64}$/.test(id)) throw new Sync.SyncError('denied', 'bad id');
-      const keys = Object.keys(env).sort().join(',');
-      if (keys !== 'ct,iv,rev,v') throw new Sync.SyncError('denied', 'bad shape: ' + keys);
-      if (env.v !== 1 || !Number.isInteger(env.rev) || typeof env.iv !== 'string' || env.iv.length > 64 || typeof env.ct !== 'string' || env.ct.length > 900000) throw new Sync.SyncError('denied', 'bad fields');
-      const cur = b.docs.get(id);
-      if (!cur) {
-        if (env.rev !== 1) throw new Sync.SyncError('denied', 'create must be rev 1');
-      } else if (env.rev !== cur.rev + 1) {
-        return { conflict: true }; // the real adapter maps Firestore's permission-denied on a stale rev to this
-      }
-      assert.strictEqual(expectedRev, cur ? cur.rev : 0, 'the client must send the revision it based its write on');
-      b.docs.set(id, clone(env));
-      b.writes++;
-      return { ok: true };
-    },
-  };
-  return b;
-}
+const { makeBackend } = require('./helpers/fake-backend.js');
 
 function makeTimers() {
   let now = 0;
@@ -145,6 +113,7 @@ const bumpWins = (dev, id, n) => { const p = dev.data.profiles.find((x) => x.id 
   assert.strictEqual(doc.rev, 1);
   assert.ok(!Buffer.from(doc.ct, 'base64').toString('latin1').includes('Kid'), 'the server never sees names');
   assert.ok(A.syncer.enabled && A.storage.getItem('mathQuest.sync'), 'credentials are saved on this device');
+  assert.strictEqual(A.syncer.getCode(), code, 'the family code can be shown again on this device');
   assert.strictEqual(A.syncer.status.state, 'synced');
   const w1 = backend.writes;
   await A.syncer.syncNow();
@@ -156,6 +125,7 @@ const bumpWins = (dev, id, n) => { const p = dev.data.profiles.find((x) => x.id 
   same(B.data, A.data, 'the second device receives the save');
   assert.strictEqual(backend.writes, w1, 'joining with an empty device does not upload anything');
   assert.ok(B.syncer.enabled);
+  assert.strictEqual(B.syncer.getCode(), code, 'a joined device remembers the (normalized) code too');
 
   // a typo must NOT create a new family
   const typo = code.slice(0, -1) + (code.endsWith('A') ? 'B' : 'A');
@@ -171,6 +141,7 @@ const bumpWins = (dev, id, n) => { const p = dev.data.profiles.find((x) => x.id 
   const A2s = Sync.createSyncer({ backend, iterations: ITER, timers: makeTimers(), storage: A.storage, getData: () => clone(A.data), applyRemote: () => {} });
   assert.strictEqual((await A2s.init()).state, 'idle');
   assert.ok(A2s.enabled);
+  assert.strictEqual(A2s.getCode(), code, 'the code survives a restart');
 
   /* ===== two devices change things offline, then sync ===== */
   addKid(B, 'p2', 'Sibling');
@@ -316,6 +287,7 @@ const bumpWins = (dev, id, n) => { const p = dev.data.profiles.find((x) => x.id 
   S.syncer.disconnect();
   assert.strictEqual(S.syncer.status.state, 'off');
   assert.ok(!S.storage.getItem('mathQuest.sync'));
+  assert.strictEqual(S.syncer.getCode(), null, 'disconnecting forgets the code');
   assert.ok(backend.docs.size === 1, 'disconnecting leaves the cloud copy alone');
 
   /* ===== random multi-device histories with real encryption: converge and lose nothing ===== */

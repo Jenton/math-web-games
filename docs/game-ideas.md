@@ -30,7 +30,7 @@ something is built. Details and design notes for each item are further down in t
   - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
   - [x] Stage 2: encryption + sync core tested against a fake backend (`js/sync.js`, `tests/sync.test.js`)
   - [ ] Stage 3: Firebase project (owner's existing Google account), Hosting for the site, Firestore rules, deploy. Config and rules are written; the owner runs `docs/firebase-setup-prompt.md` in a Claude Code session on their Mac (it drives the browser). The Firebase UI is confusing to the owner, so keep instructions step by step
-  - [ ] Stage 4: sync UI (set up family code, add device, sync status, manual sync)
+  - [x] Stage 4: sync UI (set up family code, add device, sync status, manual sync) built and browser-tested with a fake cloud; only the Firebase adapter (`window.MathQuestBackend`) is missing
 - [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate

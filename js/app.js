@@ -55,8 +55,8 @@
 
   /* ---------- home ---------- */
 
-  function renderHome() {
-    applyTheme(null);
+  /** Rebuild the player list and save note (safe to call any time; does not switch screens or scroll). */
+  function renderPlayers() {
     const list = $('#players');
     list.innerHTML = '';
     Store.profiles.forEach((p) => {
@@ -79,6 +79,11 @@
     if (!Store.ok) note.textContent = '⚠️ Your browser is blocking saving. Progress will be lost when you close this page.';
     else if (Store.lastSaved) note.textContent = 'Saved on this device · last saved ' + new Date(Store.lastSaved).toLocaleString();
     else note.textContent = 'Everything is saved privately on this device. No accounts, no ads.';
+  }
+
+  function renderHome() {
+    applyTheme(null);
+    renderPlayers();
     show('home');
   }
 
@@ -229,6 +234,9 @@
 
   function boot() {
     Store.load();
+    // a background sync changed the data: refresh the player list if it is showing (profile objects are updated in place)
+    document.addEventListener('mq:data-changed', () => { if (!$('#home').hidden) renderPlayers(); });
+    if (window.SyncUI) SyncUI.init();
     $('#npForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = $('#npName').value.trim();

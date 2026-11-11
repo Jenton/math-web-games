@@ -188,6 +188,7 @@
     let again = false;
     let applying = false;
     let failures = 0;
+    let savedCode = null;
 
     const deps = {
       backend: opts.backend,
@@ -207,8 +208,11 @@
       listeners.slice().forEach((f) => f(status));
     }
 
-    function saveCreds(k) {
-      storage.setItem(CREDS_KEY, JSON.stringify({ lookupId: k.lookupId, keyRaw: k.keyRaw, at: now() }));
+    const formatCode = (c) => c.match(/.{4}/g).join('-');
+    // The code is kept on this device (like the key it derives, it grants access to the family's save) so a grown-up can show it again.
+    function saveCreds(k, code) {
+      savedCode = normalizeCode(code);
+      storage.setItem(CREDS_KEY, JSON.stringify({ lookupId: k.lookupId, keyRaw: k.keyRaw, code: savedCode, at: now() }));
     }
 
     function stateFor(e) {
@@ -220,7 +224,9 @@
       const raw = storage.getItem(CREDS_KEY);
       if (!raw) return status;
       try {
-        keys = await keysFromCreds(JSON.parse(raw));
+        const c = JSON.parse(raw);
+        keys = await keysFromCreds(c);
+        savedCode = normalizeCode(c.code);
         setStatus('idle');
       } catch (e) {
         storage.removeItem(CREDS_KEY);
@@ -248,7 +254,7 @@
       try {
         const r = await guarded(() => syncOnce(k, deps, 'create'));
         keys = k;
-        saveCreds(k);
+        saveCreds(k, code);
         failures = 0;
         setStatus('synced', { lastSynced: now(), rev: r.rev });
         return { code };
@@ -264,7 +270,7 @@
       try {
         const r = await guarded(() => syncOnce(k, deps, 'join'));
         keys = k;
-        saveCreds(k);
+        saveCreds(k, input);
         failures = 0;
         setStatus('synced', { lastSynced: now(), rev: r.rev });
         return r;
@@ -323,6 +329,7 @@
     function disconnect() {
       storage.removeItem(CREDS_KEY);
       keys = null;
+      savedCode = null;
       if (timer) timers.clearTimeout(timer);
       timer = null;
       setStatus('off', { lastSynced: null, rev: null });
@@ -333,6 +340,8 @@
       onStatus: (f) => listeners.push(f),
       get status() { return status; },
       get enabled() { return !!keys; },
+      /** The family code saved on this device, formatted like K7PQ-3M9X-B2RD-VW4H (null if sync is off). */
+      getCode: () => (savedCode ? formatCode(savedCode) : null),
     };
   }
 

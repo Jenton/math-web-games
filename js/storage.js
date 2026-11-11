@@ -144,7 +144,8 @@
   function mergeIn(remote) {
     const r = Save.normalize(remote, { deviceId, xpTotal });
     if (r.error) return r.error;
-    data = Save.mergeData(data, r.data);
+    // merge IN PLACE: a running game holds a reference to its profile object and must keep saving into the live data
+    Save.assignInPlace(data, Save.mergeData(data, r.data));
     save();
     return null;
   }
