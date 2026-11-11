@@ -95,4 +95,5 @@ based on recent success. Parents can override.
 | Original characters only (emoji skins) | Skins are data in `js/game.js`; swap in art any time |
 
 ## Status
-v1 built: profiles, settings, Munchers (all four bands, 10 skills), backup/restore, tests.
+v1 built: profiles, settings, Munchers (all four bands, 10 skills), Balance, Machine Builder, Creature Quest
+(RPG first slice), backup/restore, tests. See `docs/game-ideas.md` for what is next.

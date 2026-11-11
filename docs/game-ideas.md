@@ -74,7 +74,7 @@ trace of where a wrong attempt diverged, and a co-op mode where each player owns
 
 ---
 
-## Planned: the RPG (one larger game, working title "Quest")
+## The RPG: Creature Quest (first slice built; the design below still guides the rest)
 
 **Decision:** the RPG is ONE game that rolls up several mechanics, not separate games. Munchers, Balance and
 Machine Builder stay as standalone games and also appear inside the RPG as mini-challenges and bosses.
@@ -140,10 +140,30 @@ Machine Builder stay as standalone games and also appear inside the RPG as mini-
   xp, level, regions, cosmetics }`. A save backup must keep working.
 - Follow the "How a new game plugs into the current code" steps above for the card, setup screen and section.
 
-### First slice (build this first, then playtest)
-One world with three enemy types (weakness enemies only, plus one armored and one boss), a team of three
-creatures, simple XP/leveling, and no map or customization yet. Prove that choosing the right card is fun before
-building the meta layer. Then add the world map, customization, Spellcraft enemies and more bosses.
+### First slice (BUILT: `js/rpg.js` logic, `js/quest.js` screens, `tests/rpg.test.js`)
+What exists now, and where it differs from the plan above:
+- **An adventure is 5 battles:** weakness, weakness, armored, weakness, boss. Win a battle for XP; lose and you retry
+  the same monster at full health (no setback, no lost XP).
+- **Hand and turn:** 5 cards (6 at 3 stars) refreshed every turn, each with a power of 1-3 (shown as swords). A card that
+  fits the weakness hits for 3 x (power + specialist bonus). A card that does not fit does nothing, **heals the monster 4**,
+  and the monster still attacks (2 per turn). A deliberately tempting high-power card that does NOT fit is always in the hand,
+  so "pick the strongest-looking card" is a losing strategy. This replaces the planned limited cards/mana: the cost of a wrong
+  pick is a lost turn plus a heal. Revisit if it feels too forgiving or too harsh.
+- **Armored monsters:** the armor is a fraction; only cards of that value or more break through (comparing fractions). K-1 halves,
+  thirds, quarters; 6th grade mixes fractions, decimals and percents.
+- **Boss:** a normal weakness fight, but every 3rd turn it charges a big attack (5 damage). A Balance puzzle (reusing
+  `MGP.makeBalance`) appears; solving it cancels the attack and stuns the boss for the turn. The player may ignore it and take the hit.
+  Machine Builder bosses are not built yet.
+- **Team and creatures:** 11 original creatures (emoji). A player starts with three matching their grade band and befriends the rest
+  by beating the matching monster (armor and boss included). Up to 3 on the team. A creature strong against the monster's weakness
+  adds +1 power (max +2) and shows a star in the picker. Locked creatures only show if they can be found at the player's grade.
+- **Leveling:** XP is 10/15/30 per monster/armored/boss, +10 (+20 boss) for a flawless fight, +5 for one mistake. Level n needs
+  40 + 20(n-1) XP and gives +2 team health (16 at level 1).
+- **Difficulty:** the player's grade band and stars apply as in the other games. Simulations in `tests/rpg.test.js` check that a
+  perfect player always wins, a learner who misses a third of the time still wins about 85% at 1 star, and random or
+  power-only play mostly loses.
+- **Not built yet:** world map, character customization, Spellcraft (exact-HP) enemies, Machine Builder bosses, sound/art beyond emoji.
+  Next steps after playtesting: tune the numbers in the tunables block at the top of `js/rpg.js`, then add the map and customization.
 
 ---
 
@@ -222,6 +242,6 @@ adding and comparing fractions with unlike denominators (4-5) and fraction of a 
 
 ## Suggested order
 
-Playtest the three existing games with both kids first. Then: the RPG first slice (it is the closest to what
-the son loves about Prodigy and it carries the collection layer), then Tower Defense, then Munchers
+Playtest the existing games, especially Creature Quest, with both kids first. Then: grow the RPG (map,
+customization, Spellcraft enemies, more bosses), then Tower Defense, then Munchers
 two-player, then Number Line Runner or Sort & Rule depending on what the kids ask for.

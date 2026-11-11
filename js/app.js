@@ -11,6 +11,13 @@
     '6': 'Fractions, exponents, negative numbers, primes, factors.',
   };
   const GAMES = {
+    quest: {
+      name: 'Creature Quest', ico: '⚔️', extras: false, mod: () => Quest,
+      how: ['Every monster has a <b>weakness</b>, like "multiples of 6".', '<b>Pick the attack card</b> that fits it. More ⚔️ means more power, but a card that does not fit does nothing and heals the monster!', 'Win battles to <b>level up</b>, befriend <b>creatures</b>, and take on the boss.'],
+      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
+      stars: [['★ Easier', 'Weaker monsters, 5 cards to pick from.'], ['★★ Medium', 'Tougher monsters and trickier cards.'], ['★★★ Harder', 'Strong monsters, 6 cards, and cards that nearly fit.']],
+      sample: (s) => RPG.sampleText(s.band, s.stars),
+    },
     munchers: {
       name: 'Munchers', ico: '🐸', extras: true, mod: () => Munchers,
       how: ['<b>Read the rule</b> at the top of the board.', '<b>Walk</b> to a number that fits: tap it, or use the arrow keys.', '<b>Munch</b> it! A wrong munch costs a heart and shows you why.'],
@@ -38,7 +45,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'machine'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'machine', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -161,10 +168,10 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = current.stats[k];
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
-    $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels, ' + ((current.balance || {}).levels || 0) + ' Balance puzzles, ' + ((current.machine || {}).levels || 0) + ' Machine puzzles solved';
+    $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels, ' + ((current.balance || {}).levels || 0) + ' Balance puzzles, ' + ((current.machine || {}).levels || 0) + ' Machine puzzles solved, ' + ((current.rpg || {}).wins || 0) + ' Quest battles won';
     show('menu');
   }
 
@@ -199,7 +206,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', machine: 'machine' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', machine: 'machine', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);
