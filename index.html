@@ -25,7 +25,7 @@
           <p class="help">Cloud sync is not connected on this website yet. Use the backup file above to move progress between devices.</p>
         </div>
         <div id="syncOff" hidden>
-          <p>Keep the same players and progress on every device (laptop, iPad, phone). Progress is encrypted on the device before it is uploaded, so nobody can read it without your family code.</p>
+          <p>Keep the same players and progress on every device (laptop, iPad, phone). Progress is encrypted on the device before it is uploaded, so nobody can read it without your family password.</p>
           <div class="row">
             <button id="syncSetupBtn" class="btn small" type="button">Set up sync on this device</button>
             <button id="syncJoinBtn" class="btn ghost small" type="button">Add this device to my family</button>
@@ -35,7 +35,7 @@
           <p id="syncStatus" role="status" aria-live="polite"></p>
           <div class="row">
             <button id="syncNowBtn" class="btn small" type="button">Sync now</button>
-            <button id="syncShowBtn" class="btn ghost small" type="button">Show family code</button>
+            <button id="syncShowBtn" class="btn ghost small" type="button">Show family password</button>
             <button id="syncStopBtn" class="btn danger small" type="button">Stop syncing on this device</button>
           </div>
         </div>
@@ -337,31 +337,34 @@
   <dialog id="syncSetup">
     <div id="ssIntro">
       <h2>Set up sync</h2>
-      <p>This makes a <b>family code</b>. Anyone who has the code can see and change your kids' progress, so keep it private, like a password.</p>
-      <p>You will type the code once on each other device (laptop, iPad, phone).</p>
+      <p>Choose a <b>family password</b> of at least 10 characters. A short sentence only your family would think of works well, and spaces are fine. Anyone who knows it can see and change your kids' progress, so keep it private.</p>
+      <label>Family password <input id="ssPassword" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <p id="ssHint" class="help" aria-live="polite">At least 10 characters. Capital letters do not matter.</p>
+      <p>You will type it once on each other device (laptop, iPad, phone).</p>
       <p id="ssError" class="error" role="alert" hidden></p>
       <div class="row">
-        <button id="ssCreate" class="btn" type="button">Create my family code</button>
+        <button id="ssCreatePw" class="btn" type="button" disabled>Use this password</button>
         <button id="ssCancel" class="btn ghost" type="button">Cancel</button>
       </div>
+      <p class="help">Rather not make one up? <button id="ssCreate" class="linklike" type="button">Make a random family code for me instead</button></p>
     </div>
     <div id="ssCode" hidden>
-      <h2 id="ssCodeTitle">Your family code</h2>
-      <p id="ssCodeText" class="code" aria-label="Your family code"></p>
+      <h2 id="ssCodeTitle">Your family password</h2>
+      <p id="ssCodeText" class="code" aria-label="Your family password"></p>
       <div class="row">
         <button id="ssCopy" class="btn ghost small" type="button">Copy</button>
         <button id="ssSave" class="btn ghost small" type="button">Save as a text file</button>
       </div>
-      <p id="ssWarn" class="help">Write this down or save it somewhere safe. You will need it to add other devices. You can also see it again on this device under "Show family code".</p>
-      <label id="ssSavedLabel" class="check"><input type="checkbox" id="ssSaved"> I saved my family code</label>
+      <p id="ssWarn" class="help">Write this down or save it somewhere safe. You will need it to add other devices. You can also see it again on this device under "Show family password".</p>
+      <label id="ssSavedLabel" class="check"><input type="checkbox" id="ssSaved"> I saved it</label>
       <div class="row"><button id="ssDone" class="btn" type="button" disabled>Done</button></div>
     </div>
   </dialog>
 
   <dialog id="syncJoin">
     <h2>Add this device</h2>
-    <p>Enter your family code. Players already on this device will be combined with your family's players.</p>
-    <label>Family code <input id="sjCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"></label>
+    <p>Enter your family password (or the 16-letter family code, if you made one). Players already on this device will be combined with your family's players.</p>
+    <label>Family password or code <input id="sjCode" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
     <p id="sjError" class="error" role="alert" hidden></p>
     <div class="row">
       <button id="sjGo" class="btn" type="button">Add this device</button>
