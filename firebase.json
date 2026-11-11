@@ -11,7 +11,7 @@
       "tests/**",
       "docs/**",
       "*.md",
-      "assets/Kenney*/**",
+      "assets/Kenney Game*/**",
       "assets/incoming/**"
     ],
     "cleanUrls": true,
