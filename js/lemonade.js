@@ -7,6 +7,18 @@
   let ctx = null;
   let S = null;
   let bound = false;
+  const IMG = 'assets/kenney/lemonade/';
+  const ANIMALS = ['bear', 'chick', 'cow', 'dog', 'duck', 'elephant', 'frog', 'giraffe', 'hippo', 'monkey', 'owl', 'panda', 'penguin', 'pig', 'rabbit', 'zebra'];
+  const COIN_ART = { 1: 'coinBronze', 5: 'coinSilver', 10: 'coinSilver', 25: 'coinGold', 100: 'cash', 500: 'cash' };
+  const coinBtn = (c, small) => {
+    const b = el('button', 'coin' + (small ? ' small' : '') + ' c' + c);
+    b.type = 'button';
+    const im = el('img');
+    im.src = IMG + COIN_ART[c] + '.png';
+    im.alt = '';
+    b.append(im, el('span', null, M().money(c)));
+    return b;
+  };
 
   function init() {
     if (bound) return;
@@ -51,6 +63,7 @@
     S.done = false;
     $('lemNo').textContent = 'Day ' + S.day + ' · job ' + (S.i + 1) + ' of ' + S.jobs.length;
     $('lemText').textContent = p.text;
+    $('lemWho').src = IMG + 'animals/' + ANIMALS[Math.floor(Math.random() * ANIMALS.length)] + '.png';
     $('lemMsg').textContent = '';
     $('lemMsg').className = 'sums';
     const body = $('lemBody');
@@ -103,8 +116,7 @@
     const paint = () => {
       tray.innerHTML = '';
       given.forEach((c, k) => {
-        const b = el('button', 'coin small c' + c, M().money(c));
-        b.type = 'button';
+        const b = coinBtn(c, true);
         b.setAttribute('aria-label', 'Take back ' + M().money(c));
         b.addEventListener('click', () => { if (S.done) return; given.splice(k, 1); paint(); });
         tray.appendChild(b);
@@ -114,8 +126,7 @@
     };
     const box = el('div', 'lem-coins');
     p.coins.forEach((c) => {
-      const b = el('button', 'coin c' + c, M().money(c));
-      b.type = 'button';
+      const b = coinBtn(c);
       b.setAttribute('aria-label', 'Add ' + M().money(c));
       b.addEventListener('click', () => { if (S.done) return; given.push(c); given.sort((a, b2) => b2 - a); paint(); });
       box.appendChild(b);
@@ -148,7 +159,11 @@
       val.textContent = n + ' ' + p.unit + (n === 1 ? '' : 's');
       minus.disabled = n <= 0;
       plus.disabled = n >= p.max;
-      art.textContent = (p.unit === 'lemon' ? '🍋' : '🥛').repeat(Math.min(n, 40));
+      art.innerHTML = '';
+      for (let k = 0; k < Math.min(n, 40); k++) {
+        if (p.unit === 'lemon') art.appendChild(el('span', 'lem-lemon', '🍋'));
+        else { const im = el('img'); im.src = IMG + 'pitcher.png'; im.alt = ''; art.appendChild(im); }
+      }
     };
     const set = (v) => { if (S.done) return; n = Math.max(0, Math.min(p.max, v)); paint(); };
     minus.addEventListener('click', () => set(n - 1));
@@ -168,7 +183,10 @@
     p.options.forEach((o, i) => {
       const b = el('button', 'opt-card');
       b.type = 'button';
-      b.append(el('span', 'o-t', M().money(o.price) + ' a cup'), el('span', 'o-d', 'You would sell ' + o.sold + ' cups'));
+      const gl = el('img', 'lem-glass');
+      gl.src = IMG + 'glass.png';
+      gl.alt = '';
+      b.append(gl, el('span', 'o-t', M().money(o.price) + ' a cup'), el('span', 'o-d', 'You would sell ' + o.sold + ' cups'));
       b.addEventListener('click', () => {
         if (S.done || b.disabled) return;
         const ok = answer(M().checkPrice(p, i));

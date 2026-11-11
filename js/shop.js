@@ -21,6 +21,7 @@
     const r = c % 100;
     return '$' + d + (r ? '.' + (r < 10 ? '0' + r : r) : '');
   }
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
   const sum = (a) => a.reduce((x, y) => x + y, 0);
 
   /* ================= make change ================= */
@@ -91,7 +92,7 @@
       answer = m;
       unit = 'pitcher';
       text = 'Each pitcher fills ' + k + ' cups. ' + N + ' friends want one cup each. How many pitchers do you make?';
-      why = m + ' pitchers × ' + k + ' cups = ' + N + ' cups, exactly enough.';
+      why = plural(m, 'pitcher') + ' × ' + k + ' cups = ' + N + ' cups, exactly enough.';
       check = (n) => n + ' × ' + k + ' = ' + n * k + ' cups for ' + N + ' friends.';
       return pack(band, st, text, answer, unit, why, check, N);
     }
@@ -104,7 +105,7 @@
       answer = Math.ceil(need / k);
       unit = 'pitcher';
       text = N + ' customers will each buy ' + c + ' cup' + (c > 1 ? 's' : '') + '. A pitcher fills ' + k + ' cups. How many pitchers do you make?';
-      why = N + ' × ' + c + ' = ' + need + ' cups needed. ' + k + ' cups per pitcher: ' + answer + ' pitchers make ' + answer * k + ' cups, enough. ' + (answer - 1) + ' make only ' + (answer - 1) * k + '.';
+      why = N + ' × ' + c + ' = ' + need + ' cups needed. ' + k + ' cups per pitcher: ' + plural(answer, 'pitcher') + ' make' + (answer === 1 ? 's' : '') + ' ' + answer * k + ' cups, enough.' + (answer > 1 ? ' ' + (answer - 1) + ' make only ' + (answer - 1) * k + '.' : '');
       check = (n) => n + ' × ' + k + ' = ' + n * k + ' cups, and ' + need + ' are needed.';
       return pack(band, st, text, answer, unit, why, check, need);
     }
@@ -117,7 +118,7 @@
       unit = 'lemon';
       text = 'One pitcher uses ' + a + ' lemons and fills ' + k + ' cups. You expect to sell ' + N + ' cups. How many lemons do you buy?';
       why = N + ' cups ÷ ' + k + ' cups per pitcher means ' + pitchers + ' pitchers (rounding up). ' + pitchers + ' × ' + a + ' lemons = ' + answer + ' lemons.';
-      check = (n) => n + ' lemons ÷ ' + a + ' per pitcher = ' + (n / a) + ' pitchers, which fill ' + (n / a) * k + ' cups, and you need ' + N + '.';
+      check = (n) => n + ' lemons ÷ ' + a + ' per pitcher = ' + plural(n / a, 'pitcher') + ', which fill ' + (n / a) * k + ' cups, and you need ' + N + '.';
       return Object.assign(pack(band, st, text, answer, unit, why, check, N), { step: 1 });
     }
     const b = pick([4, 6, 8]);

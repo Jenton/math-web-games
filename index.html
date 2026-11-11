@@ -53,7 +53,7 @@
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="lemonade" type="button">
-          <span class="g-ico" aria-hidden="true">&#127819;</span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/lemonade/pitcher.png" alt=""></span>
           <span class="g-name">Lemonade Stand</span>
           <span class="g-desc">Run a stand: make change, buy the right amount, and set the price that earns the most.</span>
           <span class="g-go">Choose &rarr;</span>
@@ -155,7 +155,17 @@
         <span id="lemNo" class="pill"></span>
       </div>
       <h2 id="lemTitle" class="rule-title"></h2>
-      <p id="lemText" class="rule-hint lem-text"></p>
+      <div class="lem-scene" aria-hidden="false">
+        <img class="lem-cloud c1" src="assets/kenney/lemonade/cloud1.png" alt="">
+        <img class="lem-cloud c2" src="assets/kenney/lemonade/cloud3.png" alt="">
+        <div class="lem-stand" aria-hidden="true">
+          <div class="lem-awning"></div>
+          <div class="lem-counter"><img src="assets/kenney/lemonade/pitcher.png" alt=""><span>LEMONADE</span><img src="assets/kenney/lemonade/cup.png" alt=""></div>
+        </div>
+        <img id="lemWho" class="lem-who" src="assets/kenney/lemonade/animals/pig.png" alt="">
+        <p id="lemText" class="lem-bubble"></p>
+        <img class="lem-bush" src="assets/kenney/lemonade/bush.png" alt="">
+      </div>
       <div id="lemBody" class="lem-body"></div>
       <p id="lemMsg" class="sums" role="status" aria-live="polite"></p>
       <div class="controls"><button id="lemGo" class="btn big" type="button"></button></div>

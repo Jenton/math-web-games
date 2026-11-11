@@ -33,7 +33,7 @@
       sample: (s) => MGP.makeBalance(s.band, s.stars).text,
     },
     lemonade: {
-      name: 'Lemonade Stand', ico: '\u{1F34B}', extras: false, mod: () => Lemonade,
+      name: 'Lemonade Stand', ico: 'lemonade/pitcher', extras: false, mod: () => Lemonade,
       how: ['Each <b>day</b> has four jobs: buy the right amount, make <b>change</b> for two customers, and set the <b>price</b>.', 'Build change from coins, or pick a number with − and +.', 'Wrong answers show the arithmetic, so you can try again.'],
       band: { 'K-1': 'Change from $1 in coins, and small pitcher counts.', '2-3': 'Change to the cent, and how many pitchers for the crowd.', '4-5': 'Several cups at once, lemons per pitcher, and a sign that costs money.', '6': 'Percent-off sales, recipe ratios, and bigger profits.' },
       stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
