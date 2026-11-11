@@ -210,14 +210,17 @@
       <p class="rule-hint">Each tower only hurts numbers that fit its rule. Cover every incoming number, but gold is limited.</p>
       <div class="s-label">Incoming wave (in order)</div>
       <div id="tdPreview" class="td-preview"></div>
-      <div id="tdLane" class="td-lane"></div>
+      <div class="td-board">
+        <div id="tdLane" class="td-lane"></div>
+        <div id="tdShop" class="td-shop"></div>
+      </div>
       <p id="tdHelp" class="help center" role="status" aria-live="polite"></p>
       <div class="row center">
         <button id="tdGo" class="btn big" type="button">&#9654; Send the wave</button>
+        <button id="tdRemove" class="btn ghost" type="button" hidden>Remove this tower</button>
         <button id="tdClear" class="btn ghost" type="button">Clear towers</button>
         <button id="tdSpeed" class="btn ghost small" type="button">Normal</button>
       </div>
-      <div id="tdShop" class="td-shop"></div>
     </section>
 
     <!-- GAME: Machine Builder -->
