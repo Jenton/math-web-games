@@ -150,7 +150,8 @@
       f.push(d - e * e + ' + ' + e + '^2');
     }
     const ok = f.map((t) => t.replace(/-/g, '−')).filter((t) => { try { return evalExpr(t) === d; } catch (e) { return false; } });
-    return ok.length ? pick(ok) : d + ' + 0';
+    const lively = ok.filter((t) => !/(^|[ (])0 [+×]|[+×] 0($| )|\+ 0$/.test(t)); // skip clues like 7 + 0 that are no puzzle at all
+    return lively.length ? pick(lively) : ok.length ? pick(ok) : d + ' + 0';
   }
 
   function makeCode(band, st) {

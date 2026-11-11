@@ -46,7 +46,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Number Line Runner
 - [ ] Sort & Rule (Zoombinis-style logic)
 - [ ] Build-a-World (Minecraft-style)
-- [ ] Escape Room Locks
+- [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
 - [ ] Cut & Share
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
