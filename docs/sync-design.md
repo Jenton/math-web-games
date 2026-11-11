@@ -86,13 +86,29 @@ derivation, encryption, `syncOnce` (pull, decrypt, merge, apply locally, push wi
 backend that enforces the same rules as `firestore.rules`, with mutation checks (nine deliberate breakages are each caught). `Store` gained
 `snapshot()` and `onSave(fn)` for it. `js/sync.js` is deliberately **not loaded by `index.html` yet** (that is Stage 4).
 
-**Stage 4 (sync screens) is BUILT** except for the Firebase adapter: `js/sync-ui.js`, markup in `index.html` ("Sync between devices (grown-ups)" on the home
+**Stage 4 (sync screens) is BUILT** (the Firebase adapter was the last missing piece and now exists, see Stage 3): `js/sync-ui.js`, markup in `index.html` ("Sync between devices (grown-ups)" on the home
 screen, a set-up dialog that shows the family code with Copy and "Save as a text file" and requires "I saved my family code", an add-this-device dialog,
 a status pill, Sync now, Show family code, Stop syncing on this device). The page uses the backend published as `window.MathQuestBackend` (`{ get, put }`);
 **if the site defines none, the screen says cloud sync is not connected yet and everything else keeps working.** Browser-tested end to end with two simulated
 devices and a shared fake cloud: `node tests/browser/sync-ui.browser.js` (needs Playwright, which is not a repo dependency).
 Found and fixed while building it: `Store.mergeIn` used to swap in brand-new profile objects, so a game that was running when a sync landed would have kept
 saving into an orphaned object and lost that progress. Merges now update profile objects **in place** (`Save.assignInPlace`), guarded by a node test and a browser test.
+
+**Stage 3 (Firebase) is BUILT and live** (Nov 2026). Facts:
+- Firebase project id `math-quest-family` (Spark plan, no billing), Hosting at https://math-quest-family.web.app, Firestore Standard edition in `nam5` (US multi-region,
+  permanent), production-mode rules from `firestore.rules`, **Anonymous** sign-in the only provider, Google Analytics and Gemini off, one web app `math-quest-web`.
+  `.firebaserc` and `js/firebase-config.js` (public identifiers only) are in the repo.
+- **The adapter is `js/firebase-backend.js`.** It uses Firebase's REST APIs directly (Identity Toolkit for anonymous sign-in, Firestore for the one document), so there is
+  **no SDK and no third-party script**. It signs in lazily on the first call, keeps only the refresh token in `localStorage` (`mathQuest.fbAuth`) so each device stays one
+  anonymous user, refreshes tokens before they expire, retries once on a rejected token, and maps failures to the contract: network failure or timeout is `offline`,
+  a refused permission is `denied`, and a refused write whose revision moved is `{ conflict: true }` (it re-reads to tell the two apart). Creates are sent create-only and
+  updates update-only (`currentDocument.exists`). It sends exactly the four allowed fields. If `window.MathQuestBackend` already exists (tests) it does not overwrite it.
+- Tests: `node tests/firebase-backend.test.js` (fake Firebase REST services that enforce the rules; 11 deliberate breakages of the adapter were tried and each is caught),
+  and `tests/firebase-backend.emulator.js` against the real Auth and Firestore emulators with the real rules (needs Java 21; the command is in the file's header).
+- **Deploying: use `tools/deploy-hosting.sh`** (`--dry-run` first). Deploying directly from the repo folder is unsafe: the Firebase CLI also picks up the ~3,000 files in `.git`
+  despite the ignore list in `firebase.json`. The script publishes a clean copy of only the site files. The Firebase console has no Rules Playground any more, so rule
+  changes are tested with the emulator suite above.
+- Not done: App Check, a custom domain, quota monitoring.
 
 ### Behavior worth knowing (all tested)
 - **Merge, never overwrite:** every sync merges the cloud copy with this device before writing anything. Nothing is uploaded if nothing changed.
@@ -114,8 +130,7 @@ backend.put(id, envelope, expectedRev) -> { ok: true } | { conflict: true }
 Errors: connectivity problems -> throw new Sync.SyncError('offline'); permission problems -> SyncError('denied'); anything else -> a normal Error.
 Anonymous sign-in must have completed before the first call (signInAnonymously once, then reuse the session).
 ```
-Wiring is already done in `js/sync-ui.js`. The remaining work is a script that loads the Firebase web SDK, signs in anonymously, and sets `window.MathQuestBackend`
-to an object implementing this contract (load it before `js/app.js`). `window.MathQuestSyncDebounceMs` is a test-only override of the 4 s upload delay.
+Wiring is done in `js/sync-ui.js`, and the adapter that sets `window.MathQuestBackend` is `js/firebase-backend.js` (see Stage 3 below; `index.html` loads it before `js/app.js`). `window.MathQuestSyncDebounceMs` is a test-only override of the 4 s upload delay.
 
 ### How the code works now (read before adding a game)
 - Progress lives under `profile.games.<gameId>`. Use the `Store` helpers: `Store.game(profile, id)`, `Store.bump(game, field)` and `Store.total(game, field)`
@@ -131,22 +146,22 @@ to an object implementing this contract (load it before `js/app.js`). `window.Ma
   are summed once per device (cosmetic inflation). We chose that over the alternative, which could silently drop real progress.
 - `Store.importJSON` (restore) REPLACES everything on this device. `Store.mergeIn` combines and is what sync will use.
 
-### Firebase files in the repo (written, not yet deployed or run)
+### Firebase files in the repo (deployed and tested; see Stage 3)
 `firebase.json` (Hosting config that excludes docs, tests, markdown and the Kenney bundle; Firestore rules pointer), `firestore.rules`
 (one document per family at `families/{64 hex chars}`; anonymous sign-in required; get/create/update only; no list, no delete; the
 document shape is fixed to `v`, `rev`, `iv`, `ct`; each update must bump `rev` by exactly 1) and `firestore.indexes.json`.
-**The rules were not executed by their author**, so `docs/firebase-setup-prompt.md` includes tests that must pass before relying on them.
+**The rules have now been run**: deployed to the live project and tested (see Stage 3 below), including unauthenticated requests against the real database and a 21-case signed-in suite in the Firestore emulator.
 `docs/firebase-setup-prompt.md` is the prompt for a Claude Code session on the owner's Mac that drives the browser for the console steps.
 
 ## Stages
 1. **(DONE) Storage restructure (no backend):** v2 format, migration from v1, per-device counters, merge functions, tests, update every existing
    game to the new layout. Valuable on its own and best done before Quest v2 and the map add more progress data.
 2. **(DONE) Crypto + sync core against a local fake** (so it is testable without Firebase), including conflict and offline cases.
-3. **Firebase setup:** project, Hosting for the site, Firestore rules, deploy instructions.
+3. **(DONE) Firebase setup and adapter:** project, Hosting, Firestore rules, `js/firebase-backend.js`, `tools/deploy-hosting.sh`.
 4. **(DONE except the adapter) Sync UI:** set up, add device, status indicator, manual sync, plus the existing backup file as recovery.
 
 ## Open questions
-- Firebase project name, and whether to use a custom domain.
+- Whether to use a custom domain (the project is `math-quest-family`, served at math-quest-family.web.app).
 - Family-code UX: how to display it once after setup (copy button, print/share, "I wrote it down" confirmation) and what to do if it is lost
   (the backup file is the recovery path; a new family can be started from any device that still has the data).
 - Whether to also keep GitHub Pages as a mirror.
