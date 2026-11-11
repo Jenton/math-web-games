@@ -28,6 +28,8 @@ creatures already earned are kept.
   (one unknown at K-1, unknown on both sides at 6th)
 - **Machine Builder**: chain operation cards to turn a start number into a target in the fewest steps
   (par is computed exactly by search, so star ratings are fair)
+- **Number Defense**: tower defense where the math is choosing towers. Numbers march at your castle; each tower has a rule
+  ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Creature Quest**: a turn-based RPG. Each monster has a weakness ("multiples of 6", "armored: only 3/4 or more
   breaks through"); you pick the attack card that fits it. A card that doesn't fit does nothing and heals the monster.
   Five battles per adventure (monsters, an armored monster, a boss whose big attack a Balance puzzle cancels),
@@ -41,12 +43,21 @@ creatures already earned are kept.
 ```
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
+node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest hands, armor math, progression, and that ignoring the math loses
+<<<<<<< HEAD
 node tests/worldmap.test.js  # verifies map data and unlock rules, progress merging, and that every enemy/ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/storage.js`, `js/game.js`
 (Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/art.js` (art manifest per theme), `js/worldmap.js` (map data and unlock rules, no DOM), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
+=======
+node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
+node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
+```
+Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/storage.js`, `js/game.js`
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
+>>>>>>> origin/main
 
 See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and
 `docs/sync-design.md` (cross-device saving plan), `docs/game-ideas.md` (backlog of future games, a "not built yet" checklist, and how to plug a new one in).

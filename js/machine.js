@@ -86,6 +86,7 @@
 
   function press(i) {
     if (!S) return;
+    Sfx.play('card');
     S.path.push(i);
     render();
     const vs = values();
@@ -102,9 +103,12 @@
       Store.bump(Store.game(prof, 'machine'), 'levels'); // counted once per puzzle: saved counters can only go up
     }
     S.stars += stars;
+    Sfx.play('win');
+    if (stars === 3) setTimeout(() => Sfx.say('correct'), 700);
     ctx.onSave();
     const last = S.n >= ROUND;
     UI.panel({
+      icon: 'medals/m' + stars,
       title: 'Target reached! ' + '⭐'.repeat(stars),
       text: steps + (steps === 1 ? ' step' : ' steps') + (steps <= S.p.par ? ': that is the best possible!' : '. The best is ' + S.p.par + '. Want to try for fewer next time?') + (last ? ' Round done: ' + S.stars + ' of ' + ROUND * 3 + ' stars.' : ''),
       btn: last ? 'Play another round' : 'Next puzzle',

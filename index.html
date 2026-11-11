@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-theme="block">
+  <button id="soundBtn" class="sound-btn" type="button" aria-label="Sound is on. Tap to mute" aria-pressed="true">&#128266;</button>
   <main>
     <!-- HOME: pick a player -->
     <section id="home" class="screen">
@@ -28,27 +29,39 @@
       <h2>Pick a game</h2>
       <div class="games">
         <button class="game-card" data-game="quest" type="button">
-          <span class="g-ico">&#9876;&#65039;</span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/medals/m3.png" alt=""></span>
           <span class="g-name">Creature Quest</span>
           <span class="g-desc">Build a team of creatures and battle monsters by picking the attack that fits their weakness.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="munchers" type="button">
-          <span class="g-ico">&#128056;</span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/animals/frog.png" alt=""></span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="defense" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/animals/owl.png" alt=""></span>
+          <span class="g-name">Number Defense</span>
+          <span class="g-desc">Numbers march at your castle. Build the towers whose rules stop them.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
         <button class="game-card" data-game="balance" type="button">
-          <span class="g-ico">&#9878;&#65039;</span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/balance/blockBlue.png" alt=""></span>
           <span class="g-name">Balance</span>
           <span class="g-desc">Find the mystery weight that makes the scale level.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="machine" type="button">
-          <span class="g-ico">&#9881;&#65039;</span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/balance/pipe01.png" alt=""></span>
           <span class="g-name">Machine Builder</span>
           <span class="g-desc">Chain operations to turn the start number into the target.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="lemonade" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/lemonade/pitcher.png" alt=""></span>
+          <span class="g-name">Lemonade Stand</span>
+          <span class="g-desc">Run a stand: make change, buy the right amount, and set the price that earns the most.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
       </div>
@@ -125,6 +138,28 @@
       </div>
     </section>
 
+    <!-- GAME: Number Defense -->
+    <section id="td" class="screen" hidden>
+      <div class="hud">
+        <button id="tdBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="tdNo" class="pill"></span>
+        <span id="tdGold" class="pill"></span>
+        <span id="tdGate" class="hearts" aria-label="Castle hearts"></span>
+      </div>
+      <h2 class="rule-title">Defend the castle</h2>
+      <p class="rule-hint">Each tower only hurts numbers that fit its rule. Cover every incoming number, but gold is limited.</p>
+      <div class="s-label">Incoming wave (in order)</div>
+      <div id="tdPreview" class="td-preview"></div>
+      <div id="tdLane" class="td-lane"></div>
+      <p id="tdHelp" class="help center" role="status" aria-live="polite"></p>
+      <div class="row center">
+        <button id="tdGo" class="btn big" type="button">&#9654; Send the wave</button>
+        <button id="tdClear" class="btn ghost" type="button">Clear towers</button>
+        <button id="tdSpeed" class="btn ghost small" type="button">Normal</button>
+      </div>
+      <div id="tdShop" class="td-shop"></div>
+    </section>
+
     <!-- GAME: Machine Builder -->
     <section id="machine" class="screen" hidden>
       <div class="hud">
@@ -145,6 +180,33 @@
         <button id="macUndo" class="btn ghost" type="button">Undo</button>
         <button id="macReset" class="btn ghost" type="button">Start over</button>
       </div>
+    </section>
+
+    <!-- GAME: Lemonade Stand -->
+    <section id="lemonade" class="screen" hidden>
+      <div class="hud">
+        <button id="lemBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="lemNo" class="pill"></span>
+      </div>
+      <h2 id="lemTitle" class="rule-title"></h2>
+      <div class="lem-scene" aria-hidden="false">
+        <img class="lem-cloud c1" src="assets/kenney/lemonade/cloud1.png" alt="">
+        <img class="lem-cloud c2" src="assets/kenney/lemonade/cloud3.png" alt="">
+        <div class="lem-row">
+          <div id="lemQueue" class="lem-queue" aria-hidden="true"></div>
+          <div class="lem-stand" aria-hidden="true">
+            <div class="lem-awning"></div>
+            <div class="lem-counter"><img src="assets/kenney/lemonade/pitcher.png" alt=""><span>LEMONADE</span><img src="assets/kenney/lemonade/cup.png" alt=""></div>
+          </div>
+
+        </div>
+        <div class="lem-whowrap"><img id="lemWho" class="lem-who" src="assets/kenney/lemonade/animals/pig.png" alt=""><img id="lemEmote" class="lem-emote" alt="" hidden></div>
+        <p id="lemText" class="lem-bubble"></p>
+        <img class="lem-bush" src="assets/kenney/lemonade/bush.png" alt="">
+      </div>
+      <div id="lemBody" class="lem-body"></div>
+      <p id="lemMsg" class="sums" role="status" aria-live="polite"></p>
+      <div class="controls"><button id="lemGo" class="btn big" type="button"></button></div>
     </section>
 
     <!-- GAME: Creature Quest (RPG) -->
@@ -267,6 +329,7 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <div id="panel" class="panel" hidden role="dialog" aria-live="assertive">
     <div class="panel-box">
+      <img id="panelIcon" class="panel-icon" alt="" hidden>
       <h3 id="panelTitle"></h3>
       <p id="panelText"></p>
       <div class="row">
@@ -294,14 +357,19 @@
   <script src="js/engine.js"></script>
   <script src="js/save.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/sfx.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/puzzles.js"></script>
   <script src="js/rpg.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/shop.js"></script>
   <script src="js/balance.js"></script>
+  <script src="js/lemonade.js"></script>
   <script src="js/machine.js"></script>
   <script src="js/art.js"></script>
   <script src="js/worldmap.js"></script>
+  <script src="js/tdlogic.js"></script>
+  <script src="js/td.js"></script>
   <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
 </body>
