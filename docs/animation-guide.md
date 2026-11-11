@@ -1,7 +1,7 @@
 # Animation & Motion Guide for Math Quest
 
 Working rules for making our games feel alive and polished. Written for this codebase
-(plain DOM + CSS + JS, emoji "sprites" today, pixel art possible later), and for a
+(plain DOM + CSS + JS; Munchers, Balance, Machine Builder and Creature Quest, drawn with emoji and the Kenney CC0 art described in `docs/kenney-asset-plan.md`), and for a
 young audience: motion should **explain** what just happened, never just decorate.
 
 > **How to read the numbers.** Durations and frame counts below are starting points
@@ -114,7 +114,7 @@ very small. Save big effects for rare moments.
 
 ---
 
-## 4. Pixel art and sprite specifics (for when we move beyond emoji)
+## 4. Pixel art and sprite specifics (for Kenney sprites and any future hand-made art)
 
 - **Frame rate:** pixel-art animation usually runs at ~8–12 fps ("on twos"), not 60. Smooth
   60 fps *movement* of a sprite across the screen is fine; the *drawn frames* inside it step at 8–12.
@@ -188,7 +188,8 @@ Ordered by "biggest polish for least risk". Each is a small, separate change.
 5. **Balance:** blocks drop in with a squash, beam overshoot (exists), number tick when changing `?`.
 6. **Machine Builder:** number roll on each op, chain items slide in, star reveal at the end.
 7. **Screen-to-screen transitions** (menu → setup → game): short (≤ 250 ms) slide/fade.
-8. **Calm-motion setting** wired to everything above.
+8. **Creature Quest:** turn-based combat has the most to gain: attacker lunge (anticipation then strike), hit flash + short hit pause on the target, damage numbers floating up, and a clear "whose turn" idle bob. Another chat owns this game's art, so coordinate before touching its files.
+9. **Calm-motion setting** wired to everything above.
 
 ---
 
