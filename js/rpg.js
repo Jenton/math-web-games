@@ -322,6 +322,26 @@
     return shuffle(cards);
   }
 
+  /* ---------- camp buffs (world map) ----------
+   * Resting at a camp gives the NEXT fight a small head start. Buffs only ever help and never change what a right answer is, so no buff
+   * can make a fight winnable without the math: the team still takes every hit that is not blocked, and a wrong card still does nothing. */
+  const BUFFS = {
+    shield: { name: 'Cozy fire', text: 'Your next fight starts with a shield that blocks the first attack.' },
+    hint: { name: 'Quiet thinking', text: 'In your next fight, the first hand has a wrong card taken out.' },
+  };
+  /** Apply a camp buff to a fresh battle (before the first card). Returns false for an unknown buff. */
+  function applyBuff(b, id) {
+    if (!BUFFS[id]) return false;
+    if (id === 'shield') b.shield = Math.min(TUNE.SHIELD_MAX, b.shield + 1);
+    if (id === 'hint') {
+      b.hands.forEach((h) => {
+        const wrong = h.map((c, i) => (c.correct ? -1 : i)).filter((i) => i >= 0);
+        if (wrong.length > 1) h.splice(pick(wrong), 1); // always leave at least one wrong card so the choice stays real
+      });
+    }
+    return true;
+  }
+
   /* ---------- battle ---------- */
 
   const living = (b) => b.foes.filter((f) => f.alive);
@@ -522,7 +542,7 @@
     TUNE, ADVENTURE, PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS,
     creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
     makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, maxGroup, makeEncounter, planAdventure,
-    newBattle, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
+    newBattle, BUFFS, applyBuff, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
   };
   if (isNode) module.exports = api;
   else root.RPG = api;
