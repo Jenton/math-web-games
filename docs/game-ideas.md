@@ -27,7 +27,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Review and choose CC0 art packs (verify each license)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
 - [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
-- [ ] Stage 4: story chapters per region, scripted ally-rescue encounters, simple region select
+- [ ] Stage 4: Mario-World-style world map (pixel art), node types (battle, elite, boss, rescue, story beat, puzzle, camp), story chapters per region, scripted ally-rescue encounters
 - [ ] Tune the numbers after playtesting (`js/rpg.js` tunables)
 - [ ] Character customization (cosmetic only)
 - [ ] Spellcraft enemies (exact-HP), Machine Builder bosses
@@ -172,11 +172,52 @@ Effects must be balanced so no ally is required and none makes the fight trivial
 - Existing saves: the 11 first-slice creatures map onto the new allies by id where they exist; keep `Store.importJSON`
   backward compatible.
 
+### World map (Super Mario World style)
+The owner wants a world map where each **node is an encounter or a story beat** and "something fun or interesting can
+happen". Pixel-art style, if assets are available. This replaces the "simple region select" idea: the map IS how the
+player moves through the story chapters.
+- **Structure:** a map per region (world). A token (the player's avatar or lead ally) walks along paths between nodes.
+  Nodes unlock as you clear the ones before them; some paths branch, and there can be optional side nodes and secret exits.
+  Finishing a region's boss opens the next region.
+- **Node types** (each is data, so new content needs no new code):
+  - Battle: 1 to 3 enemies, each with its own weakness (the v2 battle loop).
+  - Elite battle: a tougher group, better reward.
+  - Boss: ends a region (reuses the boss charge with a Balance puzzle).
+  - Rescue: a captor holds a caged ally. Beating it frees the ally (the scripted ally source).
+  - Story beat: a short dialogue scene with a funny or interesting character or event. It can have a small choice.
+  - Puzzle node: launches an existing mini-game (Balance, Machine Builder or Munchers) for a reward such as XP or a heal,
+    for example "fix the bridge" with a Machine Builder chain or "open the chest" with a Balance scale.
+  - Camp: restore team health, ally banter, view your allies.
+  - Bonus: optional challenge with a cosmetic or ally-flavor reward.
+- **Math rule for story beats:** they can be funny and charming, but anything that tests math must follow the same rules as
+  every game (the math is the choice or the puzzle, wrong answers explain themselves, no timers).
+- **Allies matter on the map too:** an optional secret path can need a particular ally ("Owlbert reads the strange sign").
+  Never gate the main story path on a specific ally, so a player can always progress.
+- **Progress feedback:** cleared nodes show a check. A flawless clear earns a gold star, like Mario World's exit markers.
+  Save node state in the profile (backward compatible).
+- **Data sketch** (one file per region, authored as readable data, not code):
+  `{ id, type, x, y, next: [...], enemies: [{skill}], script, ally, game, reward }`
+- **Visuals:** pixel art scaled with `image-rendering: pixelated`. Two ways to build the region background:
+  (a) one hand-composed background image per region with nodes placed on top by coordinates (most flexible), or
+  (b) a tile grid generated from a plain-text (ASCII) layout and a tileset, so a map can be designed in a readable file.
+  Start with (a) using a CC0 map/background image, add (b) if we want to author many maps quickly.
+- **Open question:** art tone. Many free pixel packs lean gritty dungeon-crawler. The kids (especially the younger one) like
+  cute, so pick a cute and colorful pack or accept a mix. Check style consistency across map, enemy and ally art before committing.
+
 ### Art plan
 - **Source: free CC0 art packs** (owner's choice). Backgrounds as images, enemies and allies as sprites.
 - **Practical constraints found:** kenney.nl returns 403 to automated downloads (the site blocks it, not our network
   policy). OpenGameArt and itch.io are reachable, but licenses vary per asset, so verify each one is CC0 before use.
   The owner can also download a pack by hand and drop it in the repo.
+- **CC0 candidates found on OpenGameArt** (each page's License(s) field read as CC0 on Nov 2026; re-check the license on the
+  page at download time, and check art style before using):
+  - Map pack (180 assets), by Kenney: https://opengameart.org/content/map-pack-180-assets
+  - Pastoral overworld: https://opengameart.org/content/pastoral-overworld
+  - Overworld - Grass Biome: https://opengameart.org/content/overworld-grass-biome
+  - Dungeon Crawl 32x32 tiles (monsters and characters; gritty style): https://opengameart.org/content/dungeon-crawl-32x32-tiles
+  - RogueDB32: https://opengameart.org/content/roguedb32
+  - Main art from Monster RPG 2: https://opengameart.org/content/main-art-from-monster-rpg-2
+  - Meadow background: https://opengameart.org/content/meadow-background
 - Keep a `assets/CREDITS.md` listing every asset, its source URL and license. Never commit anything without a clear license.
 - Build the scene so art is **swappable data**: a manifest maps enemy/ally/background ids to image files, with a plain
   emoji or colored-shape fallback if a file is missing.
@@ -189,14 +230,16 @@ Effects must be balanced so no ally is required and none makes the fight trivial
    (`tests/rpg.test.js`: perfect play always wins, a learner still usually wins at 1 star, random/ignoring-the-math loses).
 3. **Allies as effects:** ally roster (start with ~12), effect engine (hit all, shield/heal, stun, remove a wrong card),
    ally picker UI, tests that every effect is optional and no team makes a fight unwinnable.
-4. **Story chapters:** region scripts, rescue encounters, a simple region select, ally unlock on rescue.
+4. **World map and story chapters:** map screen with a walking token, node types (battle, elite, boss, rescue, story beat, puzzle, camp),
+   region data files, rescue encounters that unlock allies, saved node progress, and puzzle nodes that launch the existing games.
 5. **Later:** customization, more regions and allies, Spellcraft enemies, Machine Builder bosses.
 
 ### Still to decide
 - Roster: how many allies per grade band, their names and effects, which skill each is tied to.
 - How many regions and chapters in the first release, and the story/tone (the kids like fantasy and cute things).
 - How much of the three-step turn (ally, target, card) is too much for the youngest player. Test with her.
-- Which CC0 packs to use once reviewed.
+- Which CC0 packs to use once reviewed, and the art tone (cute and colorful vs classic fantasy).
+- Number of nodes per region, and what the first region's story is.
 
 ---
 
