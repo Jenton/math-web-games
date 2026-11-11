@@ -164,7 +164,9 @@
 
   function render() {
     const w = S.wave;
-    $('tdGold').textContent = '🪙 ' + gold() + ' of ' + w.budget;
+    const goldText = '🪙 ' + gold() + ' of ' + w.budget;
+    if ($('tdGold').textContent !== goldText) { $('tdGold').textContent = goldText; UI.flash($('tdGold'), 'tick', 190); }
+    $('tdLane').classList.toggle('running', !!S.running);
     [...$('tdShop').children].forEach((b) => {
       const k = +b.dataset.k;
       b.classList.toggle('on', S.sel === k);
@@ -200,6 +202,7 @@
     S.sel = S.sel === k ? null : k;
     Sfx.play('flip');
     render();
+    if (S.sel === k) UI.flash($('tdShop').children[k], 'pick', 180);
   }
 
   function onSlot(i) {
@@ -215,11 +218,13 @@
       UI.toast('Not enough gold for that tower. Take one back, or pick a cheaper one.', false);
       Sfx.play('wrong');
       render();
+      UI.flash($('tdGold'), 'shake', 300);
       return;
     }
     S.place[i] = S.sel;
     Sfx.play('place');
     render();
+    UI.flash($('tdLane').querySelectorAll('.td-slot')[i], 'placed', 280); // the new tower drops in
   }
 
   /* ---------- running the wave ---------- */
@@ -234,9 +239,38 @@
     step();
   }
 
+  /** A small shot flying from the tower to its enemy, so the player can SEE which tower caught which number. */
+  function shoot(s, tk, fly) {
+    const m = S.wave.map;
+    const lane = $('tdLane');
+    const W = lane.clientWidth;
+    const H = lane.clientHeight;
+    const pad = m.pads[s.slot];
+    const now = m.path[tk.pos[s.enemy]];
+    if (!pad || !now) return;
+    const prevTick = S.res.ticks[S.t - 1];
+    const before = prevTick && prevTick.pos[s.enemy] >= 0 ? m.path[prevTick.pos[s.enemy]] : now;
+    const aim = [before[0] + (now[0] - before[0]) * 0.35, before[1] + (now[1] - before[1]) * 0.35]; // the enemy is still walking: lead it a little
+    const x0 = ((pad[0] + 0.5) / m.cols) * W;
+    const y0 = ((pad[1] + 0.5) / m.rows) * H;
+    const d = document.createElement('span');
+    d.className = 'td-shot';
+    d.style.left = x0 + 'px';
+    d.style.top = y0 + 'px';
+    d.style.setProperty('--dx', ((aim[0] + 0.5) / m.cols) * W - x0 + 'px');
+    d.style.setProperty('--dy', ((aim[1] + 0.5) / m.rows) * H - y0 + 'px');
+    d.style.setProperty('--fly', fly + 'ms');
+    lane.appendChild(d);
+    setTimeout(() => d.remove(), fly + 80);
+  }
+
   function step() {
     const tk = S.res.ticks[S.t];
     if (!tk) return finish();
+    const tickMs = S.fast ? TICK / 3 : TICK;
+    $('tdLane').style.setProperty('--tick', tickMs + 'ms'); // every effect is timed from the tick, so it always finishes before the next one
+    const calm = UI.reduced();
+    const fly = calm ? 0 : Math.round(tickMs * 0.35);
     const slots = [...$('tdLane').querySelectorAll('.td-slot')];
     tk.pos.forEach((p, i) => {
       const { e } = S.enemyEls[i];
@@ -244,7 +278,7 @@
       const path = S.wave.map.path;
       const live = p >= 0 && p < path.length && (st === 'march' || tk.shots.some((s) => s.enemy === i) || tk.leaks.includes(i));
       if (live) {
-        e.hidden = false;
+        if (e.hidden) { e.hidden = false; UI.flash(e, 'enter', 220); }
         e.style.left = pct(path[p][0], 0, S.wave.map);
         e.style.top = pctY(path[p][1], S.wave.map);
       }
@@ -256,7 +290,10 @@
       chip.classList.add('dead');
       slots[s.slot].classList.add('fire');
       setTimeout(() => slots[s.slot].classList.remove('fire'), 300);
-      Sfx.play('correct');
+      UI.flash(slots[s.slot], 'recoil', 230);
+      if (!calm) shoot(s, tk, fly);
+      const run = S.res;
+      setTimeout(() => S && S.res === run && Sfx.play('correct'), fly); // the hit sound lands with the hit, not with the shot
     });
     tk.leaks.forEach((i) => {
       const { e, chip } = S.enemyEls[i];
@@ -265,11 +302,13 @@
       $('tdLane').classList.add('hit');
       setTimeout(() => $('tdLane').classList.remove('hit'), 400);
       Sfx.play('hurt');
+      UI.flash(document.querySelector('.td-gate'), 'ouch', 340);
+      UI.flash($('tdGate'), 'tick', 200);
       const left = TDL.MAX_LEAKS + 1 - S.res.ticks.slice(0, S.t + 1).reduce((a, x) => a + x.leaks.length, 0);
       $('tdGate').textContent = '❤️'.repeat(Math.max(0, left)) + '🤍'.repeat(TDL.MAX_LEAKS + 1 - Math.max(0, left));
     });
     S.t++;
-    timer = setTimeout(step, S.fast ? TICK / 3 : TICK);
+    timer = setTimeout(step, tickMs);
   }
 
   function finish() {
@@ -292,6 +331,7 @@
       ctx.onSave();
       Sfx.play('win');
       if (r.stars === 3) setTimeout(() => Sfx.say('correct'), 700);
+      if (!UI.reduced()) UI.burst($('tdLane'), r.stars === 3 ? 12 : 8);
       const last = S.n >= ROUND;
       UI.panel({
         icon: 'medals/m' + r.stars,

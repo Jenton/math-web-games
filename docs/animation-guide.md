@@ -241,7 +241,13 @@ stock counts tick, a stock icon drops in per `+`, a wrong price card shakes gent
 the customer at the counter has a slow idle bob, and the end-of-day panel is preceded by a small confetti burst. Also fixed: the whole waiting
 queue used to replay its entrance on every job; now only newly arrived animals animate. Its CSS is in `css/motion.css`.
 
-Not yet done: Creature Quest / Number Defense. Balance is blocked on the rework
+**Number Defense (done, on the branch):** the wave plays itself, so motion carries the explanation. A shot now flies from the firing tower to its enemy
+(leading the target a little), the tower recoils, and the kill lands when the shot does (death delay and hit sound are timed from the shot). Enemies
+fade in, waddle as they march, and the castle squashes when one leaks. Placing a tower drops it in; picking a card pops it; the gold counter ticks and
+shakes on "not enough gold"; placed towers idle-bob during planning (and stop while the wave runs); a win ends with a small confetti burst. All timings
+derive from `--tick` (set per step by `js/td.js`), so **Fast** mode shortens every effect and nothing outlasts its tick. CSS in `css/motion.css`.
+
+Not yet done: Creature Quest (another stream owns its art). Balance is blocked on the rework
 stream (see `docs/work-streams.md`): its scale will tip only after lock-in, which changes what there is to animate.
 
 ## 8. How to check an animation actually works
@@ -340,3 +346,18 @@ Still open: no authoritative source found for the specific millisecond values; t
 6. **Known and left alone:** the existing walk-in (~0.9 s) and leave (~0.95 s) are longer than the guide's ladder, but they are scene motion, never block input and are skipped by the next job.
    The idle bob keeps running while the player reads the word problem; it is 3 px and slow, but if it distracts, pause it while the question is on screen.
 7. **Not verified:** real-finger feel, and the end-of-day burst size on small phones.
+
+### Review log: Number Defense pass
+
+1. **Cause and effect was missing.** The tower glow and the enemy's death happened at the same instant, so players could not see which tower caught which number.
+   Added the projectile, and moved the kill's visual delay and the hit sound to the moment of impact (guide section 4b: sound and impact within a frame).
+2. **Fast mode.** Fixed-length effects would overrun a 173 ms tick. Everything is derived from `--tick`; verified (waddle 0.52 s normal, 0.17 s fast; kill delay 182 ms, 61 ms).
+3. **Specificity trap caught before shipping:** the planning idle bob (4 selectors) would have out-ranked the "tower placed" drop-in (4 selectors, earlier in the file).
+   Ordered the placed rule after idle so the later one wins on the tie; verified the `placed` class animates.
+4. **Existing gap fixed:** under the *device's* reduce-motion setting, dead and leaked enemies still ran their scale/fade transitions (their selectors out-ranked the existing override). Added an override.
+5. **Reduced motion:** no projectiles are even created, no confetti, and sounds fire immediately; the wave plays to the end. No console errors in normal, fast, losing, or reduced runs.
+6. **Known deviation, left alone:** enemies move by transitioning `left`/`top` (layout properties), which breaks this guide's transform/opacity rule. It is existing code,
+   at most ~8 small elements, and a conversion needs pixel positions recomputed on resize, so it is a follow-up, not part of this pass.
+7. **Coupling to know about:** `.td-card.pick`, `#tdGold.tick` and `#tdGold.shake` reuse the `lem-*` keyframes from the Lemonade section of `css/motion.css`.
+   If those are renamed or moved, update these too (a shared keyframes block would be cleaner).
+8. **Not verified:** real-finger feel; whether idle-bobbing towers during planning distract from reading the incoming numbers (turn it off if so).
