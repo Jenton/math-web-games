@@ -34,4 +34,4 @@ Code layout: `js/engine.js` (rules/generators, no DOM), `js/storage.js`, `js/gam
 (Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
 
 See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and
-`docs/game-ideas.md` (backlog of future games, with how to plug a new one in).
+`docs/game-ideas.md` (backlog of future games, a "not built yet" checklist, and how to plug a new one in).

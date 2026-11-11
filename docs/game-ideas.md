@@ -15,6 +15,54 @@ Self-contained reference for any chat or contributor. Read this together with
 - **Light and private:** static site, no accounts, no ads. Progress in localStorage with a backup file.
 - **Original characters only** (no licensed IP). Themes are skins.
 
+## Not built yet (tracker)
+
+The single place to see what is left. Tick items off (`[x]`) and move notes into the detailed sections below when
+something is built. Details and design notes for each item are further down in this file.
+
+**Status today:** built = Munchers, Balance, Machine Builder, Creature Quest (first slice). Everything below is open.
+
+### Creature Quest (RPG) next steps
+- [ ] **Tune the numbers after playtesting** (`js/rpg.js` tunables: heal, enemy attack, HP, XP). First suspect: 1 star may be too forgiving, since power-only play still wins ~42%.
+- [ ] World map: regions themed by skill ("Multiples Mountain"), enemies and a boss per region
+- [ ] Character customization (cosmetic only: outfits, colors, hats)
+- [ ] Spellcraft enemies (exact-HP: choose the spell whose damage lands on the enemy's HP)
+- [ ] Machine Builder bosses (reduce the boss's power to 0 in the fewest steps)
+- [ ] More enemy and boss variety, art, and sound beyond emoji
+- [ ] Creature upgrades (stronger creatures that grow with use)
+- [ ] Limited cards / mana, if the lost-turn-plus-heal penalty turns out too soft
+
+### Existing games, possible extensions
+- [ ] Balance: drag-blocks-onto-pans version for the youngest players, negative weights (balloons), limited guesses, two-player "first to level it"
+- [ ] Machine Builder: reverse puzzles ("which input makes 24?"), "find the missing card", step trace of a wrong attempt, co-op chain
+- [ ] Munchers: two-player (shared board, race or cooperate), optional timer challenge mode
+
+### New games
+- [ ] Tower Defense (the son's favorite genre): plan phase with wave preview, then a run phase
+- [ ] Number Line Runner
+- [ ] Sort & Rule (Zoombinis-style logic)
+- [ ] Build-a-World (Minecraft-style)
+- [ ] Escape Room Locks
+- [ ] Lemonade Stand / Shop
+- [ ] Cut & Share
+- [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
+
+### Portal and cross-cutting features
+- [ ] Auto-adapting difficulty using the per-skill stats already recorded (only after playtesting)
+- [ ] Fuller parent view (per-skill levels, trends, conversation-starter prompts)
+- [ ] Daily puzzle per kid
+- [ ] Kid-made puzzles (the older child builds a puzzle for the younger one)
+- [ ] Co-op / competitive modes, handicapped by each player's own level
+- [ ] Optional timer / challenge mode as an opt-in flag per game
+- [ ] Offline-first install (PWA) for the iPad
+- [ ] Public web address (for example GitHub Pages) so the iPad can open it without files. Needs a go-ahead first, since it makes the site public.
+
+### Playtest notes (add what the kids say and do)
+Write observations here so any chat can act on them. Suggested format: date, who played, game, what happened.
+- _No playtests recorded yet._
+
+---
+
 ## The rules every game must follow
 
 1. **Math is the mechanic.** Before a game ships, write down the answer to: *"Could a kid play well
