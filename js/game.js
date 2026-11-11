@@ -479,8 +479,8 @@
     Store.setField(mg, 'streak', S.streak);
     const next = () => newLevel(false);
     let text = S.clean ? 'Perfect: no mistakes!' : 'Nice work! You cleared the board.';
-    Sfx.play('win');
-    if (S.clean) setTimeout(() => Sfx.say('correct'), 700);
+    setTimeout(() => Sfx.play('win'), 450); // after the last coin ding, so the jingle does not cover it
+    if (S.clean) setTimeout(() => Sfx.say('correct'), 1200);
     const opts = { icon: S.clean ? 'medals/m3' : 'medals/m1', title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
     if (S.streak >= 3 && p.settings.stars < 3) {
       opts.text += ' That is ' + S.streak + ' clean levels in a row. Ready for a bigger challenge?';
