@@ -11,7 +11,7 @@ Zoombinis, with Prodigy's collecting/progression appeal, but where the math
    math, the design fails.
 2. **Puzzles over drills.** No worksheet-style question/answer screens.
 3. **Scale by grade, not by kid.** Every game reads a skill/difficulty
-   setting, so the 5-year-old can grow into harder content without new games.
+   setting, so the youngest player can grow into harder content without new games.
 4. **Solo first, co-op/competitive second.**
 5. **Light, private, no accounts.** Progress lives on the device.
 6. **Works on iPad and laptop first, phone as a bonus.**

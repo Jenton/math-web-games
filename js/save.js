@@ -71,6 +71,7 @@
   registerGame('sort', { levels: 'counter' });
   registerGame('share', { levels: 'counter' });
   registerGame('escape', { rooms: 'counter', perfect: 'counter' });
+  registerGame('runner', { runs: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set', run: 'lww' }, // cleared / gold: world-map node ids (grow-only sets); run: the Quick adventure in progress ({ i, band, stars } or null; last write wins, with runAt)

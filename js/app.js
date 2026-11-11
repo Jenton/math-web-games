@@ -39,6 +39,13 @@
       stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
       sample: (s) => MGS.makeStock(s.band, s.stars).text,
     },
+    runner: {
+      name: 'Number Line Runner', ico: 'runner/c0', extras: false, mod: () => Runner,
+      how: ['The <b>number line</b> is a rope over the river. The sign tells you where to go: "Land on 3/4" or "Hop 1/2 to the right".', '<b>Tap a tick</b> to aim (use the arrows to nudge it), then press <b>Jump!</b> The spot is never marked, so read the ticks to find it.', 'Land exactly and a stone and flag appear. Miss and you splash, and we count how many ticks you were off.'],
+      band: { 'K-1': 'Whole numbers on a line to 10, then to 20 counting by ones.', '2-3': 'A line to 100: counting by tens, then fives, and hopping by tens and fives.', '4-5': 'Fractions on a line from 0 to 2 by fourths, eighths or tenths, and mixed numbers and decimals.', '6': 'Negative numbers, halves, fourths, decimals and percents on a line through zero.' },
+      stars: [['★ Easier', 'Fewer ticks and every spot is a plain landing.'], ['★★ Medium', 'A finer line, some labels left out.'], ['★★★ Harder', 'Hops, expressions, and several ways to write the same number.']],
+      sample: (s) => { const r = RUN.makeRun(s.band, s.stars); return r.checkpoints[0].text + ' (the line has ' + r.ticks + ' ticks, each worth ' + RUN.writeValue(r.line, r.line.step, r.line.modes[0]) + ')'; },
+    },
     escape: {
       name: 'Escape Room', ico: 'escape/t89', extras: false, mod: () => Escape,
       how: ['You are locked in a dungeon room with <b>three chests</b>, each with a lock. Tap a chest and your hero walks over.', 'Crack the <b>pattern, code, scale or machine</b> lock. A wrong try shows you the arithmetic; hints are always there.', 'Open all three and the <b>exit door</b> opens. Fewer wrong tries and hints means more stars.'],
@@ -80,7 +87,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'runner', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -210,11 +217,11 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || RUN.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('runner', 'runs') + ' Number Line runs, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
     show('menu');
   }
 
@@ -253,7 +260,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', runner: 'runner', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);

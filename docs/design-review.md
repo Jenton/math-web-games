@@ -18,7 +18,7 @@ each issue could sink the project.
 2. **A per-skill adaptive engine is the most expensive part and the easiest
    to get wrong.** Tracking a level for every skill plus auto-adjusting
    means lots of tuning with no real-kid data. A badly tuned engine produces
-   boredom or frustration, and for a 5-year-old frustration ends the session.
+   boredom or frustration, and for a young child frustration ends the session.
    *Fix:* v1 is a **manual difficulty picker (grade band + 1-3 stars)** with
    simple "move up after N clean wins" suggestions. Add true adaptivity only
    after playtesting shows where the dial should sit.
@@ -44,7 +44,7 @@ each issue could sink the project.
    "appears" because you completed its pattern), never by a score
    threshold alone. Keep it small and cosmetic.
 
-6. **K-6 span is huge, and the 5-year-old's real constraint is reading.**
+6. **K-6 span is huge, and the youngest player's real constraint is reading.**
    Kindergarteners can't read instructions.
    *Fix:* **no-reading mode** for young levels: icons, spoken prompts
    (browser speech synthesis or recorded audio), demonstrated tutorials.
