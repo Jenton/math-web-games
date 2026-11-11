@@ -11,9 +11,9 @@ share this folder, so check `git branch --show-current` and `git status` before 
 | Stream | Branch / PR | Status | Owns | Waits for |
 |---|---|---|---|---|
 | Instruction docs refresh | `docs/refresh-instructions` / PR #29 | Open: `CLAUDE.md`, README, tracker, this page, trimmed Firebase skills | `CLAUDE.md`, `README.md`, `docs/*.md` | owner review |
-| Animation pass | `claude/dreamy-pasteur-xues94` | Munchers, Machine Builder, Lemonade Stand, Number Defense are merged. Left: Creature Quest, Escape Room, and **Balance (now unblocked: the rework is merged)** | `docs/animation-guide.md`, `css/motion.css`, motion blocks in `css/style.css` | nothing |
+| Animation pass | `claude/dreamy-pasteur-xues94` | Munchers, Machine Builder, Lemonade Stand, Number Defense are merged. Left: Balance, Sort & Rule and Cut & Share (the rework is merged, so the Balance plan in the guide can be applied; waiting on the owner's playtest notes), Escape Room, and Creature Quest | `docs/animation-guide.md`, `css/motion.css`, motion blocks in `css/style.css` | nothing |
 
-No other PRs are open. New work starts from a fresh branch off `main`.
+No other PRs are open. New work starts from a fresh branch off `main`. `feature/sort-share-balance-rework` was deleted (superseded by #27). Sort & Rule is exported as `MGR` (not `MGS`, which is Lemonade Stand).
 
 ## Done and merged
 

@@ -37,7 +37,9 @@ assert.ok(!has('.git'), 'no .git folder');
 const fb = JSON.parse(fs.readFileSync(path.join(OUT, 'firebase.json'), 'utf8'));
 assert.deepStrictEqual(Object.keys(fb), ['hosting']);
 assert.strictEqual(fb.hosting.public, '.');
-assert.strictEqual(fb.hosting.ignore, undefined, 'the clean folder needs no ignore list (a pattern there once hid every Kenney asset)');
+// exactly Firebase's three standard exclusions, stated explicitly (omitting them published firebase.json itself), and nothing broader:
+// a repo-specific pattern here once hid every Kenney asset because Firebase matches case-insensitively
+assert.deepStrictEqual(fb.hosting.ignore, ['firebase.json', '**/.*', '**/node_modules/**'], 'the published config must exclude firebase.json itself and dotfiles, and carry no other pattern');
 assert.ok(fb.hosting.headers && fb.hosting.headers.length, 'security headers are kept');
 
 /* ---------- the site is complete ---------- */

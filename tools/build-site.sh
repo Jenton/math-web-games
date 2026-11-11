@@ -28,11 +28,12 @@ while IFS= read -r f; do
   cp "$f" "$OUT/$f"
 done < "$LIST"
 
-# the published firebase.json: hosting only (never the Firestore rules), and WITHOUT the repo's "ignore" list: the folder is already
-# clean, and Firebase's defaults (dotfiles, node_modules, firebase.json itself) apply
+# the published firebase.json: hosting only (never the Firestore rules). It does NOT use the repo's "ignore" list (a broad pattern there once
+# hid every Kenney asset, because Firebase compares case-insensitively); the folder is already clean. It states Firebase's three standard
+# exclusions EXPLICITLY, because leaving "ignore" out is not enough: without it firebase.json itself was published (found by the live check).
 node -e '
   const h = Object.assign({}, require("./firebase.json").hosting);
-  delete h.ignore;
+  h.ignore = ["firebase.json", "**/.*", "**/node_modules/**"];
   require("fs").writeFileSync(process.argv[1], JSON.stringify({ hosting: h }, null, 2));
 ' "$OUT/firebase.json"
 
