@@ -30,7 +30,7 @@ Five lines, no more:
 
 ## 3. Review before the PR
 - Play every state at **phone width** and take a screenshot of each: idle, mid-action, right, wrong, win, lose. Look at them.
-  Ask: "would a 9-year-old call this a game, or a worksheet?" If it feels like a worksheet, add scene before opening the PR.
+  Ask: "would a kid call this a game, or a worksheet?" If it feels like a worksheet, add scene before opening the PR.
 - Run `node tests/*.test.js` and the Playwright suites in `tests/browser/`.
 - Check the asset requests: no 404s (a missing image silently falls back to emoji, which looks like an art revert).
 - In the PR text, list: what moves, what the Kenney art is, and what is still placeholder.

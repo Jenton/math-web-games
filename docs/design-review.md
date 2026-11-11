@@ -18,7 +18,7 @@ each issue could sink the project.
 2. **A per-skill adaptive engine is the most expensive part and the easiest
    to get wrong.** Tracking a level for every skill plus auto-adjusting
    means lots of tuning with no real-kid data. A badly tuned engine produces
-   boredom or frustration, and for a 5-year-old frustration ends the session.
+   boredom or frustration, and for a young child frustration ends the session.
    *Fix:* v1 is a **manual difficulty picker (grade band + 1-3 stars)** with
    simple "move up after N clean wins" suggestions. Add true adaptivity only
    after playtesting shows where the dial should sit.
@@ -44,7 +44,7 @@ each issue could sink the project.
    "appears" because you completed its pattern), never by a score
    threshold alone. Keep it small and cosmetic.
 
-6. **K-6 span is huge, and the 5-year-old's real constraint is reading.**
+6. **K-6 span is huge, and the youngest player's real constraint is reading.**
    Kindergarteners can't read instructions.
    *Fix:* **no-reading mode** for young levels: icons, spoken prompts
    (browser speech synthesis or recorded audio), demonstrated tutorials.
@@ -57,7 +57,7 @@ each issue could sink the project.
    tap, share to Files), plus a visible "last saved" indicator. Revisit
    cloud sync only if it hurts.
 
-8. **Co-op/competitive between a 9-year-old and a 5-year-old is unfair by
+8. **Co-op/competitive between an older and a much younger child is unfair by
    default.** The older kid always wins or the game is trivial for him.
    *Fix:* **handicapped modes**: each player gets puzzles at their own
    level; scoring is relative to level, or both work toward a shared goal.
@@ -72,8 +72,8 @@ each issue could sink the project.
 - **Mistake-as-information:** wrong answers shouldn't just buzz. Show *why*
   (the monster you ate wasn't a multiple, and show 6x? to prove it). This
   is where learning actually happens.
-- **Kid-made puzzles:** let the 9-year-old build a Munchers rule or Machine
-  puzzle for his sister. Creating a puzzle is deeper math than solving
+- **Kid-made puzzles:** let the older child build a Munchers rule or Machine
+  puzzle for the younger one. Creating a puzzle is deeper math than solving
   one, and it's built-in co-op.
 - **"Number sense" before speed:** no timers by default; optional timer as a
   challenge mode. Timers push kids toward guessing and anxiety.

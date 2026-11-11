@@ -5,7 +5,7 @@ Self-contained reference for any chat or contributor. Read this together with
 
 ## Context in brief
 
-- **Who it's for:** two kids, a 9-year-old and a kindergartener who reads. Content must scale from
+- **Who it's for:** two kids, an older child and a younger one who is just learning to read. Content must scale from
   kindergarten to 6th grade, so a younger child can grow into harder levels of the same game.
 - **Taste:** classic edutainment (Number Munchers, Zoombinis, Math Blaster), puzzle-first. Not
   Khan/Beast Academy practice problems. Not Prodigy, where the math is a toll booth before the "real" game.
@@ -319,7 +319,7 @@ Machine Builder stay as standalone games and also appear inside the RPG as mini-
   the Prodigy toll booth). Instead the player picks the best attack/spell, and working out which one is best
   takes math. A normal-feeling RPG attack, chosen with brains.
 - **Turn-based.** No time pressure; fair to the kindergartener. (A timed mode can be an opt-in flag later.)
-- **The son likes all four Prodigy hooks:** collecting a team of creatures, exploring a world/map, leveling up
+- **The older child likes all four Prodigy hooks:** collecting a team of creatures, exploring a world/map, leveling up
   and getting stronger, and customizing his character. The meta layer should serve all four.
 
 ### Combat (turn-based)
@@ -404,7 +404,7 @@ The v2 decisions above are implemented except for art and the world map. What ex
 
 ## Later
 
-### Tower Defense (the son's favorite genre)
+### Tower Defense (the older child's favorite genre)
 **Pitch:** enemies are numbers marching down a lane; towers target by number property. The math is choosing
 the right tower for the incoming wave, not answering a quiz.
 **Mechanic:** a **planning phase** (turn-based, no pressure) where you see the incoming wave ("12, 15, 18, 20,
@@ -425,7 +425,7 @@ towers. Needs a small real-time run phase, so build after the RPG slice.
 - **Potion lab:** mix ingredients in ratios to match a target potion. Fractions, ratios, proportional reasoning.
 - **Map explorer:** coordinates and grid distances; plot a route where the cost is the distance.
 - **Co-op raid:** two players each hold half of a spell (one the tens, one the ones) and must coordinate to
-  hit an exact number. Works fairly across a 5- and a 9-year-old.
+  hit an exact number. Works fairly across a younger and an older child.
 
 ### Number Line Runner
 Platformer where you land on exact values (3/4, 0.6, 7x8, -2). Jump distances are number-line lengths.
@@ -470,7 +470,7 @@ adding and comparing fractions with unlike denominators (4-5) and fraction of a 
   Creating a puzzle is deeper math than solving it, and it's built-in co-op.
 - **Daily puzzle:** one hand-crafted puzzle per kid per day.
 - **Parent prompts:** the grown-ups view suggests a conversation starter ("ask why 17 isn't a multiple of 3").
-- **Co-op/competitive modes:** handicapped by each player's own level so a 5- and 9-year-old can play fairly.
+- **Co-op/competitive modes:** handicapped by each player's own level so a younger and an older child can play fairly.
   Munchers two-player (shared board, race or cooperate) is the simplest first one.
 - **Offline-first PWA:** installable on the iPad and works without internet.
 - **Optional timer / challenge mode:** an opt-in flag per game.
