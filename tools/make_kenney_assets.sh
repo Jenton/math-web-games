@@ -39,7 +39,7 @@ snd "$U/click3.ogg"            sfx/click
 snd "$I/open_001.ogg"          sfx/open
 snd "$I/close_001.ogg"         sfx/close
 snd "$U/rollover2.ogg"         sfx/step
-snd "$D/powerUp3.ogg"          sfx/solved
+snd "$R2/upgrade4.ogg"          sfx/solved   # rising chiptune sweep, same family as the coin ding (the old powerUp3 ended on falling notes)
 snd "$I/glass_003.ogg"         sfx/level
 snd "$IM/impactGeneric_light_001.ogg" sfx/place
 snd "$I/maximize_004.ogg"      sfx/card
@@ -47,7 +47,7 @@ snd "$R2/lose2.ogg"            sfx/lose
 snd "$R2/hurt2.ogg"            sfx/hurt
 snd "$RPG/knifeSlice.ogg"      sfx/hit
 snd "$RPG/bookFlip1.ogg"       sfx/flip
-for i in 00 03 07; do snd "$J/jingles-pizzicato_$i.ogg" sfx/win$i; done
+for i in 00 08; do snd "$J/jingles-pizzicato_$i.ogg" sfx/win$i; done   # only rising jingles: 03 and 07 ended lower than they began
 snd "$V/correct.ogg"           voice/correct
 snd "$V/level_up.ogg"          voice/level_up
 snd "$V/congratulations.ogg"   voice/congratulations

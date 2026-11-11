@@ -11,7 +11,7 @@
     correct: ['sfx/correct'], wrong: ['sfx/wrong'], // one fixed sound each: kids learn "coin ding = right", so no random variants here
     click: ['sfx/click'], open: ['sfx/open'],
     close: ['sfx/close'], step: ['sfx/step'], solved: ['sfx/solved'], level: ['sfx/level'], place: ['sfx/place'], card: ['sfx/card'],
-    lose: ['sfx/lose'], hurt: ['sfx/hurt'], hit: ['sfx/hit'], flip: ['sfx/flip'], win: ['sfx/win00', 'sfx/win03', 'sfx/win07'],
+    lose: ['sfx/lose'], hurt: ['sfx/hurt'], hit: ['sfx/hit'], flip: ['sfx/flip'], win: ['sfx/win00', 'sfx/win08'],
   };
   let muted = false;
   let musicOn = false;
