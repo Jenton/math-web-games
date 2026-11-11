@@ -127,7 +127,7 @@
         : hit + ' was stopped, but it is one of the ' + opt.text + '. So that is not the rule.';
     }
     const untested = p.tray.find((n) => contradicts(n) && !tested.includes(n));
-    return 'Not sure yet! Test ' + untested + ' to tell the choices apart.';
+    return 'Not sure yet! Test the number ' + untested + ' to tell the choices apart.';
   }
 
   /** Fewer tests = more stars. A wrong guess costs a star (never below one). */

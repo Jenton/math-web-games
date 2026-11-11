@@ -78,7 +78,7 @@ function makeOps(dev) {
     if (roll < 0.2) Save.addStat(p, SKILLS[Math.floor(r() * SKILLS.length)], dev, r() < 0.6);
     else if (roll < 0.3) bump('munchers', 'levels');
     else if (roll < 0.38) bump('balance', 'levels');
-    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); } }
+    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); if (r() < 0.3) bump('sort', 'levels'); if (r() < 0.3) bump('share', 'levels'); } }
     else if (roll < 0.56) {
       const o = g('rpg');
       o.creatures = [...new Set([...(o.creatures || []), CREATURES[Math.floor(r() * CREATURES.length)]])];
@@ -154,6 +154,23 @@ for (let seed = 1; seed <= 300; seed++) {
       assert.ok((mt[k] || 0) >= dt[k], `merge lost progress: ${k} ${mt[k]} < ${dt[k]} (seed ${seed})`);
     });
   });
+}
+
+/* Sort & Rule and Cut & Share keep their progress as per-device counters under games.sort / games.share (levels): a game with no merge rule can lose progress */
+{
+  const mk = (dev, sortN, shareN) => {
+    const d = Save.newData();
+    const p = Save.newProfile({ id: 'p1', name: 'K', avatar: 'x', now: 1 });
+    p.games.sort = { levels: { [dev]: sortN } };
+    p.games.share = { levels: { [dev]: shareN } };
+    d.profiles.push(p);
+    return d;
+  };
+  const m = merge(merge(mk('lap', 3, 1), mk('pad', 5, 4)), mk('phone', 2, 0));
+  const p = m.profiles[0];
+  assert.strictEqual(Save.sumCounter(p.games.sort.levels), 10, 'Sort & Rule: every device\'s puzzles are summed');
+  assert.strictEqual(Save.sumCounter(p.games.share.levels), 5, 'Cut & Share: every device\'s puzzles are summed');
+  eq(merge(mk('lap', 3, 1), mk('pad', 5, 4)), merge(mk('pad', 5, 4), mk('lap', 3, 1)), 'Sort & Rule / Cut & Share merge in any order');
 }
 
 /* each device only increments its own counter, so the merged total must equal the SUM of what every device did (no lost increments) */

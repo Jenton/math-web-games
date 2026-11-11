@@ -385,3 +385,24 @@ and finish with the same adversarial review and browser check as every other gam
 "N tries left" text with visible pips (the plan above assumes pips; text-only also works with just the message slide).
 
 **Trigger to start:** `git log origin/main -- js/balance.js` shows the rework merged. Then merge `main`, apply the plan, review, and ship.
+
+---
+
+## Sort & Rule and Cut & Share: animation plan (static scene is built; motion waits for the owner's playtest notes)
+
+Both games were brought up to the polish bar in the same PR as their scene art, with all motion deliberately left for this pass. When the owner sends notes, apply:
+
+| Game | Moment | Plan |
+|---|---|---|
+| Sort & Rule | idle | guard bobs slowly (idle life, 3 px) and blinks the emote now and then; stops while the player is reading hints |
+| Sort & Rule | tap a number | the tile lifts out of the tray, travels to the gate along an arc (200-300 ms), then to its lane; the lane tile drops in with `lem-drop` |
+| Sort & Rule | passes | door swings open (swap `t46` to `t10` with a quick scale in X), happy emote pops; closes again after ~400 ms |
+| Sort & Rule | stopped | the door stays shut, the guard steps forward (small lunge) and the tile bounces back to the stopped lane; gentle, never harsh |
+| Sort & Rule | win / lose | small confetti burst then the panel after a ~330 ms beat (skipped with Reduce motion); the gate opens wide on a win |
+| Cut & Share | idle | friends bob out of phase (2 px); plates sit still so the fraction reads clearly |
+| Cut & Share | change cuts/each | the pizza redraw pops (`tick`), the plates' filled slices pop in one by one |
+| Cut & Share | Share it! | slices travel from the pizzas to each friend's plate in turn (the 'path of the action'); a friend with too little shakes gently, a served friend hops |
+| Cut & Share | win / lose | confetti on win; on lose the missing slices flash on the empty plates |
+
+Reuse `UI.flash`, `UI.burst`, `UI.reduced` and the keyframes in `css/motion.css`; derive durations from one tick so nothing outlasts it; every effect must be skipped
+(no waits, no particles) under Reduce motion; and finish with the standard adversarial review and a browser check.
