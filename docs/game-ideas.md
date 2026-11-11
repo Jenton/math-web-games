@@ -24,7 +24,7 @@ something is built. Details and design notes for each item are further down in t
 
 ### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
 - [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
-- [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
+- [ ] Shortlist art from the Kenney All-in-1 bundle (done by a local Claude Code session on the owner's Mac; output: `docs/art-shortlist.md` plus contact sheets), then choose packs for each theme (cute, classic fantasy, default mix) and copy only chosen files into `assets/`
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
 - [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md`
   - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
@@ -231,6 +231,13 @@ player moves through the story chapters.
   is **a mix**: cute allies and heroes with classic-fantasy monsters and landscapes. The art manifest is therefore keyed by
   theme (`theme -> enemy/ally/background -> image`), with each theme falling back to the default and then to plain emoji.
   Check that a theme's pieces look consistent together before shipping it.
+- **Asset workflow (owner decision):** the owner bought **Kenney Game Assets All-in-1 (3.8.0)**, a very large collection. It stays
+  **outside this repo** (at `/Volumes/JentMini Drive/AI Projects/...` on the owner's Mac). Only the specific files we choose are copied into
+  `assets/<theme>/...` and listed in `assets/CREDITS.md`; never commit the whole bundle (repo size, and the deployed site is public).
+  `.gitignore` blocks `assets/Kenney*/` and `assets/incoming/` as a safety net. **A cloud Claude session cannot read that folder** (the Mac's
+  folder is not offered to cloud sessions), so shortlisting and copying must be done by a Claude Code session running on the owner's Mac.
+  That session should write `docs/art-shortlist.md` and small contact-sheet preview images so a cloud session can see the options.
+  Kenney assets are released under CC0, but confirm the license file inside each pack and record it in `CREDITS.md`.
 - Keep a `assets/CREDITS.md` listing every asset, its source URL and license. Never commit anything without a clear license.
 - Build the scene so art is **swappable data**: a manifest maps enemy/ally/background ids to image files, with a plain
   emoji or colored-shape fallback if a file is missing.
