@@ -29,6 +29,8 @@ creatures already earned are kept.
   (one unknown at K-1, unknown on both sides at 6th)
 - **Machine Builder**: chain operation cards to turn a start number into a target in the fewest steps
   (par is computed exactly by search, so star ratings are fair)
+- **Number Defense**: tower defense where the math is choosing towers. Numbers march at your castle; each tower has a rule
+  ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
   through"). Tap a monster to target it, pick a friend to act, and play the card that fits: a right card does damage, a wrong one does none, and every
   monster hits back. Friends have special powers (hit all, shield, heal, stun, hints...). Five encounters per adventure, including a boss whose big attack a
@@ -41,6 +43,7 @@ creatures already earned are kept.
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliation, rescues, and that perfect play always wins while ignoring the math loses
+node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 node tests/sync.test.js      # verifies cloud sync: encryption, family codes, and pull/merge/push against a fake backend
 node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices

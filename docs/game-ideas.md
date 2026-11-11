@@ -42,7 +42,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Munchers: two-player (shared board, race or cooperate), optional timer challenge mode
 
 ### New games
-- [ ] Tower Defense (the son's favorite genre): plan phase with wave preview, then a run phase
+- [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
 - [ ] Number Line Runner
 - [ ] Sort & Rule (Zoombinis-style logic)
 - [ ] Build-a-World (Minecraft-style)

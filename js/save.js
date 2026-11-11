@@ -66,6 +66,7 @@
   registerGame('munchers', { levels: 'counter', streak: 'lww' });
   registerGame('balance', { levels: 'counter' });
   registerGame('machine', { levels: 'counter' });
+  registerGame('td', { waves: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww' },
