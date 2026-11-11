@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/motion.css">
   <link rel="stylesheet" href="css/escape.css">
+  <link rel="stylesheet" href="css/runner.css">
 </head>
 <body data-theme="block">
   <button id="soundBtn" class="sound-btn" type="button" aria-label="Sound is on. Tap to mute" aria-pressed="true">&#128266;</button>
@@ -61,6 +62,12 @@
           <span class="g-ico"><img class="g-img" src="assets/kenney/animals/frog.png" alt=""></span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="runner" type="button">
+          <span class="g-ico"><img class="g-img pix" src="assets/kenney/runner/c0.png" alt=""></span>
+          <span class="g-name">Number Line Runner</span>
+          <span class="g-desc">Read the ticks on a rope over the river and leap to the exact number.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="escape" type="button">
@@ -184,6 +191,23 @@
         <button id="balCheck" class="btn big" type="button">Lock it in</button>
         <p class="note">Work it out, set the number, then lock it in. You only get 3 tries. Arrow keys work too; Enter locks in.</p>
       </div>
+    </section>
+
+    <!-- GAME: Number Line Runner -->
+    <section id="runner" class="screen" hidden>
+      <div class="hud">
+        <nav class="crumbs" data-level="play" data-back="runBack" data-game="runner" aria-label="Where you are"></nav>
+        <span id="runNo" class="pill"></span>
+      </div>
+      <div id="runSign" class="run-sign"></div>
+      <div id="runScene" class="run-scene"></div>
+      <p id="runMsg" class="run-msg" role="status" aria-live="polite"></p>
+      <div class="run-controls">
+        <button id="runLeft" class="btn ghost big" type="button" aria-label="Aim one tick to the left">&#9664;</button>
+        <button id="runJump" class="btn big" type="button">Jump!</button>
+        <button id="runRight" class="btn ghost big" type="button" aria-label="Aim one tick to the right">&#9654;</button>
+      </div>
+      <div class="row center"><button id="runHint" class="btn ghost small" type="button">&#128161; Hint</button></div>
     </section>
 
     <!-- GAME: Escape Room Locks -->
@@ -552,6 +576,8 @@
   <script src="js/machine.js"></script>
   <script src="js/elogic.js"></script>
   <script src="js/escape.js"></script>
+  <script src="js/runlogic.js"></script>
+  <script src="js/runner.js"></script>
   <script src="js/tdlogic.js"></script>
   <script src="js/td.js"></script>
   <script src="js/art.js"></script>

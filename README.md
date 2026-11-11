@@ -34,6 +34,9 @@ creatures already earned are kept.
   ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Lemonade Stand**: run a stand day by day. Each day has four linked jobs: set the price, buy stock for the crowd it brings, and make change for
   two customers (coins or a number picker). Wrong answers show the arithmetic.
+- **Number Line Runner**: the number line is a rope over a river. The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
+  Jump, and the hero leaps and lands exactly there. The spot is never marked, so you read the ticks (whole numbers, fractions, mixed numbers,
+  decimals, percents, negatives). A miss splashes and the message counts how many ticks you were off.
 - **Escape Room**: locked in a pixel dungeon room with three chests. Tap a chest and your hero walks over; crack its lock (a number
   pattern, a keypad code built from arithmetic clues, a scale, or a machine chain) to open it. Open all three and the exit door opens.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
@@ -60,6 +63,7 @@ node tests/newgames.test.js  # Sort & Rule has one fitting rule; Cut & Share par
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest: every ally effect, the round-based turn order, enemy retaliation, starting over, rescues, and that perfect play always wins while ignoring the math loses
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
+node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress

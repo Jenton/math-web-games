@@ -68,7 +68,7 @@ Everything below is open. State of play: v2 rules, sprites in two themes, the wo
 
 ### New games
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
-- [ ] Number Line Runner
+- [x] Number Line Runner (`js/runlogic.js` + `tests/runner.test.js`, `js/runner.js`, `css/runner.css`, `tests/browser/runner.browser.js`): rope-over-a-river number line, aim at a tick and jump, four flags per run, hops and landings, all four bands. Not built: collectibles, a scrolling longer world, number-line estimation without ticks, two-player.
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).

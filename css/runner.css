@@ -1,0 +1,79 @@
+/* Number Line Runner. Pixel Platformer (Kenney, CC0) drawn crisp. Layout first; motion is gated at the bottom (Reduce motion honoured). */
+.g-img.pix, .run-scene img { image-rendering: pixelated; }
+.run-sign { display: flex; flex-direction: column; align-items: center; gap: 2px; max-width: 480px; margin: 0 auto 8px; padding: 8px 14px 10px; text-align: center; border-radius: 12px; background: #c98d4e; border: 4px solid #5b3a1e; box-shadow: inset 0 0 0 3px #e3b57a, 0 3px 0 rgba(0,0,0,.2); color: #2a1c1c; }
+.run-sign-k { font-size: .75rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #5b3a1e; }
+.run-sign-t { font-family: "Kenney Future", system-ui, sans-serif; font-size: clamp(1.15rem, 5.4vw, 1.7rem); line-height: 1.15; }
+.run-scene { --hs: 48px; position: relative; width: 100%; max-width: 520px; aspect-ratio: 5 / 4; margin: 0 auto; overflow: hidden; border-radius: 14px; border: 4px solid #2a3a3a; background: linear-gradient(#a9e6ee 0%, #e4f8fa 62%); box-shadow: 0 4px 0 rgba(0,0,0,.2); user-select: none; -webkit-user-select: none; touch-action: none; cursor: pointer; }
+.run-hills { position: absolute; left: 0; right: 0; top: 42%; height: 24%; background: url("../assets/kenney/runner/b15.png") repeat-x 0 bottom / 72px auto; opacity: .9; }
+.run-plant { position: absolute; top: 54%; width: 36px; transform: translateX(-50%); pointer-events: none; }
+.run-bat { position: absolute; top: 12%; width: 34px; pointer-events: none; opacity: .9; }
+.run-bat.b1 { left: -10%; } .run-bat.b2 { left: 40%; top: 22%; width: 28px; }
+.run-water { position: absolute; left: 0; right: 0; bottom: 0; height: 36%; background: radial-gradient(circle at 50% 0, rgba(255,255,255,.4) 0 5px, transparent 6px) 0 0 / 26px 16px, radial-gradient(circle at 50% 0, rgba(255,255,255,.25) 0 5px, transparent 6px) 13px 20px / 26px 16px, linear-gradient(#37c1f2, #1a86c8); }
+.run-water::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: rgba(255,255,255,.55); }
+.run-rope { position: absolute; top: 63%; height: 6px; margin-top: -2px; border-radius: 3px; background: repeating-linear-gradient(90deg, #8a5a2b 0 8px, #6e4620 8px 12px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.run-tick { pointer-events: none; position: absolute; top: 63%; height: 74px; margin: -14px 0 0; padding: 0; border: 0; background: none; transform: translateX(-50%); cursor: pointer; touch-action: manipulation; z-index: 3; display: flex; flex-direction: column; align-items: center; }
+.run-tick .mark { display: block; width: 3px; height: 14px; border-radius: 2px; background: #4a2e14; margin-top: 0; }
+.run-tick.major .mark { width: 4px; height: 22px; }
+.run-tick .lbl { margin-top: 10px; padding: 0 4px; font-weight: 800; font-size: clamp(.7rem, 3.4vw, 1rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.75); border-radius: 6px; white-space: nowrap; }
+.run-tick.aimed .mark { background: #ff7a00; width: 6px; height: 26px; box-shadow: 0 0 0 3px rgba(255,255,255,.8); }
+.run-tick.miss .mark { background: #d33; }
+.run-tick:focus-visible { outline: 3px solid #fff; outline-offset: 0; }
+.run-arc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.run-arc path { fill: none; stroke: #fff; stroke-width: 1.2; stroke-dasharray: 8px 7px; vector-effect: non-scaling-stroke; stroke-width: 3px; stroke-linecap: round; opacity: .95; }
+.run-hero, .run-ghost, .run-stone { position: absolute; }
+.run-hero { top: 63%; width: var(--hs); height: var(--hs); margin: calc(var(--hs) * -1 + 3px) 0 0 calc(var(--hs) / -2); z-index: 4; transform-origin: 50% 100%; pointer-events: none; }
+.run-hero img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.run-hero .f1 { opacity: 0; }
+.run-hero.air .f0 { opacity: 0; } .run-hero.air .f1 { opacity: 1; }
+.run-hero.crouch { transform: scale(1.1, .82); }
+.run-ghost { top: 63%; width: var(--hs); height: var(--hs); margin: calc(var(--hs) * -1 + 3px) 0 0 calc(var(--hs) / -2); opacity: .5; z-index: 2; pointer-events: none; filter: saturate(.6); }
+.run-stone { top: 63%; width: calc(var(--hs) * 1.05); margin-left: calc(var(--hs) * -.525); z-index: 1; pointer-events: none; }
+.run-stone img.top { display: block; width: 100%; }
+.run-stone { overflow: visible; }
+.run-stone .base { margin-top: -1px; height: 38%; width: 100%; object-fit: cover; object-position: top; }
+.run-flag { position: absolute; left: 62%; bottom: 98%; width: calc(var(--hs) * .8); height: calc(var(--hs) * 1.1); }
+.run-flag img { position: absolute; left: 0; bottom: 0; width: 100%; }
+.run-flag .b { opacity: 0; }
+.run-coin { position: absolute; top: 56%; width: 24px; margin-left: -12px; z-index: 5; pointer-events: none; opacity: 0; }
+.run-splash { position: absolute; top: 66%; width: 0; z-index: 5; pointer-events: none; }
+.run-splash i { position: absolute; left: 0; top: 0; width: 9px; height: 9px; margin: -4px; border-radius: 50%; background: #6fd0ff; border: 2px solid #fff; }
+.run-splash i:nth-child(1) { --x: -16px; } .run-splash i:nth-child(2) { --x: 0px; } .run-splash i:nth-child(3) { --x: 16px; }
+.run-msg { max-width: 520px; min-height: 3.6em; margin: 8px auto 4px; text-align: center; font-weight: 600; line-height: 1.3; }
+.run-msg.good { color: #1d6b32; } .run-msg.bad { color: #a22; } .run-msg.hint { color: #1c3f8a; }
+.run-bulb { width: 22px; height: 22px; vertical-align: -5px; }
+.run-controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0; }
+.run-controls .btn.big { min-width: 64px; }
+.run-controls #runJump { min-width: 150px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduced"]) .run-hero:not(.air) .f0 { animation: run-idle0 1.2s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .run-hero:not(.air) .f1 { animation: run-idle1 1.2s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .run-hills { animation: run-pan 60s linear infinite; }
+  html:not([data-motion="reduced"]) .run-water { animation: run-wave 3s linear infinite; }
+  html:not([data-motion="reduced"]) .run-bat.b1 { animation: run-fly 14s linear infinite; }
+  html:not([data-motion="reduced"]) .run-bat.b2 { animation: run-fly 20s linear -8s infinite; }
+  html:not([data-motion="reduced"]) .run-hero.cheer { animation: run-cheer .55s ease-out; }
+  html:not([data-motion="reduced"]) .run-hero.sink { animation: run-sink .7s ease-in forwards; }
+  html:not([data-motion="reduced"]) .run-hero.pop { animation: run-pop .4s ease-out; }
+  html:not([data-motion="reduced"]) .run-stone.rise { animation: run-rise .35s ease-out; }
+  html:not([data-motion="reduced"]) .run-flag .a { animation: run-wave-a .5s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .run-flag .b { animation: run-wave-b .5s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .run-coin { animation: run-coin 1s var(--d, 0ms) ease-out forwards; }
+  html:not([data-motion="reduced"]) .run-splash i { animation: run-drop .7s ease-out forwards; }
+  html:not([data-motion="reduced"]) .run-tick.aimed .mark { animation: run-aim .8s ease-in-out infinite; }
+}
+html[data-motion="reduced"] .run-coin { opacity: 1; top: 50%; }
+@keyframes run-idle0 { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes run-idle1 { 0% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes run-pan { to { background-position-x: -720px; } }
+@keyframes run-wave { to { background-position: 26px 0, 39px 20px, 0 0; } }
+@keyframes run-fly { from { transform: translate(0, 0); } 50% { transform: translate(60vw, -6px); } to { transform: translate(120vw, 4px); } }
+@keyframes run-cheer { 40% { transform: translateY(-45%) scale(1.08); } }
+@keyframes run-sink { to { transform: translateY(70%) scale(.8); opacity: 0; } }
+@keyframes run-pop { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); } }
+@keyframes run-rise { from { transform: translateY(24px); opacity: 0; } }
+@keyframes run-wave-a { 50% { opacity: 0; } }
+@keyframes run-wave-b { 50% { opacity: 1; } }
+@keyframes run-coin { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-60px); } }
+@keyframes run-drop { 0% { transform: translate(0, 0); opacity: 1; } 100% { transform: translate(var(--x), -34px); opacity: 0; } }
+@keyframes run-aim { 50% { transform: scaleY(1.25); } }

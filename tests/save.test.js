@@ -78,7 +78,7 @@ function makeOps(dev) {
     if (roll < 0.2) Save.addStat(p, SKILLS[Math.floor(r() * SKILLS.length)], dev, r() < 0.6);
     else if (roll < 0.3) bump('munchers', 'levels');
     else if (roll < 0.38) bump('balance', 'levels');
-    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); if (r() < 0.3) bump('sort', 'levels'); if (r() < 0.3) bump('share', 'levels'); } }
+    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); if (r() < 0.3) bump('runner', 'runs'); if (r() < 0.3) bump('sort', 'levels'); if (r() < 0.3) bump('share', 'levels'); } }
     else if (roll < 0.56) {
       const o = g('rpg');
       o.creatures = [...new Set([...(o.creatures || []), CREATURES[Math.floor(r() * CREATURES.length)]])];
