@@ -47,6 +47,7 @@ node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliat
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 node tests/sync.test.js      # verifies cloud sync: encryption, family codes, and pull/merge/push against a fake backend
+node tests/firebase-backend.test.js  # verifies the Firebase adapter against a fake of Firebase's sign-in and Firestore (conflicts, offline, tokens)
 node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices
 node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 migration, all four games, backups, merging two devices
 node tests/browser/quest.browser.js          # optional, needs Playwright: plays whole Creature Quest adventures through the real buttons

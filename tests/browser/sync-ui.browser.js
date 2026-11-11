@@ -18,6 +18,7 @@ async function device(browser, name, withBackend = true) {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(name + ' pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(name + ' console: ' + m.text()); });
+  if (!withBackend) await ctx.route('**/js/firebase-config.js', (r) => r.fulfill({ contentType: 'text/javascript', body: '/* no config: cloud sync is not connected */' })); // this device must see no backend
   if (withBackend) {
     await ctx.exposeFunction('__bk', async (op, args) => {
       try { return { v: await cloud[op](...args) }; } catch (e) { return { err: { code: e.code || 'error', message: e.message } }; }
