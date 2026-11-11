@@ -35,12 +35,18 @@ seven do most of the work.
   on the *player's* action feels laggy. So:
   - **Player actions:** instant response, wind-up ≤ ~60 ms or none. Put the flourish in the follow-through instead.
   - **Enemy actions:** a real wind-up (150–400 ms) is *good*. It is fair warning and it looks alive.
+- **Scale the warning to the player.** A 6-year-old needs a longer, clearer tell than a 12-year-old. Tie
+  wind-up length to the existing grade band / stars setting (K-1 and ★: ~400 ms; 6th grade and ★★★: ~200 ms).
+  Never go below ~150 ms: below that it is not a warning, it is noise.
 - **Our use:** a Munchers glitch crouches (squash down + tiny lean toward its next cell) ~250 ms
   *before* it hops. Gives kids time to react, and kills the "teleporting monster" feel.
 
 ### Squash & stretch: weight and speed
 - Stretch along the direction of travel when fast, squash on impact or when slowing. Keep the
   object's apparent **volume constant**: if it gets 20 % wider it gets ~15–20 % shorter.
+- Set `transform-origin` to the feet (`50% 100%`) so a squash sits *on* the ground instead of shrinking toward the centre.
+- **Pixel-art caveat:** non-whole-number scaling blurs or unevenly distorts pixel sprites. For true pixel art, squash/stretch
+  by swapping drawn frames, or limit to whole-pixel offsets. The smooth Kenney animal/alien art can use `transform: scale` freely.
 - Subtle is better. Typical range: `scale(1.15, 0.85)` squash, `scale(0.9, 1.15)` stretch.
   Past ~±30 % it reads as rubber, not cute.
 - **Our use:** player hop = stretch up on launch, squash on landing (~80 ms), settle back.
@@ -60,7 +66,7 @@ seven do most of the work.
 | Small state change (chip selected, cell highlight) | 120–180 ms |
 | Moves across the board, panels opening | 200–300 ms |
 | Big transitions (level cleared, screen to screen) | 300–500 ms |
-| Anything the player must wait on | never over ~600 ms without a skip |
+| Anything the player must wait on | never over ~600 ms. A celebration longer than that must **not block**: show the panel/next button immediately and let the effect play behind it |
 
 ### Follow-through & overlapping action
 - Parts don't all stop at once. After the main move lands, secondary parts (a tail, a number
@@ -116,6 +122,8 @@ very small. Save big effects for rare moments.
 
 ## 4. Pixel art and sprite specifics (for Kenney sprites and any future hand-made art)
 
+- **Which rules apply?** Only to genuinely pixel-style sprites. The Kenney animals and aliens we use for Munchers are smooth
+  illustrations: they animate with transforms at full frame rate and the 8-12 fps rule does not apply to them.
 - **Frame rate:** pixel-art animation usually runs at ~8–12 fps ("on twos"), not 60. Smooth
   60 fps *movement* of a sprite across the screen is fine; the *drawn frames* inside it step at 8–12.
 - **Fewer frames, better timing.** More frames are a trap: each one is hand-placed pixels to
@@ -138,6 +146,12 @@ very small. Save big effects for rare moments.
 
 ---
 
+## 4b. Pair motion with sound
+
+`Sfx.play('correct' | 'wrong' | 'step' | 'hurt' | ...)` already exists. A sound and its visual should land within about
+one frame (~16-50 ms) of each other, or the pair feels broken. Fire both from the same line of code, and keep the
+visual's *impact frame* (not its wind-up) aligned to the sound. Muted or reduced-motion players must still get a clear signal from whichever channel remains.
+
 ## 5. Performance & technical rules (CSS/DOM)
 
 - **Animate `transform` and `opacity` only.** They are cheap (GPU-friendly). Don't animate
@@ -150,6 +164,17 @@ very small. Save big effects for rare moments.
 - **Never let an animation block input.** Tapping during a pop or hop must still register
   (we already apply taps in place; keep that invariant). If a move is mid-animation, either
   queue the next tap or let it retarget smoothly.
+- **Actors must be persistent elements to be tweened.** If a character is drawn by adding/removing a badge inside each
+  grid cell (as Munchers does today), it can only teleport. To animate movement, draw characters in one overlay layer
+  and move them with `transform: translate(...)` + `transition`.
+- **Animation must finish within the logic step.** If the player steps one cell every 120 ms, a 250 ms hop will lag
+  behind the game state and look wrong. Keep movement tweens at or under the step interval (our call: 90-110 ms), or slow the step.
+- **Never wait on `animationend` / `transitionend` to continue the game.** When reduced motion turns the animation off,
+  those events never fire and the game hangs. Use a timer (`setTimeout`) or run logic independently of the visuals.
+- **Hit pause = freeze the game clock, not the page.** Set a `freezeUntil` timestamp that `tick()` respects. UI, panels and
+  taps stay live. Use real time (`Date.now()`), not animation time.
+- **Cap concurrency.** At most ~10 animated elements at once and ~12 particle nodes per burst; remove nodes when finished.
+  A cheap phone is the target, not a laptop.
 - Don't tie game rules to animation timing (e.g. "monster moves when animation ends"):
   rules run on the game clock, animation just *displays* them, so a slow device can't change the game.
 - Pause everything when the tab is hidden (we already skip ticks when `document.hidden`).
@@ -166,7 +191,7 @@ This is a kids' learning app, so accessibility is part of "polished".
   (`opacity: 1; transform: none`), or elements can get stuck at their start keyframe.
 - **Ship our own switch too.** Add a profile option ("Calm motion") next to the existing "Calm"
   glitches option. A child on a device that doesn't expose the OS setting may still need it.
-- **No flashing.** Never flash large areas more than 3 times per second. Prefer colour *pulses*
+- **No flashing.** Never flash large areas more than 3 times per second (the WCAG 2.3.1 threshold; general accessibility knowledge, not from the sources above). Prefer colour *pulses*
   to white strobes. Hit-flash should be small (the sprite, not the screen).
 - **Wrong answers are teaching moments:** use gentle, short, non-startling motion (a soft wobble),
   never a loud shake or red flash, and never block with a long animation.
@@ -179,7 +204,7 @@ This is a kids' learning app, so accessibility is part of "polished".
 
 Ordered by "biggest polish for least risk". Each is a small, separate change.
 
-1. **Shared motion tokens** (`--ease-out`, `--ease-in`, `--ease-bounce`, `--t-fast/med/slow`)
+1. **Shared motion tokens** (and migrate existing keyframes onto them) (`--ease-out`, `--ease-in`, `--ease-bounce`, `--t-fast/med/slow`)
    in CSS, plus the reduced-motion override in one place. Everything below uses them.
 2. **Munchers: player + glitch movement.** Smooth hop between cells (transform transition),
    squash/stretch, glitch wind-up before each step, idle bob.
@@ -192,6 +217,21 @@ Ordered by "biggest polish for least risk". Each is a small, separate change.
 9. **Calm-motion setting** wired to everything above.
 
 ---
+
+## 8. How to check an animation actually works
+
+A screenshot cannot show motion. For each animation:
+- **Run it with Playwright**: capture 6-10 screenshots across its duration (or record video) and look for jumps and overshoot.
+- **Tap during the animation** and confirm the input still registers and nothing double-fires.
+- **Emulate reduced motion** (`page.emulateMedia({ reducedMotion: 'reduce' })`) and confirm the game still plays to completion and the end state is visible.
+- **Throttle the CPU** (Chrome DevTools 4-6x slowdown) and confirm game rules do not change speed with animation.
+- **Play it for two minutes**: effects that feel great once are often tiring at the 30th repetition. Cut or shrink any that do.
+
+## 9. What already exists (so we extend, not duplicate)
+
+Creature Quest has shake / lunge / float keyframes; Balance has a beam tilt and a `hop`; Machine Builder cards have a press
+transition; Lemonade Stand has walk/leave/pop keyframes; Munchers has a `fx` pop on munch. Each defines its own durations and
+its own reduced-motion block. Step 1 of the plan (shared tokens) exists to unify these.
 
 ## Sources
 
@@ -217,3 +257,22 @@ Used for the principles, timing ranges and caveats above:
 numbers (8–12 fps, 2–10 hit-pause frames, 3 px shake) are rules of thumb. The `steps()` sprite-sheet note
 and the "animate only transform/opacity" rule are general web practice I'm adding, not claims from those sources.
 The duration ladder in section 2 and the event table in section 3 are our own starting values to tune by playtest.
+
+---
+
+## Review log (adversarial pass)
+
+Checked this guide against the actual code and against itself. Changes made:
+
+1. **Munchers cannot tween today.** Characters are per-cell badges that get removed and re-added, so movement can only
+   teleport. Added the persistent-actor-layer rule.
+2. **Hop longer than the game step** (120 ms) would desync visuals from rules. Added the "finish within the step" rule.
+3. **`animationend` hang** under reduced motion. Added the timer-not-event rule.
+4. **Self-contradiction:** a 400-800 ms celebration vs "never wait over ~600 ms." Celebrations now must not block.
+5. **Squash/stretch vs pixel art conflict:** non-whole scaling distorts pixels. Added the caveat and anchor point.
+6. **8-12 fps rule misapplied:** Kenney art is smooth, not pixel. Scoped the rule.
+7. **Missing:** age-scaled enemy warning, sound pairing, concurrency budget, a way to verify motion, an inventory of existing animations.
+8. **Naming clash:** "Calm motion" vs existing "Calm" (no glitches). Renamed to "Reduce motion".
+9. **Sourcing:** the 3-flashes-per-second figure is WCAG general knowledge, now labelled as such.
+
+Still open: no authoritative source found for the specific millisecond values; they remain playtest-tuned starting points.
