@@ -74,7 +74,103 @@ trace of where a wrong attempt diverged, and a co-op mode where each player owns
 
 ---
 
+## Planned: the RPG (one larger game, working title "Quest")
+
+**Decision:** the RPG is ONE game that rolls up several mechanics, not separate games. Munchers, Balance and
+Machine Builder stay as standalone games and also appear inside the RPG as mini-challenges and bosses.
+
+**Design decisions from the owner (do not reverse without asking):**
+- **Math is the *choice*, never a gate.** Do NOT build "answer a question, then your hero swings" (that is
+  the Prodigy toll booth). Instead the player picks the best attack/spell, and working out which one is best
+  takes math. A normal-feeling RPG attack, chosen with brains.
+- **Turn-based.** No time pressure; fair to the kindergartener. (A timed mode can be an opt-in flag later.)
+- **The son likes all four Prodigy hooks:** collecting a team of creatures, exploring a world/map, leveling up
+  and getting stronger, and customizing his character. The meta layer should serve all four.
+
+### Combat (turn-based)
+- You field a team of up to 3 creatures and hold a **hand of attack cards/spells**. The enemy has HP and a
+  visible **weakness rule** (reuse `js/engine.js` rules: "weak to multiples of 6", "weak to primes", "weak
+  to fractions equal to 1/2"...). Playing a card that fits the weakness does big damage; a card that does
+  not fit is resisted and may heal the enemy.
+- **Cards must require computing, not eyeballing.** At low stars the cards are plain numbers; at higher stars
+  they are expressions ("7 x 6", "48 / 8") and near-miss distractors (use `rule.wrong()` near misses at
+  3 stars). Otherwise a kid can pick by sight.
+- **Wrong picks have a real cost** (spent mana, a used-up card, an enemy heal), so guessing is a bad
+  strategy. Cards are limited per fight and mana is limited.
+- **A wrong pick explains itself** (`rule.why(card)`), shown after the turn resolves.
+- "Can it be played without the math?" answer: no, because the best card is only identifiable by working out
+  the weakness rule, and guessing burns limited resources.
+
+### Enemy types (encounter variety, one engine)
+1. **Weakness enemies** (the everyday fight): weakness rule from the Munchers rule set for the band.
+2. **Spellcraft enemies** (exact HP): the enemy has exactly N HP; choose from your spellbook the spell whose
+   damage lands on it. Overkill wastes mana; underkill leaves it alive. Choose-from-options, not free
+   calculation, to match the "math is the choice" decision.
+3. **Armored enemies** (fractions and ratios): armor is a fraction, "3/4 armored"; choose the attack that
+   removes the right fraction to break the shield. At 6th grade: ratios and percents ("deal 25% of its HP").
+4. **Boss fights** (reuse existing puzzles): the boss locks its attack on a Balance scale (level it to
+   cancel the attack) or its power is a Machine Builder puzzle (reduce it to zero in the fewest steps).
+
+### Meta layer
+- **Creature collection:** a creature is earned by completing a pattern/puzzle that fits it (for example
+  "Divisor Dragon" for a factors-of-48 puzzle), never by a score threshold. Collected creatures are your team.
+  Each creature has a theme (e.g. multiples) that makes some cards stronger when it is on the team, which
+  makes team choice a decision too. Original characters only.
+- **Leveling:** XP comes from solving fights well (fewer wasted cards, no heals), not just from showing up.
+  Levels grant stats and extra spell slots. Do not let XP farming replace the math.
+- **World map:** regions are themed by skill ("Multiples Mountain", "Fraction Forest", "Prime Peaks"), each
+  with enemies and a boss. The player's grade band and stars set difficulty everywhere; the map is for
+  variety and exploration, not a hard grade gate.
+- **Customization:** cosmetic only (outfits, colors, hats), unlocked by progress. Never sells advantage.
+
+### Grade scaling of enemy rules (starting point)
+| Band | Weakness rules | Armored / extras |
+|------|----------------|------------------|
+| K-1  | even/odd, greater/less, sums to a target | halves ("1/2 armored") |
+| 2-3  | multiples of 2/5/10, rounding, expressions | quarters, equal groups |
+| 4-5  | multiples, factors, primes | fractions with unlike denominators |
+| 6    | equivalent fractions, exponents, number line | ratios and percents |
+
+### Technical notes
+- New DOM-free logic module (for example `js/rpg.js`) with a Node test (`tests/rpg.test.js`): every generated
+  hand must contain at least one correct card, wrong cards must truly be wrong, damage math must be
+  deterministic, and boss puzzles must be solvable (reuse the checks in `tests/puzzles.test.js`).
+- Reuse `js/engine.js` rules for weaknesses and `js/puzzles.js` for bosses; do not copy them.
+- New profile data (backward-compatible, with defaults in `Store.importJSON`): `profile.rpg = { team, creatures,
+  xp, level, regions, cosmetics }`. A save backup must keep working.
+- Follow the "How a new game plugs into the current code" steps above for the card, setup screen and section.
+
+### First slice (build this first, then playtest)
+One world with three enemy types (weakness enemies only, plus one armored and one boss), a team of three
+creatures, simple XP/leveling, and no map or customization yet. Prove that choosing the right card is fun before
+building the meta layer. Then add the world map, customization, Spellcraft enemies and more bosses.
+
+---
+
 ## Later
+
+### Tower Defense (the son's favorite genre)
+**Pitch:** enemies are numbers marching down a lane; towers target by number property. The math is choosing
+the right tower for the incoming wave, not answering a quiz.
+**Mechanic:** a **planning phase** (turn-based, no pressure) where you see the incoming wave ("12, 15, 18, 20,
+21, 24...") and place towers on tiles with limited gold; then a run phase where the wave plays out. A
+"Multiples of 3" tower only hurts multiples of 3, a "Prime" tower only primes, a "Fraction" tower only matches a
+fraction value. The wave preview rewards reading the whole wave and planning coverage.
+**Scaling:** K-1 even/odd and sums; 2-3 multiples and rounding; 4-5 factors and primes; 6 fractions,
+exponents and negatives. Wave size and the number of towers grow with stars.
+**Anti-brute-force:** limited gold, and a mistargeted tower wastes its shot. A wrong placement is explained in
+the wave summary (which enemies leaked through, and why that tower could not hit them).
+**Reuse:** targeting rules come from the `js/engine.js` rule set; collected RPG creatures could later serve as
+towers. Needs a small real-time run phase, so build after the RPG slice.
+**Co-op:** two players share a lane, each placing a different tower type.
+
+### Other mechanics worth keeping on the list
+- **Dungeon crawler:** each room is a puzzle type (lock, scale, pattern); path choices have math trade-offs
+  ("this door costs 12 mana"). Could become a region type inside the RPG.
+- **Potion lab:** mix ingredients in ratios to match a target potion. Fractions, ratios, proportional reasoning.
+- **Map explorer:** coordinates and grid distances; plot a route where the cost is the distance.
+- **Co-op raid:** two players each hold half of a spell (one the tens, one the ones) and must coordinate to
+  hit an exact number. Works fairly across a 5- and a 9-year-old.
 
 ### Number Line Runner
 Platformer where you land on exact values (3/4, 0.6, 7x8, -2). Jump distances are number-line lengths.
@@ -111,8 +207,8 @@ adding and comparing fractions with unlike denominators (4-5) and fraction of a 
 
 ## Cross-cutting features (not games)
 
-- **Creature/block collection:** items appear because a pattern or puzzle was completed (e.g. a creature
-  is "unlocked" by solving its rule). Keep it small and cosmetic. Must not become the reason to play.
+- **Creature/block collection:** now part of the RPG plan above. Items appear because a pattern or puzzle was
+  completed, never for a score. Must not become the reason to play on its own.
 - **Auto-adapt difficulty:** replace the "try harder?" suggestion with automatic adjustment, using the
   per-skill `stats` already recorded. Do this only after real playtesting shows where the dial should sit.
 - **Kid-made puzzles:** the older child builds a Munchers rule or Machine puzzle for the younger one.
@@ -126,5 +222,6 @@ adding and comparing fractions with unlike denominators (4-5) and fraction of a 
 
 ## Suggested order
 
-Playtest the three existing games with both kids first. Then: collection layer, Munchers two-player,
-then Number Line Runner or Sort & Rule depending on what the kids ask for.
+Playtest the three existing games with both kids first. Then: the RPG first slice (it is the closest to what
+the son loves about Prodigy and it carries the collection layer), then Tower Defense, then Munchers
+two-player, then Number Line Runner or Sort & Rule depending on what the kids ask for.
