@@ -19,7 +19,6 @@
   function start(profile, hooks) {
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
-    if (!profile.machine) profile.machine = { levels: 0 };
     S = { n: 0, stars: 0 };
     nextPuzzle();
   }
@@ -36,6 +35,7 @@
     S.n++;
     S.p = MGP.makeMachine(st.band, st.stars);
     S.path = [];
+    S.counted = false;
     $('macNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
     $('macPar').textContent = '🎯 Best: ' + S.p.par + (S.p.par === 1 ? ' step' : ' steps');
     $('macTitle').textContent = 'Turn ' + MGP.fmt(S.p.start) + ' into ' + MGP.fmt(S.p.target);
@@ -97,7 +97,10 @@
     const stars = steps <= S.p.par ? 3 : steps <= S.p.par + 1 ? 2 : 1;
     const prof = ctx.profile;
     Store.record(prof, 'machine', true);
-    prof.machine.levels++;
+    if (!S.counted) {
+      S.counted = true;
+      Store.bump(Store.game(prof, 'machine'), 'levels'); // counted once per puzzle: saved counters can only go up
+    }
     S.stars += stars;
     ctx.onSave();
     const last = S.n >= ROUND;
@@ -107,7 +110,7 @@
       btn: last ? 'Play another round' : 'Next puzzle',
       onBtn: last ? () => { S.n = 0; S.stars = 0; nextPuzzle(); } : nextPuzzle,
       btn2: 'Try this one again',
-      onBtn2: () => { S.stars -= stars; prof.machine.levels--; S.path = []; render(); },
+      onBtn2: () => { S.stars -= stars; S.path = []; render(); },
     });
   }
 

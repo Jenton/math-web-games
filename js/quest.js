@@ -13,7 +13,7 @@
     window.scrollTo(0, 0);
   }
 
-  const rpg = () => ctx.profile.rpg;
+  const rpg = () => ctx.profile.games.rpg;
   const sel = () => ctx.profile.settings;
 
   function init() {
@@ -78,12 +78,12 @@
 
   function goHome() {
     const r = rpg();
-    const need = RPG.xpToNext(r.level);
-    $('qLevel').textContent = 'Level ' + r.level;
-    $('qXp').style.width = Math.round((100 * r.xp) / need) + '%';
-    $('qXpText').textContent = r.xp + ' / ' + need + ' XP to level ' + (r.level + 1);
-    $('qStats').textContent = 'Team health ' + RPG.maxHp(r.level) + ' · ' + r.wins + ' battles won · ' + r.creatures.length + ' of ' + RPG.CREATURES.length + ' creatures found';
-    teamStrip($('qHomeTeam'), r.team, null);
+    const pr = RPG.progress(r);
+    $('qLevel').textContent = 'Level ' + pr.level;
+    $('qXp').style.width = Math.round((100 * pr.xp) / pr.need) + '%';
+    $('qXpText').textContent = pr.xp + ' / ' + pr.need + ' XP to level ' + (pr.level + 1);
+    $('qStats').textContent = 'Team health ' + RPG.maxHp(pr.level) + ' · ' + pr.wins + ' battles won · ' + r.creatures.length + ' of ' + RPG.CREATURES.length + ' creatures found';
+    teamStrip($('qHomeTeam'), RPG.currentTeam(r), null);
     showView('qHome');
   }
 
@@ -103,7 +103,7 @@
 
   function openPrep(mode) {
     Q.mode = mode;
-    Q.selected = rpg().team.slice();
+    Q.selected = RPG.currentTeam(rpg());
     const fight = mode === 'fight';
     $('qPreview').hidden = !fight;
     $('qRun').hidden = !fight;
@@ -158,7 +158,7 @@
 
   function onPrepDone() {
     if (!Q.selected.length) return;
-    rpg().team = Q.selected.slice();
+    RPG.setTeam(rpg(), Q.selected);
     ctx.onSave();
     if (Q.mode === 'collection') return goHome();
     startBattle();
@@ -167,7 +167,7 @@
   /* ---------- battle ---------- */
 
   function startBattle() {
-    Q.battle = RPG.newBattle({ band: sel().band, stars: sel().stars, enemy: Q.enemy, team: rpg().team, level: rpg().level });
+    Q.battle = RPG.newBattle({ band: sel().band, stars: sel().stars, enemy: Q.enemy, team: RPG.currentTeam(rpg()), level: RPG.progress(rpg()).level });
     Q.puzzle = null;
     Q.log = Q.battle.bonus > 0
       ? '⭐ Your specialists make every hit stronger! Pick the card that fits the weakness.'
@@ -300,10 +300,10 @@
     const b = Q.battle;
     const r = rpg();
     const rw = RPG.rewards(b);
-    const out = RPG.applyRewards(r, rw);
+    const out = RPG.applyRewards(r, rw, Store.deviceId);
     ctx.onSave();
     let text = (rw.clean ? 'A perfect fight! ' : '') + '+' + rw.xp + ' XP.';
-    if (out.levelUps) text += " Level up! You're now level " + r.level + ', so your team has more health.';
+    if (out.levelUps) text += " Level up! You're now level " + RPG.progress(r).level + ', so your team has more health.';
     if (out.joined) text += ' ' + out.joined.emoji + ' ' + out.joined.name + ' joined your creatures!';
     const last = Q.run && Q.run.i >= RPG.PLAN.length - 1;
     UI.panel({

@@ -163,15 +163,16 @@
     $('#menuName').textContent = current.name;
     const stats = $('#statsList');
     stats.innerHTML = '';
-    const ids = Object.keys(current.stats);
+    const ids = Store.statSkills(current);
     if (!ids.length) stats.innerHTML = '<li>No games played yet.</li>';
     ids.forEach((k) => {
       const li = document.createElement('li');
-      const st = current.stats[k];
+      const st = Store.stat(current, k);
       li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
-    $('#levelsCleared').textContent = current.munchers.levels + ' Munchers levels, ' + ((current.balance || {}).levels || 0) + ' Balance puzzles, ' + ((current.machine || {}).levels || 0) + ' Machine puzzles solved, ' + ((current.rpg || {}).wins || 0) + ' Quest battles won';
+    const count = (id, f) => Store.total(Store.game(current, id), f);
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('rpg', 'wins') + ' Quest battles won';
     show('menu');
   }
 
@@ -198,10 +199,10 @@
     $('#setupTitle').textContent = g.name;
     $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
     $('#extras').hidden = !g.extras;
-    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { s.band = v; save(); });
-    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { s.stars = v; save(); });
-    chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { s.theme = v; applyTheme(current); save(); });
-    chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { s.monsters = v; save(); });
+    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setSettings(current, { band: v }); save(); });
+    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setSettings(current, { stars: v }); save(); });
+    chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { Store.setSettings(current, { theme: v }); applyTheme(current); save(); });
+    chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { Store.setSettings(current, { monsters: v }); save(); });
     updateSetup();
     show('setup');
   }
