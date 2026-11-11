@@ -230,7 +230,13 @@ All motion is gated by `prefers-reduced-motion: no-preference`. Shared tokens li
 (damage numbers keep a gentle fade). The device's own reduce-motion setting is still handled by each component's media query.
 New animations need nothing extra: they are covered automatically. Do not wait on `animationend` (it still fires, but do not depend on it).
 
-Not yet done: Balance / Machine Builder / Creature Quest / Lemonade Stand / Number Defense. Balance is blocked on the rework
+**Machine Builder (done, on the branch):** cards drop in one after another; each tap pops the card and nudges the arrow; the number rolls in
+from below when it grows and from above when it shrinks (also on Undo / Start over); each new chain line slides in; the target has a slow
+opacity-only ring; reaching it hits the target tile, bursts 8-12 confetti pieces, locks input for ~350 ms, then opens the result panel.
+With "Reduce motion" (or the device setting) there is no wait and no confetti: the panel opens at once. Its CSS lives in `css/motion.css`
+(new file, to keep `css/style.css` conflicts away); `UI.flash`, `UI.burst` and `UI.reduced` in `js/ui.js` are the shared helpers for the next games.
+
+Not yet done: Creature Quest / Lemonade Stand / Number Defense. Balance is blocked on the rework
 stream (see `docs/work-streams.md`): its scale will tip only after lock-in, which changes what there is to animate.
 
 ## 8. How to check an animation actually works
@@ -305,3 +311,14 @@ Still open: no authoritative source found for the specific millisecond values; t
 5. **Checked and fine:** reduced motion leaves the game fully playable; no clicks are swallowed by the actor layer (`pointer-events: none`);
    timers (not events) clear animation classes; confetti cleans up; resize re-snaps actors.
 6. **Not verified:** real-finger touch feel, and long-session fatigue (guide section 8). Needs a human playtest.
+
+### Review log: Machine Builder pass
+
+1. **Undo / Start over snapped the number** with no roll. Every value change now shows its direction.
+2. **Idle glow animated `box-shadow`**, breaking this guide's own transform/opacity rule (repaints every frame). Now an opacity-only ring.
+3. **Staggered drop-in used an inline `animation-delay`**, which also delayed tap feedback on cards 2 and 3 by up to 120 ms. The delay is now a CSS variable used only by the drop-in.
+4. **Players with Reduce motion on still waited and got confetti.** Added `UI.reduced()`: no wait, no burst when motion is off.
+5. **Confetti count (14) exceeded the guide's cap of 12.** Fixed.
+6. **Caught while writing the CSS:** the always-on glow out-ranked the pop/hit animations on the same element (specificity), and the drop-in would replay after every tap. Both fixed before shipping (one-shot classes are timer-removed; glow moved to a pseudo-element).
+7. **Checked and fine:** extra taps and Undo/Start over are ignored during the celebration, and a timer (not an animation event) opens the panel; leaving the game mid-celebration cannot pop a stale panel; confetti cleans up; reduced-motion play completes; no console errors.
+8. **Not verified:** real-finger feel; whether the 350 ms beat before the panel feels slow to kids (try 250 ms if so).

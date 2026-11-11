@@ -1,0 +1,27 @@
+/* Per-game motion that lives outside css/style.css (a conflict hotspot). Rules, durations and the review process: docs/animation-guide.md.
+   Easing and duration tokens (--ease-out, --ease-pop, --t-fast ...) are defined in css/style.css. Everything is gated by
+   prefers-reduced-motion: no-preference, and the profile's "Reduce motion" setting (html[data-motion="reduced"]) finishes every
+   animation instantly. Games never wait on animation events. */
+
+/* ---------------- Machine Builder ---------------- */
+#macTarget { position: relative; } /* confetti host */
+#macTarget .conf { z-index: 4; }
+@media (prefers-reduced-motion: no-preference) {
+  /* one-shot classes are added and removed by a timer in JS, so nothing replays by accident. The idle glow is a ring fading in and out (opacity only: cheap) */
+  #macTarget::after { content: ""; position: absolute; inset: -5px; border: 4px solid rgba(255, 213, 79, .8); border-radius: 16px; pointer-events: none; animation: mac-glow 2.6s ease-in-out infinite; }
+  .op-card.enter { animation: mac-drop 220ms var(--ease-pop) var(--d, 0ms) backwards; }
+  .op-card.used { animation: mac-used 160ms var(--ease-out); }
+  .mac-big.roll { animation: mac-roll 260ms var(--ease-out); }
+  .mac-big.pop-in { animation: mac-pop 300ms var(--ease-pop); }
+  .mac-big.hit { animation: mac-hit 500ms var(--ease-pop); }
+  .mac-arrow.nudge { animation: mac-nudge 200ms var(--ease-out); }
+  .mac-path li.new { animation: mac-slide 200ms var(--ease-out); }
+}
+@keyframes mac-drop { from { transform: translateY(-14px) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mac-used { 0% { transform: scale(1); } 40% { transform: scale(1.1, .92); } 100% { transform: scale(1); } }
+@keyframes mac-roll { from { transform: translateY(var(--from, 38%)) scale(.9); opacity: .2; } 70% { transform: translateY(-3%) scale(1.06); opacity: 1; } to { transform: none; } }
+@keyframes mac-pop { from { transform: scale(.7); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } to { transform: none; } }
+@keyframes mac-hit { 0% { transform: scale(1); } 35% { transform: scale(1.18, .9); } 65% { transform: scale(.96, 1.08); } 100% { transform: scale(1); } }
+@keyframes mac-glow { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes mac-nudge { 40% { transform: translateX(7px); } }
+@keyframes mac-slide { from { transform: translateX(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
