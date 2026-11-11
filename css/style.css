@@ -191,7 +191,7 @@ dialog input, dialog select { display: block; width: 100%; font: inherit; paddin
 .creature:focus-visible, .qcard:focus-visible, .foe:focus-visible, .ally:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
 
 /* battle scene (placeholder look until real art is chosen) */
-.scene { position: relative; border-radius: var(--radius); border: 3px solid var(--line); padding: 14px 8px 46px; /* room for the lunge */ margin: 8px 0;
+.scene { position: relative; border-radius: var(--radius); border: 3px solid var(--line); padding: 14px 8px 12px; margin: 8px 0;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--accent) 22%, #cfe8ff) 0%, var(--bg) 62%, color-mix(in srgb, var(--accent) 30%, var(--bg)) 100%); overflow: hidden; }
 .foes { display: flex; justify-content: center; align-items: flex-end; gap: 10px; flex-wrap: wrap; min-height: 150px; }
 .foe { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: min(30%, 170px); min-width: 104px; padding: 8px 6px 6px; font: inherit; color: var(--ink); background: color-mix(in srgb, var(--panel) 86%, transparent); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; transition: transform .15s, opacity .3s; }
@@ -465,3 +465,22 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
 #ssPassword { width: 100%; }
 #ssHint.bad { color: #b3261e; }
+
+/* ---- Quest Stage 2: your team stands in the scene; windup, act, hurt and guard animations (all optional: they only explain what happened) ---- */
+.mates { display: flex; justify-content: center; align-items: flex-end; gap: 18px; margin-top: 12px; min-height: 64px; }
+.mate { position: relative; cursor: pointer; padding: 2px 4px 6px; border-radius: 12px; touch-action: manipulation; transition: transform .15s; }
+.mate .sprite { height: clamp(48px, 13vw, 72px); width: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .2)); }
+.mate .sprite.emoji { height: auto; font-size: 2.4rem; filter: none; }
+.mate.on { transform: translateY(-4px); }
+.mate.on::after { content: ''; position: absolute; left: 50%; bottom: -2px; width: 70%; height: 6px; margin-left: -35%; border-radius: 50%; background: var(--accent); opacity: .85; }
+.mate.act { animation: q-act .42s cubic-bezier(.3, 1.4, .5, 1); z-index: 2; }
+.mate.oops { animation: q-shake .34s; }
+.mate.hurt { animation: q-hurt .38s; }
+.mate.guard { animation: q-guard .4s; }
+.mate.fainted { transform: translateY(8px) rotate(-8deg); opacity: .45; filter: grayscale(1); transition: all .4s; }
+.foe.windup { animation: q-windup .46s ease-in; }
+@keyframes q-act { 0% { transform: translateY(-4px) scale(1); } 40% { transform: translateY(-26px) scale(1.15, .9); } 100% { transform: translateY(-4px) scale(1); } }
+@keyframes q-hurt { 0%, 100% { transform: translateX(0); filter: none; } 20% { transform: translateX(-7px); filter: brightness(1.6) sepia(1) hue-rotate(-30deg) saturate(4); } 60% { transform: translateX(6px); } }
+@keyframes q-guard { 0%, 100% { filter: none; } 40% { filter: drop-shadow(0 0 8px #4aa3ff) brightness(1.2); } }
+@keyframes q-windup { 0% { transform: scale(1, 1); } 70% { transform: translateY(2px) scale(1.1, .86); box-shadow: 0 0 0 4px #ffb84a; } 100% { transform: translateY(0) scale(1.04, .94); } }
+@media (prefers-reduced-motion: reduce) { .mate.act, .mate.oops, .mate.hurt, .mate.guard, .foe.windup { animation: none; } .mate, .mate.fainted { transition: none; } }

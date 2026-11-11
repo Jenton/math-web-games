@@ -190,8 +190,33 @@
     Q.log = 'Tap a monster to attack it, pick a friend, then play a card that fits its weakness.';
     showView('qBattle');
     paintScene();
+    buildMates();
     renderBattle();
   }
+
+  /** Your team stands in the scene under the monsters, so a hit visibly lands on them. Decorative: the buttons below are the real picker. */
+  function buildMates() {
+    const b = Q.battle;
+    const box = $('qMates');
+    box.innerHTML = '';
+    b.team.forEach((id, j) => {
+      const c = RPG.creatureById(id);
+      const m = document.createElement('div');
+      m.className = 'mate' + (j === b.ally ? ' on' : '');
+      m.dataset.j = j;
+      m.appendChild(allySprite(c));
+      m.addEventListener('click', () => onAlly(j)); // a tap on the friend works too (the picker buttons stay for keyboards and screen readers)
+      box.appendChild(m);
+    });
+  }
+  const mateEls = () => [...$('qMates').children];
+  function markActing() {
+    mateEls().forEach((m, j) => m.classList.toggle('on', j === Q.battle.ally));
+  }
+  // anticipation: a younger player gets a longer, clearer warning before a monster strikes (docs/animation-guide.md)
+  const motionOff = () => reduced() || document.documentElement.dataset.motion === 'reduced'; // device setting or the Reduce motion profile setting
+  const windup = () => (motionOff() ? 0 : sel().stars === 1 ? 400 : sel().stars === 2 ? 300 : 220);
+  const sfx = (name) => { if (root.Sfx) Sfx.play(name); };
 
   /** The backdrop follows the toughest monster in the fight: boss and armored fights happen in the dungeon / castle. */
   function paintScene() {
@@ -351,7 +376,7 @@
   function onAlly(j) {
     const b = Q && Q.battle;
     if (!b || Q.busy || !$('panel').hidden) return;
-    if (RPG.setAlly(b, j)) renderAllies();
+    if (RPG.setAlly(b, j)) { renderAllies(); markActing(); }
   }
 
   /* ---------- animation helpers ---------- */
@@ -415,10 +440,13 @@
     // 1) what the player's card did
     const lines = [describe(ev, b)];
     const foeEl = (k) => $('foe' + k);
+    const mate = mateEls()[b.team.indexOf(ev.ally)];
     if (ev.correct) {
+      pulse(mate, 'act', 420); // the friend who acts steps forward
+      sfx('correct');
       ev.hits.forEach((h, n) => {
         const el = foeEl(h.i);
-        setTimeout(() => { pulse(el, 'hit', 340); floatAt(el, '−' + h.amount, 'dmg'); }, root.__questFast ? 0 : n * 120);
+        setTimeout(() => { pulse(el, 'hit', 340); floatAt(el, '−' + h.amount, 'dmg'); sfx('hit'); }, root.__questFast ? 0 : n * 120);
         if (el) {
           const f = b.foes[h.i];
           el.querySelector('.fill').style.width = Math.round((100 * f.hp) / f.max) + '%';
@@ -430,6 +458,8 @@
       if (ev.healed) floatAt($('qTeamHp'), '+' + ev.healed, 'heal');
       if (ev.shieldGained) $('qShield').textContent = '🛡️'.repeat(Math.min(b.shield + ev.attacks.filter((a) => a.blocked).length, 2));
     } else {
+      pulse(mate, 'oops', 340);
+      sfx('wrong');
       floatAt(foeEl(ev.target), 'Miss!', 'info');
     }
     Q.log = lines.join(' ');
@@ -438,6 +468,7 @@
 
     if (ev.over === 'win') {
       Q.busy = false;
+      sfx('win');
       UI.toast('✓ ' + ev.msg, true);
       await wait(400);
       return showWin();
@@ -447,14 +478,24 @@
     let hp = hp0 + ev.healed;
     for (const a of ev.attacks) {
       const el = foeEl(a.i);
+      if (!a.skipped) {
+        // a clear warning (a squash and a glow) before the strike; younger players get longer
+        pulse(el, 'windup', windup() + 60);
+        await wait(windup());
+      }
       pulse(el, 'lunge', 440);
       await wait(300);
       if (a.skipped) floatAt(el, '💤', 'info');
-      else if (a.blocked) floatAt($('qTeamHp'), 'Blocked 🛡️', 'info');
-      else {
+      else if (a.blocked) {
+        floatAt($('qTeamHp'), 'Blocked 🛡️', 'info');
+        mateEls().forEach((m) => pulse(m, 'guard', 400));
+        sfx('close');
+      } else {
         hp = Math.max(0, hp - a.dmg);
         floatAt($('qTeamHp'), '−' + a.dmg, 'dmg');
         pulse($('qTeamHp').closest('.team-bar'), 'ouch', 340);
+        mateEls().forEach((m) => pulse(m, 'hurt', 380)); // the whole team takes the hit
+        sfx('hurt');
       }
       renderTeam(hp);
       lines.push(enemyLine(a, b));
@@ -467,6 +508,8 @@
     if (ev.over === 'lose') {
       Q.busy = false;
       renderTeam(0);
+      mateEls().forEach((m) => m.classList.add('fainted'));
+      sfx('lose');
       return UI.panel({
         title: 'Your team needs a rest',
         text: (ev.correct ? '' : ev.msg + ' ') + "Your team ran out of health. Don't worry: everyone gets full health. Try these monsters again!",
