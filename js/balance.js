@@ -11,8 +11,8 @@
     if (bound) return;
     bound = true;
     $('balBack').addEventListener('click', exit);
-    $('gMinus').addEventListener('click', () => set(S.guess - 1));
-    $('gPlus').addEventListener('click', () => set(S.guess + 1));
+    $('gMinus').addEventListener('click', () => { set(S.guess - 1); speak(); });
+    $('gPlus').addEventListener('click', () => { set(S.guess + 1); speak(); });
     $('gBig-').addEventListener('click', () => set(S.guess - 10));
     $('gBig+').addEventListener('click', () => set(S.guess + 10));
     $('balCheck').addEventListener('click', lockIn);
@@ -49,6 +49,11 @@
     render();
   }
 
+  /** Says the number out loud when it is 1-10, so a young reader can hear what they are trying. */
+  function speak() {
+    if (S && S.guess >= 1 && S.guess <= 10) Sfx.say(S.guess);
+  }
+
   function set(v) {
     if (!S) return;
     S.guess = Math.max(0, Math.min(S.p.max, v));
@@ -61,7 +66,8 @@
     for (let i = 0; i < side.x; i++) {
       const b = document.createElement('span');
       b.className = 'blk mystery' + small;
-      b.textContent = v;
+      b.innerHTML = '<span class="n"></span>';
+      b.firstChild.textContent = v;
       frag.appendChild(b);
     }
     if (side.c > 0) {
@@ -97,12 +103,15 @@
     const res = MGP.checkBalance(S.p, S.guess);
     const prof = ctx.profile;
     if (res.balanced) {
+      Sfx.play('solved');
+      setTimeout(() => Sfx.play('win'), 350);
       Store.record(prof, 'balance', true);
       Store.bump(Store.game(prof, 'balance'), 'levels');
       if (!S.missed) S.firstTry++;
       ctx.onSave();
       const last = S.n >= ROUND;
       UI.panel({
+        icon: S.missed ? 'medals/m1' : 'medals/m3',
         title: S.missed ? 'Balanced! 🎉' : 'Balanced first try! 🌟',
         text: 'One ? weighs ' + S.guess + '. ' + res.msg + (last ? ' That is the round: ' + S.firstTry + ' of ' + ROUND + ' on the first try.' : ''),
         btn: last ? 'Play another round' : 'Next puzzle',
@@ -112,6 +121,7 @@
       });
     } else {
       S.missed = true;
+      Sfx.play('wrong');
       Store.record(prof, 'balance', false);
       ctx.onSave();
       UI.toast(res.msg, false);
