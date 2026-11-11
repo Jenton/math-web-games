@@ -1,0 +1,46 @@
+# Runs the Playwright browser suites in tests/browser/ on every pull request (and on demand).
+# This is a SEPARATE workflow from the deploy one: a failure shows as a red check on the PR but does not by itself stop a merge
+# or a deploy. Once it has proven stable, make "Browser tests" a required check in the repo's branch protection to make it gate merges.
+name: Browser tests
+on:
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: browser-tests-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  PLAYWRIGHT_VERSION: 1.49.1
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The repo has no package.json on purpose (no build step), so Playwright is installed on the runner only.
+      - name: Install Playwright
+        run: npm install --no-save --no-package-lock playwright@${{ env.PLAYWRIGHT_VERSION }}
+      - uses: actions/cache@v4
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium
+      - name: Install Chromium (and its system libraries)
+        run: |
+          if [ "${{ steps.browsers.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Run every browser suite (all of them, even if one fails)
+        run: |
+          failed=0
+          for t in tests/browser/*.browser.js; do
+            echo "::group::$t"
+            start=$(date +%s)
+            if node "$t"; then echo "PASS $t ($(( $(date +%s) - start ))s)"; else echo "::error::FAIL $t"; failed=1; fi
+            echo "::endgroup::"
+          done
+          exit $failed

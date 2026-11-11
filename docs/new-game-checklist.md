@@ -22,6 +22,7 @@ Five lines, no more:
 - **Reuse the world.** Backdrops, ground, props and characters come from Kenney tiles and sprites; emoji only as a fallback.
 - **Every state has life:** idle, active, right, wrong, win, lose. Check each one.
 - **Math is the mechanic, never hidden by motion** (animation guide, section 1).
+- **Success sounds must rise and end high; error sounds fall.** Check candidates with `tools/sound_pitch.py` and by ear (see "Sound choices" in `docs/kenney-asset-plan.md`).
 - **Sound on every action**, through `js/sfx.js` only. Right and wrong sounds are fixed (never random between variants), and a
   result sound must never be masked by another one.
 - **Phone first:** design at 375 px wide, thumb-sized targets, no horizontal scroll, key buttons visible without hunting.
