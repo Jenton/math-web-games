@@ -25,3 +25,27 @@
 @keyframes mac-glow { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 @keyframes mac-nudge { 40% { transform: translateX(7px); } }
 @keyframes mac-slide { from { transform: translateX(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------------- Lemonade Stand ----------------
+   Existing customer motion (walk in/out, emote pop, queue shuffle) stays in css/style.css; this adds feedback for the player's own actions.
+   One-shot classes are added and removed by timers in js/lemonade.js. */
+.lem-scene { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  .coin.tap { animation: lem-tap 150ms var(--ease-out); }
+  .coin.drop, .lem-stock .drop { animation: lem-drop 240ms var(--ease-pop); }
+  .lem-total.tick, .gval.tick { animation: lem-tick 180ms var(--ease-out); }
+  .opt-card.lem-shake { animation: lem-shake 300ms ease-in-out; }
+  .opt-card.lem-pop { animation: lem-cardpop 260ms var(--ease-pop); }
+  .sums.in { animation: lem-in 220ms var(--ease-out); }
+  #lemGo.attn { animation: lem-attn 440ms var(--ease-pop); }
+  /* idle life for the customer at the counter once the walk-in is over (the :not() keeps the leave animation winning) */
+  .lem-who.walk:not(.leave) { animation: lem-walk .9s ease-out both, lem-bob 2.2s ease-in-out .9s infinite; }
+}
+@keyframes lem-tap { 40% { transform: scale(1.12, .9); } }
+@keyframes lem-drop { from { transform: translateY(-22px) scale(.8, 1.15); opacity: 0; } 60% { transform: translateY(0) scale(1.1, .9); opacity: 1; } to { transform: none; } }
+@keyframes lem-tick { 40% { transform: scale(1.15); } }
+@keyframes lem-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes lem-cardpop { 40% { transform: scale(1.06); } }
+@keyframes lem-in { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes lem-attn { 40% { transform: scale(1.08, .94); } 70% { transform: scale(.98, 1.04); } }
+@keyframes lem-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
