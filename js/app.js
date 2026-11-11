@@ -65,6 +65,7 @@
 
   function applyTheme(p) {
     document.body.dataset.theme = p ? p.settings.theme : 'block';
+    document.documentElement.dataset.motion = p && p.settings.motion === 'reduced' ? 'reduced' : 'full';
   }
 
   /* ---------- home ---------- */
@@ -180,6 +181,7 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');
     stats.innerHTML = '';
     const ids = Store.statSkills(current);

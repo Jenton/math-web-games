@@ -13,6 +13,7 @@ Last updated: 11 Nov 2026.
 | Sort & Rule, Cut & Share, Balance rework | `feature/sort-share-balance-rework` (no PR yet) | In progress | `js/sort*.js`, `js/cutshare.js`, `js/share.js`, `js/balance.js` | PR #11 merged, then merge `main` (registry-file conflicts) |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
 | Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
+| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers done and merged; "Reduce motion" setting in review. Next: Machine Builder, then others. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, the motion blocks at the end of `css/style.css` | Balance rework merged (for Balance only) |
 | Done and merged | PR #6 Kenney art and sound, #7 Number Defense, #8 Lemonade Stand | Merged | | |
 
 ## Merge order
