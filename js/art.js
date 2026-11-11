@@ -8,6 +8,14 @@
   const isNode = typeof module !== 'undefined' && module.exports;
   const ids = ['multiples', 'factors', 'primes', 'even-odd', 'compare', 'rounding', 'expressions', 'fractions', 'exponents', 'armor', 'boss'];
   const set = (dir) => Object.fromEntries(ids.map((k) => [k, { src: 'assets/quest/' + dir + '/' + k + '.png' }]));
+  // story friends (freed on the world map): the cute theme has an animal each; the classic theme reuses a hero sprite in another color
+  const FRIENDS = {
+    bruno: ['multiples', 'bear', 200], peep: ['expressions', 'chick', 150], scout: ['compare', 'dog', 120], quackers: ['factors', 'duck', 250],
+    tusk: ['even-odd', 'elephant', 60], bongo: ['fractions', 'monkey', 190], waddle: ['primes', 'penguin', 120], oink: ['rounding', 'pig', 330],
+    zeb: ['exponents', 'zebra', 80], mossy: ['multiples', 'moose', 100], bison: ['expressions', 'buffalo', 280],
+  };
+  const friendsClassic = () => Object.fromEntries(Object.entries(FRIENDS).map(([id, [base, , hue]]) => [id, { src: 'assets/quest/classic/ally/' + base + '.png', filter: 'hue-rotate(' + hue + 'deg)' }]));
+  const friendsCute = () => Object.fromEntries(Object.keys(FRIENDS).map((id) => [id, { src: 'assets/quest/cute/ally/' + id + '.png' }]));
 
   const THEMES = {
     classic: {
@@ -16,7 +24,7 @@
       pixel: true,
       enemy: set('classic/enemy'),
       // two allies reuse a hero sprite in another color, so every friend still looks different
-      ally: Object.assign(set('classic/ally'), { armor: { src: 'assets/quest/classic/ally/armor.png', filter: 'hue-rotate(170deg)' }, boss: { src: 'assets/quest/classic/ally/boss.png', filter: 'hue-rotate(90deg) saturate(1.3)' } }),
+      ally: Object.assign(set('classic/ally'), { armor: { src: 'assets/quest/classic/ally/armor.png', filter: 'hue-rotate(170deg)' }, boss: { src: 'assets/quest/classic/ally/boss.png', filter: 'hue-rotate(90deg) saturate(1.3)' } }, friendsClassic()),
       bg: { meadow: { src: 'assets/quest/classic/bg/meadow.png' }, dungeon: { src: 'assets/quest/classic/bg/dungeon.png' } },
       // which backdrop a battle uses, by kind (a boss and armored enemies fight in the dungeon)
       bgFor: { weakness: 'meadow', armor: 'dungeon', boss: 'dungeon' },
@@ -27,7 +35,7 @@
       blurb: 'Round, friendly animals and silly monsters.',
       pixel: false,
       enemy: set('cute/enemy'),
-      ally: set('cute/ally'),
+      ally: Object.assign(set('cute/ally'), friendsCute()),
       bg: ['grass', 'forest', 'fall', 'desert', 'castle'].reduce((o, k) => ((o[k] = { src: 'assets/quest/cute/bg/' + k + '.png' }), o), {}),
       bgFor: { weakness: 'grass', armor: 'castle', boss: 'fall' },
       map: ['tree', 'tree2', 'bush', 'rock', 'cactus', 'snowman', 'igloo', 'pyramid', 'crystal', 'mound'].reduce((o, k) => ((o[k] = { src: 'assets/quest/cute/map/' + k + '.png' }), o), {}),

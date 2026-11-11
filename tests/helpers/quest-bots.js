@@ -20,7 +20,7 @@ const policies = {
   /** Always answers right. Targets the enemy that will die soonest, and the ally whose theme matches (else the first). */
   perfect: (b) => {
     const tgt = alive(b).slice().sort((x, y) => x.hp - y.hp)[0].i;
-    const match = b.team.findIndex((id) => b.foes[tgt].enemy.themes.includes(id));
+    const match = b.team.findIndex((id) => b.foes[tgt].enemy.themes.includes(RPG.themeOf(id)));
     return { target: tgt, ally: match >= 0 ? match : 0, card: pickOne(correctIdx(b.hands[tgt])), solves: true };
   },
   /** Always answers right, but acts with a random ally and a random enemy (the effects can never be required). */

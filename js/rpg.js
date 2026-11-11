@@ -79,8 +79,23 @@
     { id: 'exponents', name: 'Powzer', emoji: '🐲', blurb: 'Grows stronger with every power.', strong: 'exponents', effect: 'stun', effectName: 'Roar', effectText: 'The enemy skips its next attack.' },
     { id: 'armor', name: 'Shelly', emoji: '🐢', blurb: 'Knows just how to crack a shield.', strong: 'armored enemies', effect: 'shield', effectName: 'Shell up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
     { id: 'boss', name: 'Pebble', emoji: '🪨', blurb: 'A tiny golem pup. Great against bosses.', strong: 'bosses', effect: 'stun', effectName: 'Rumble', effectText: 'The enemy skips its next attack.' },
+    // Story friends: rescued on the world map (never in a Quick adventure). `theme` is the skill they are an expert at (the first eleven are
+    // named after their skill, so they need none), `story` marks them, and `where` says which map region frees them.
+    { id: 'bruno', name: 'Bruno', emoji: '🐻', blurb: 'A big softie who counts by hugs.', strong: 'multiples', theme: 'multiples', story: true, where: 'Prime Peaks', effect: 'stun', effectName: 'Bear hug', effectText: 'The enemy skips its next attack.' },
+    { id: 'peep', name: 'Peep', emoji: '🐥', blurb: 'Comes in pairs, always.', strong: 'even and odd', theme: 'even-odd', story: true, where: 'Fraction Forest', effect: 'shield', effectName: 'Fluff up', effectText: 'Blocks the next enemy attack (holds up to 2).' },
+    { id: 'scout', name: 'Scout', emoji: '🐶', blurb: 'Sniffs out every factor.', strong: 'factors', theme: 'factors', story: true, where: 'Prime Peaks', effect: 'hint', effectName: 'Sniff out', effectText: 'Next turn, every hand has a wrong card removed.' },
+    { id: 'quackers', name: 'Quackers', emoji: '🦆', blurb: 'Rounds up a whole pond.', strong: 'rounding', theme: 'rounding', story: true, where: 'Fraction Forest', effect: 'combo', effectName: 'Quack attack', effectText: '+2 damage for each right answer in a row (up to +6).' },
+    { id: 'tusk', name: 'Tusk', emoji: '🐘', blurb: 'Never forgets a power of two.', strong: 'exponents', theme: 'exponents', story: true, where: 'Ember Mountain', effect: 'sweep', effectName: 'Stomp', effectText: 'Also hits every other enemy for half damage.' },
+    { id: 'bongo', name: 'Bongo', emoji: '🐵', blurb: 'Swings between sums and products.', strong: 'sums and expressions', theme: 'expressions', story: true, where: 'Fraction Forest', effect: 'split', effectName: 'Swing', effectText: 'Also hits the weakest other enemy for half damage.' },
+    { id: 'waddle', name: 'Waddle', emoji: '🐧', blurb: 'Shares the fish equally.', strong: 'fractions', theme: 'fractions', story: true, where: 'Fraction Forest', effect: 'heal', effectName: 'Warm huddle', effectText: 'Heals your team a little.' },
+    { id: 'oink', name: 'Oink', emoji: '🐷', blurb: 'Digs up prime numbers like truffles.', strong: 'prime numbers', theme: 'primes', story: true, where: 'Prime Peaks', effect: 'slice', effectName: 'Truffle dig', effectText: 'Takes at least a quarter of the enemy\'s health.' },
+    { id: 'zeb', name: 'Zeb', emoji: '🦓', blurb: 'Black or white, bigger or smaller.', strong: 'greater and less', theme: 'compare', story: true, where: 'Ember Mountain', effect: 'crit', effectName: 'Stripe strike', effectText: '50% more damage.' },
+    { id: 'mossy', name: 'Mossy', emoji: '🫎', blurb: 'Antlers like a pair of scissors.', strong: 'armored enemies', theme: 'armor', story: true, where: 'Ember Mountain', effect: 'stun', effectName: 'Antler crash', effectText: 'The enemy skips its next attack.' },
+    { id: 'bison', name: 'Bison', emoji: '🦬', blurb: 'The ground shakes when it charges.', strong: 'bosses', theme: 'boss', story: true, where: 'Ember Mountain', effect: 'sweep', effectName: 'Stampede', effectText: 'Also hits every other enemy for half damage.' },
   ];
   const creatureById = (id) => CREATURES.find((c) => c.id === id);
+  /** The skill an ally is an expert at: their own id for the first eleven, `theme` for the story friends. */
+  const themeOf = (idOrCreature) => { const c = typeof idOrCreature === 'string' ? creatureById(idOrCreature) : idOrCreature; return c ? c.theme || c.id : null; };
 
   const ENEMY_ART = {
     multiples: { name: 'Skipper Goblin', emoji: '👺' },
@@ -103,6 +118,7 @@
   const starters = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).slice(0, 3);
   /** Creatures a player can still find at this grade: that band's monsters, plus armor and boss. */
   const reachable = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).concat(['armor', 'boss']);
+  const STORY_FRIENDS = CREATURES.filter((c) => c.story).map((c) => c.id); // freed on the world map only
 
   /**
    * Saved fields: xpEarned/wins/bosses (per-device counters, they only ever go up), creatures (a set), team (+teamAt, last write wins).
@@ -441,7 +457,7 @@
     if (card.correct) {
       ev.msg = foe.enemy.rule.ok(card);
       let dmg = TUNE.BASE_DMG;
-      if (ally && foe.enemy.themes.includes(ally.id)) {
+      if (ally && foe.enemy.themes.includes(themeOf(ally))) {
         dmg += TUNE.SPECIALIST_BONUS;
         ev.specialist = true;
       }
@@ -540,7 +556,7 @@
 
   const api = {
     TUNE, ADVENTURE, PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS,
-    creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
+    creatureById, themeOf, STORY_FRIENDS, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
     makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, maxGroup, makeEncounter, planAdventure,
     newBattle, BUFFS, applyBuff, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
   };

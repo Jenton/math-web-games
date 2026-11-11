@@ -399,6 +399,78 @@ const machineBest = (page) => page.evaluate(() => {
   console.log('2b. quick adventure saved, resumed at battle 2, and cleared when finished');
   await ctx.close();
 
+  /* ===== 2c. the later regions: story intros, story friends freed on the map, boss outros, and the last friend ===== */
+  ({ ctx, page } = await open(browser, { width: 1000, height: 1000 }, '4-5', 'story'));
+  await toQuest(page, 2);
+  // shortcut: pretend the first two regions are done (the save format makes this a plain set of node ids)
+  const clearIds = (ids) => page.evaluate((list) => {
+    const g = Store.profiles[0].games.rpg;
+    g.cleared = [...new Set((g.cleared || []).concat(list))];
+    Store.save();
+    document.dispatchEvent(new CustomEvent('mq:data-changed'));
+  }, ids);
+  const regionIds = (i, except) => page.evaluate(([k, x]) => WorldMap.REGIONS[k].nodes.map((n) => n.id).filter((id) => !(x || []).includes(id)), [i, except]);
+  await clearIds(await regionIds(0)); await clearIds(await regionIds(1));
+  await toMap(page);
+  const goRegion = async (name) => { for (let k = 0; k < 6 && (await page.textContent('#qMapName')) !== name; k++) await page.click('#qMapNext'); assert.strictEqual(await page.textContent('#qMapName'), name); };
+  await goRegion('Prime Peaks');
+  // arriving in a new region opens its story, once
+  await page.waitForSelector('#panel:not([hidden])');
+  assert.match(await page.textContent('#panelTitle'), /Prime Peaks/);
+  assert.match(await page.textContent('#panelText'), /PRIME PEAKS/);
+  for (let n = 0; n < 4 && (await panelUp(page)); n++) await page.click('#panelBtn');
+  await page.click('#qMapPrev'); await page.click('#qMapNext');
+  assert.strictEqual(await panelUp(page), 0, 'the intro is told once, not every time you look');
+  assert.strictEqual(await page.getAttribute('#qMapBoard', 'data-region'), 'peaks');
+  await page.screenshot({ path: path.join(OUT, 'map-peaks.png') });
+  assert.deepStrictEqual(await openIds(page), ['p1']);
+  // a story friend is freed on the map (and only there)
+  assert.ok(!(await saved(page)).creatures.includes('scout'));
+  await clearIds(['p1', 'p2', 'p2c', 'p3', 'p3p']);
+  await goTo(page, 'p4');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  p = await prepInfo(page);
+  assert.match(p.rescue, /Scout/);
+  r = await fight(page);
+  assert.match(r.text, /You freed/); assert.match(r.text, /Scout/);
+  await page.click('#panelBtn'); await page.waitForSelector('#qMap:not([hidden])');
+  assert.ok((await saved(page)).creatures.includes('scout'), 'Scout joined');
+  // the team picker shows the new friend, and counts the ones still waiting
+  await page.click('#qMapBack'); await page.click('#qMyTeam');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  assert.ok((await page.$$eval('#qRoster .creature .c-name', (e) => e.map((x) => x.textContent))).includes('Scout'));
+  assert.match(await page.textContent('#qRoster .roster-note'), /10 more friends are waiting on the world map/);
+  await page.click('#qFight'); await page.waitForSelector('#qHome:not([hidden])');
+  // a boss tells how the story goes on, and the next region opens with its own intro
+  await toMap(page); await goRegion('Prime Peaks');
+  await clearIds(await regionIds(2, ['p9']));
+  await goTo(page, 'p9');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  r = await fight(page);
+  assert.strictEqual(r.title, 'Region boss beaten! 🏆');
+  assert.match(r.text, /Fraction Forest/, 'the outro points to the next place');
+  await page.click('#panelBtn');
+  await page.waitForFunction(() => document.getElementById('qMapName').textContent === 'Fraction Forest');
+  await page.waitForSelector('#panel:not([hidden])'); // the forest's own story
+  assert.match(await page.textContent('#panelText'), /FRACTION FOREST/);
+  for (let n = 0; n < 4 && (await panelUp(page)); n++) await page.click('#panelBtn');
+  console.log('2c.1 story intros, a story friend freed, and a boss outro that opens the next region');
+  // the last boss frees the last friend and ends the story
+  await clearIds(await regionIds(3));
+  await clearIds(await regionIds(4, ['e9']));
+  await goRegion('Ember Mountain');
+  await goTo(page, 'e9');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  assert.match((await prepInfo(page)).rescue, /Bison/);
+  r = await fight(page);
+  assert.match(r.text, /You freed/); assert.match(r.text, /Bison/); assert.match(r.text, /Thank you, hero/);
+  await page.click('#panelBtn'); await page.waitForSelector('#qMap:not([hidden])');
+  assert.ok((await saved(page)).creatures.includes('bison'));
+  assert.match(await page.textContent('#qMapHint'), /Region complete/);
+  await page.screenshot({ path: path.join(OUT, 'map-ember.png') });
+  console.log('2c.2 the last boss freed Bison and finished the story');
+  await ctx.close();
+
   /* ===== 3. cute theme and phone ===== */
   ({ ctx, page } = await open(browser, { width: 390, height: 800 }, 'K-1', 'phone'));
   await toQuest(page, 1);

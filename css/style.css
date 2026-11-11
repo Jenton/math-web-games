@@ -616,6 +616,19 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 #qPuzzle .scale { margin-top: 24px; }
 @media (prefers-reduced-motion: reduce) { .mnode.puzzle { animation: none; } }
 
+.roster-note { grid-column: 1 / -1; text-align: center; margin: 4px 0 0; }
+
+/* ---- New regions: islands and classic-board tints ---- */
+.island.snow { background: #e9f4ff; box-shadow: 0 14px 0 #9bb7d4, inset 0 0 0 5px rgba(120, 170, 220, .35); }
+.island.forest { background: #2f9a55; box-shadow: 0 14px 0 #7a5230, inset 0 0 0 5px rgba(255, 255, 255, .2); }
+.island.lava { background: #6b3a30; box-shadow: 0 14px 0 #3a1f1a, inset 0 0 0 5px rgba(255, 140, 60, .45); }
+.mapboard[data-art="cute"][data-region="ember"] { background: linear-gradient(#ffb67a, #ff8f66); }
+.mapboard[data-art="cute"][data-region="peaks"] { background: linear-gradient(#cfe8ff, #a9d0f5); }
+.mapboard[data-art="classic"][data-region="peaks"]::before, .mapboard[data-art="classic"][data-region="forest"]::before, .mapboard[data-art="classic"][data-region="ember"]::before { content: ""; position: absolute; inset: 0; mix-blend-mode: color; pointer-events: none; }
+.mapboard[data-art="classic"][data-region="peaks"]::before { background: rgba(120, 175, 255, .8); }
+.mapboard[data-art="classic"][data-region="forest"]::before { background: rgba(40, 150, 70, .55); }
+.mapboard[data-art="classic"][data-region="ember"]::before { background: rgba(255, 90, 40, .75); }
+
 /* ---- Breadcrumbs: Players > Games > this game ---- */
 nav.crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; margin: 0 0 2px; padding-right: 52px; /* keeps clear of the sound button */ }
 .hud > nav.crumbs { flex: 1 1 100%; margin-bottom: 4px; }
