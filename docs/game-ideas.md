@@ -49,11 +49,11 @@ something is built. Details and design notes for each item are further down in t
 ### New games
 - [ ] Tower Defense (the son's favorite genre): plan phase with wave preview, then a run phase
 - [ ] Number Line Runner
-- [ ] Sort & Rule (Zoombinis-style logic)
+- [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
 - [ ] Build-a-World (Minecraft-style)
 - [ ] Escape Room Locks
 - [ ] Lemonade Stand / Shop
-- [ ] Cut & Share
+- [x] Cut & Share: built (`js/cutshare.js`, `js/share.js`)
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
 
 ### Portal and cross-cutting features

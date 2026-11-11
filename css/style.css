@@ -253,3 +253,65 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .mac-path li { position: relative; padding-left: 14px; }
 .mac-path li:not(.empty)::before { content: ""; position: absolute; left: 0; top: .45em; bottom: .45em; width: 5px; border-radius: 3px; background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .fx, .scale.level .blk.mystery { animation: none; } .op-card { transition: none; } }
+
+/* ---- Sort & Rule ---- */
+.sort-lanes { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: start; margin: 12px 0; }
+.lane-box { min-height: 96px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; padding: 8px; background: var(--panel); border: 2px dashed var(--line); border-radius: var(--radius); }
+.gate { font-size: 3rem; align-self: center; line-height: 1; }
+.num-tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; max-width: 640px; margin: 8px auto; }
+.num-card { aspect-ratio: 1 / .8; font-size: 1.5rem; }
+.num-card.used { opacity: .3; cursor: default; }
+.opt-card:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---- Cut & Share ---- */
+.pizzas { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; min-height: 100px; }
+.slice { fill: #ffcc66; stroke: #b5651d; stroke-width: 2; }
+.slice.empty { fill: #fff3dc; }
+.friends { text-align: center; font-size: 1.8rem; letter-spacing: 4px; margin: 4px 0 8px; }
+.share-set { max-width: 420px; margin: 0 auto; text-align: center; }
+
+/* ---- Creature Quest ---- */
+.q-level { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+.xpbar, .bar { flex: 1; min-width: 120px; height: 14px; background: var(--panel); border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+.xpbar > div, .bar .fill { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.bar .fill.hp { background: var(--bad); }
+.bar .fill.good { background: var(--good); }
+.q-team { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 12px; }
+.q-mate { position: relative; font-size: 2rem; line-height: 1.2; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 2px 10px; }
+.q-mate .star { position: absolute; top: -9px; right: -7px; font-size: 1rem; }
+
+.q-preview, .enemy { display: flex; align-items: center; gap: 14px; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px 16px; margin: 10px 0; }
+.e-emoji { font-size: clamp(3rem, 12vw, 4.5rem); line-height: 1; }
+.e-info { flex: 1; min-width: 0; }
+.e-name { font-weight: 800; font-size: 1.2rem; }
+.pv-weak { font-weight: 800; font-size: 1.1rem; }
+.weak { text-align: center; margin: 8px 0; }
+.weak-title { font-weight: 800; font-size: clamp(1.1rem, 4.2vw, 1.5rem); background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 8px 14px; display: inline-block; }
+
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.creature { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; padding: 12px 8px; font: inherit; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; }
+.creature.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent) inset; }
+.creature.match { background: #fff9d6; }
+.creature.locked { opacity: .55; cursor: default; border-style: dashed; }
+.c-emoji { font-size: 2.6rem; line-height: 1.1; }
+.c-name { font-weight: 800; }
+.c-sub { font-size: .8rem; color: var(--muted); }
+.creature:focus-visible, .qcard:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+
+.hand-label { text-align: center; margin: 12px 0 6px; }
+.hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; max-width: 680px; margin: 0 auto; }
+.qcard { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 92px; padding: 8px 4px; font: inherit; font-weight: 800; font-size: 1.7rem; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.qcard.long { font-size: 1.15rem; }
+.qcard:hover { border-color: var(--accent); }
+.qcard .pw { font-size: .85rem; letter-spacing: -1px; }
+.qcard .k { position: absolute; top: 3px; left: 8px; font-size: .7rem; font-weight: 600; color: var(--muted); }
+.log { min-height: 3em; text-align: center; font-weight: 600; margin: 12px 0 6px; }
+.team-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; background: var(--panel); border-radius: var(--radius); padding: 8px 14px; }
+.team-bar .q-team { margin: 0; }
+.team-bar .hp { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 2px; }
+
+.charge { background: #fff3cd; border: 3px solid #f0b429; border-radius: var(--radius); padding: 10px 14px; margin: 10px 0; text-align: center; color: #3a2e00; }
+.charge p { margin: 4px 0; }
+.charge-eq { font-size: 1.4rem; font-weight: 800; }
+
+@media (prefers-reduced-motion: reduce) { .xpbar > div, .bar .fill { transition: none; } }
