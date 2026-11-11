@@ -42,6 +42,7 @@ creatures already earned are kept.
 ```
 node tests/engine.test.js    # verifies every Munchers rule at every band/star level
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
+node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest: every ally effect, enemy retaliation, rescues, and that perfect play always wins while ignoring the math loses
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
@@ -51,7 +52,7 @@ node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 mi
 node tests/browser/quest.browser.js          # optional, needs Playwright: plays whole Creature Quest adventures through the real buttons
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens; they need a cloud backend that is not connected yet), `js/storage.js`, `js/game.js`
-(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
 
 See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and
 `docs/sync-design.md` (cross-device saving plan), `docs/game-ideas.md` (backlog of future games, a "not built yet" checklist, and how to plug a new one in).

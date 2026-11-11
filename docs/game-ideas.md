@@ -47,7 +47,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Sort & Rule (Zoombinis-style logic)
 - [ ] Build-a-World (Minecraft-style)
 - [ ] Escape Room Locks
-- [ ] Lemonade Stand / Shop
+- [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
 - [ ] Cut & Share
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
 
