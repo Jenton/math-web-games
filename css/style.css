@@ -431,3 +431,9 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @keyframes m-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 @keyframes m-bounce { 50% { transform: scale(1.02); } }
 @keyframes m-conf { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.6); opacity: 0; } }
+
+/* family password screens (sync) */
+.code.password { white-space: normal; overflow-wrap: anywhere; letter-spacing: 0; font-size: clamp(1rem, 4.5vw, 1.3rem); }
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+#ssPassword { width: 100%; }
+#ssHint.bad { color: #b3261e; }

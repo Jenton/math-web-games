@@ -9,14 +9,16 @@
 
   const MSG = {
     offline: "Can't reach the cloud right now. Check the internet connection and try again.",
-    notFound: 'No family matches that code. Check it for typos, and make sure sync was set up on your other device first.',
-    badCode: "That doesn't look like a family code. It has 16 letters and numbers, like K7PQ-3M9X-B2RD-VW4H.",
+    notFound: 'No family matches that password or code. Check it for typos, and make sure sync was set up on your other device first.',
+    badCode: "That doesn't look like a family code or password. A password has at least 10 characters. A family code has 16 letters and numbers, like K7PQ-3M9X-B2RD-VW4H.",
+    tooShort: 'A family password needs at least 10 characters.',
+    weakPassword: 'That password is too easy to guess (for example, repeated characters, a very common password, or digits only). Try a short sentence only your family would think of.',
     denied: 'The cloud service refused the request. Sync may not be set up on this website yet.',
     tooBig: 'The save is too large to upload.',
-    badKey: 'That code does not unlock the cloud copy.',
+    badKey: 'That password or code does not unlock the cloud copy.',
     corrupt: 'The cloud copy could not be read, so nothing was changed.',
     conflict: 'Other devices are changing the save at the same time. Please try again in a moment.',
-    exists: 'A family with that code already exists.',
+    exists: 'A family with that password already exists. If it is yours, close this and use "Add this device to my family" instead. If not, choose a different password.',
     error: 'Something went wrong. Please try again.',
   };
   const say = (e) => MSG[e && e.code] || MSG.error;
@@ -61,8 +63,13 @@
     $('ssIntro').hidden = true;
     $('ssCode').hidden = false;
     $('ssCodeText').textContent = syncer.getCode() || '';
+    const isPw = syncer.getKind() === 'password';
+    const noun = isPw ? 'password' : 'code';
+    $('ssCodeText').classList.toggle('password', isPw);
+    $('ssCodeText').setAttribute('aria-label', 'Your family ' + noun);
     const first = mode === 'new';
-    $('ssCodeTitle').textContent = first ? 'Your family code' : 'Your family code';
+    $('ssCodeTitle').textContent = 'Your family ' + noun;
+    $('ssWarn').textContent = 'Write this down or save it somewhere safe. You will need it to add other devices. You can also see it again on this device under "Show family password".' + (isPw ? ' Capital letters do not matter when you type it.' : '');
     $('ssSavedLabel').hidden = !first;
     $('ssSaved').checked = false;
     $('ssDone').textContent = first ? 'Done' : 'Close';
@@ -76,23 +83,43 @@
     $('ssIntro').hidden = false;
     $('ssCode').hidden = true;
     $('ssError').hidden = true;
+    $('ssPassword').value = '';
     $('ssCreate').disabled = false;
-    $('ssCreate').textContent = 'Create my family code';
+    $('ssCreatePw').textContent = 'Use this password';
+    updateHint();
     $('syncSetup').showModal();
   }
 
-  async function doSetup() {
+  // live feedback while typing a new family password; the button stays off until it passes the same check the core applies
+  function updateHint() {
+    const v = $('ssPassword').value;
+    const hint = $('ssHint');
+    const c = root.Sync.checkPassword(v);
+    $('ssCreatePw').disabled = !c.ok;
+    hint.classList.toggle('bad', !!v && !c.ok);
+    if (!v) hint.textContent = 'At least ' + root.Sync.MIN_PASSWORD + ' characters. Capital letters do not matter.';
+    else if (c.problem === 'short') hint.textContent = (root.Sync.MIN_PASSWORD - c.length) + ' more character' + (root.Sync.MIN_PASSWORD - c.length === 1 ? '' : 's') + ' needed.';
+    else if (!c.ok) hint.textContent = MSG.weakPassword;
+    else hint.textContent = { okay: 'Okay. Longer is safer.', good: 'Good.', great: 'Great.' }[c.strength];
+  }
+
+  // choice: { password } for a password the owner typed, or nothing for a random family code
+  async function doSetup(choice) {
+    const btn = choice ? $('ssCreatePw') : $('ssCreate');
+    $('ssCreatePw').disabled = true;
     $('ssCreate').disabled = true;
-    $('ssCreate').textContent = 'Creating…';
+    btn.textContent = 'Creating…';
     $('ssError').hidden = true;
     try {
-      await syncer.setup();
+      await syncer.setup(choice);
       showCode('new');
     } catch (e) {
       $('ssError').textContent = say(e);
       $('ssError').hidden = false;
+      $('ssCreate').textContent = 'Make a random family code for me instead';
       $('ssCreate').disabled = false;
-      $('ssCreate').textContent = 'Try again';
+      $('ssCreatePw').textContent = 'Try again';
+      updateHint();
     }
     render();
   }
@@ -130,11 +157,12 @@
   }
 
   function downloadCode() {
-    const text = 'Math Quest family code\n\n' + (syncer.getCode() || '') + '\n\nType this code on each device to share the same players and progress (Home screen > Sync between devices > Add this device).\nAnyone with this code can see and change your kids\' progress. Keep it private.\n';
+    const noun = syncer.getKind() === 'password' ? 'password' : 'code';
+    const text = 'Math Quest family ' + noun + '\n\n' + (syncer.getCode() || '') + '\n\nType this ' + noun + ' on each device to share the same players and progress (Home screen > Sync between devices > Add this device).\nAnyone with this ' + noun + ' can see and change your kids\' progress. Keep it private.\n';
     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'math-quest-family-code.txt';
+    a.download = 'math-quest-family-' + noun + '.txt';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -157,7 +185,10 @@
     root.Store.onSave(() => syncer.notifyChanged());
     syncer.onStatus(render);
     $('syncSetupBtn').addEventListener('click', openSetup);
-    $('ssCreate').addEventListener('click', doSetup);
+    $('ssCreate').addEventListener('click', () => doSetup());
+    $('ssCreatePw').addEventListener('click', () => doSetup({ password: $('ssPassword').value }));
+    $('ssPassword').addEventListener('input', updateHint);
+    $('ssPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (!$('ssCreatePw').disabled) doSetup({ password: $('ssPassword').value }); } });
     $('ssCancel').addEventListener('click', () => $('syncSetup').close());
     $('ssSaved').addEventListener('change', () => ($('ssDone').disabled = !$('ssSaved').checked));
     $('ssDone').addEventListener('click', () => $('syncSetup').close());
@@ -175,7 +206,7 @@
     $('syncNowBtn').addEventListener('click', () => syncer.syncNow());
     $('syncShowBtn').addEventListener('click', () => showCode('view'));
     $('syncStopBtn').addEventListener('click', () => {
-      if (confirm('Stop syncing on this device? Players and progress stay on this device and in the cloud. You can add this device again later with the family code.')) syncer.disconnect();
+      if (confirm('Stop syncing on this device? Players and progress stay on this device and in the cloud. You can add this device again later with the family password or code.')) syncer.disconnect();
       render();
     });
     syncer.attach(root);

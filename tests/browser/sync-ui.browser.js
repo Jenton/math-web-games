@@ -202,6 +202,39 @@ const stored = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('ma
   await A.page.waitForFunction(() => document.getElementById('syncPill') && !document.getElementById('syncPill').hidden && /Synced/.test(document.getElementById('syncPill').textContent), null, { timeout: 8000 });
   console.log('7. after reloading, device A resumed syncing on its own');
 
+  /* ---- 8. a family can pick its own password; a second device joins with sloppy typing ---- */
+  const C = await device(browser, 'phone');
+  await C.page.click('.player-card.add'); await C.page.fill('#npName', 'Bo'); await C.page.click('#npForm button[type=submit]');
+  await C.page.click('#menuBack'); await openBox(C.page);
+  await C.page.click('#syncSetupBtn');
+  assert.ok(await C.page.isDisabled('#ssCreatePw'), 'no password yet: the button is off');
+  await C.page.fill('#ssPassword', 'short');
+  assert.ok(await C.page.isDisabled('#ssCreatePw'), 'too short is refused');
+  await C.page.fill('#ssPassword', 'password123');
+  assert.ok(await C.page.isDisabled('#ssCreatePw'), 'a common password is refused');
+  assert.ok(/common|easy|guess/i.test(await C.page.textContent('#ssHint')), 'the hint says why');
+  await C.page.screenshot({ path: path.join(OUT, 'c1-weak.png') });
+  const pw = 'Purple Giraffes Dance 42';
+  await C.page.fill('#ssPassword', pw);
+  assert.ok(await C.page.isEnabled('#ssCreatePw'), 'a good password turns the button on');
+  await C.page.click('#ssCreatePw');
+  await C.page.waitForSelector('#ssCode:not([hidden])');
+  assert.strictEqual((await C.page.textContent('#ssCodeText')).trim(), pw.toLowerCase(), 'the family password is shown back (normalised)');
+  assert.match(await C.page.textContent('#syncSetup'), /family password/i);
+  await C.page.check('#ssSaved'); await C.page.click('#ssDone');
+  assert.ok(await C.page.isVisible('#syncOn'));
+  assert.strictEqual(cloud.docs.size, 2, 'a second family exists');
+  const D = await device(browser, 'tablet');
+  await openBox(D.page); await D.page.click('#syncJoinBtn');
+  await D.page.fill('#sjCode', '  PURPLE   giraffes dance 42 ');
+  await D.page.click('#sjGo');
+  await D.page.waitForSelector('#syncJoin', { state: 'hidden' });
+  await D.page.waitForSelector('.player-card .nm');
+  assert.match(await D.page.textContent('.players'), /Bo/, 'the password family arrives on another device');
+  assert.ok(!(await D.page.textContent('.players')).includes('Ada'), 'and it is a different family from the code one');
+  await C.ctx.close(); await D.ctx.close();
+  console.log('8. own family password: weak ones refused with a reason; a good one works and a second device joins with different case and spacing');
+
   await A.ctx.close(); await B.ctx.close();
   console.log('Screenshots:', OUT);
   console.log('ERRORS:', errors.length ? errors : 'none');

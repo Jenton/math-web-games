@@ -3,10 +3,12 @@
  * firestore.rules. Pure logic apart from the WebCrypto it calls, so it runs and is tested in Node.
  *
  * Security model, in short:
- *  - The FAMILY CODE (16 random characters, 80 bits) is stretched with PBKDF2, then split with HKDF into two independent values:
+ *  - The family SECRET is either a generated FAMILY CODE (16 random characters, 80 bits) or a FAMILY PASSWORD the owner chose (at least
+ *    10 characters, checked for the obvious weak ones). It is stretched with PBKDF2, then split with HKDF into two independent values:
  *    a LOOKUP ID (the name of the cloud document) and an AES-GCM KEY. The server only ever sees the id and ciphertext.
  *  - Every save is encrypted on the device before upload. The ciphertext is bound to its document id.
- *  - Anyone who knows the code can read and write that family's save, so treat it like a password.
+ *  - Anyone who knows the code or password can read and write that family's save, so treat it like a password. A chosen password is
+ *    weaker than a random code in principle, which is why it needs a minimum length and a weak-password check when it is created.
  */
 (function (root) {
   'use strict';
@@ -63,15 +65,63 @@
     return /^[0-9A-HJKMNP-TV-Z]{16}$/.test(s) ? s : null;
   }
 
+  /* ---------- family password (chosen by the owner instead of a generated code) ---------- */
+
+  const MIN_PASSWORD = 10;
+  const COMMON = new Set(('password passphrase passw0rd letmein welcome iloveyou ilovemyfamily qwerty qwertyuiop asdfghjkl zxcvbnm monkey dragon football baseball basketball soccer hockey ' +
+    'princess superman batman spiderman minecraft roblox fortnite pokemon starwars sunshine shadow mustang master login admin administrator secret changeme default ' +
+    'whatever freedom computer internet trustno abc abcdef abcdefgh hello helloworld test testing family myfamily ourfamily thefamily familyfamily familypassword ' +
+    'mathquest mathgames mathfamily mathquestfamily mathrocks mathisfun kidsmath school summer winter ').split(' ').filter(Boolean));
+  const KEYBOARD = 'qwertyuiopasdfghjklzxcvbnm'; // letters in keyboard order; a long stretch of it (either direction) is a keyboard walk
+
+  /** What someone typed as a password -> the form that is hashed: Unicode-normalized, trimmed, one space between words, lower case. */
+  function normalizePassword(input) {
+    return String(input == null ? '' : input).normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  /**
+   * Is this an acceptable NEW family password? Returns { ok, problem, strength, length }.
+   * problem: 'short' | 'repetitive' | 'common' | null. strength: 'weak' | 'okay' | 'good' | 'great' (a hint for the screen, not a guarantee).
+   * Only applied when creating a family. Joining accepts whatever unlocks an existing family.
+   */
+  function checkPassword(input) {
+    const pw = normalizePassword(input);
+    const length = [...pw].length;
+    const fail = (problem) => ({ ok: false, problem, strength: 'weak', length });
+    if (length < MIN_PASSWORD) return fail('short');
+    const chars = pw.replace(/\s/g, '');
+    if (new Set(chars).size <= 3 || /^(.+?)\1+$/.test(chars)) return fail('repetitive'); // aaaaaaaaaa, abababab, passwordpassword
+    const step = (i) => chars.charCodeAt(i) - chars.charCodeAt(i - 1);
+    const run = [...chars].every((c, i) => i === 0 || step(i) === 1) || [...chars].every((c, i) => i === 0 || step(i) === -1);
+    if (run || KEYBOARD.includes(chars) || [...KEYBOARD].reverse().join('').includes(chars)) return fail('common'); // abcdefghij, asdfghjklzxcv, poiuytrewq
+    // a common word with digits or symbols around it or swapped in (password123, P@ssw0rd!!, mathquest2026) is still a common word
+    const letters = chars.replace(/^[^a-z]+|[^a-z]+$/g, '').replace(/[@4]/g, 'a').replace(/3/g, 'e').replace(/[1!|]/g, 'i').replace(/0/g, 'o').replace(/[$5]/g, 's').replace(/7/g, 't').replace(/[^a-z]/g, '');
+    if (COMMON.has(letters) || /^\d+$/.test(chars)) return fail('common'); // password123, P@ssw0rd!, mathquest2026, all digits
+    const words = pw.split(' ').length;
+    const strength = length >= 20 ? 'great' : (length >= 14 || words >= 3 ? 'good' : 'okay');
+    return { ok: true, problem: null, strength, length };
+  }
+
+  /** What someone typed -> { kind: 'code' | 'password', secret } or null if it could be neither. A code-shaped entry is always read as a code. */
+  function parseSecret(input) {
+    const code = normalizeCode(input);
+    if (code) return { kind: 'code', secret: code };
+    const pw = normalizePassword(input);
+    return [...pw].length >= MIN_PASSWORD ? { kind: 'password', secret: pw } : null;
+  }
+
   /* ---------- keys and encryption ---------- */
 
-  /** Derive { lookupId, key, keyRaw } from a family code. Slow on purpose (PBKDF2). */
-  async function deriveKeys(code, opts) {
-    const norm = normalizeCode(code);
-    if (!norm) throw new SyncError('badCode', 'That is not a valid family code.');
-    const base = await subtle.importKey('raw', enc.encode(norm), 'PBKDF2', false, ['deriveBits']);
+  /**
+   * Derive { lookupId, key, keyRaw, kind, secret } from a family code or password. Slow on purpose (PBKDF2).
+   * Generated codes use the original salt, so families created before passwords existed are unaffected. Passwords use their own salt.
+   */
+  async function deriveKeys(input, opts) {
+    const parsed = parseSecret(input);
+    if (!parsed) throw new SyncError('badCode', 'That is not a valid family code or password.');
+    const base = await subtle.importKey('raw', enc.encode(parsed.secret), 'PBKDF2', false, ['deriveBits']);
     const master = await subtle.deriveBits(
-      { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('mathquest-family-v1'), iterations: (opts && opts.iterations) || ITERATIONS },
+      { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(parsed.kind === 'code' ? 'mathquest-family-v1' : 'mathquest-family-password-v1'), iterations: (opts && opts.iterations) || ITERATIONS },
       base,
       256
     );
@@ -80,7 +130,7 @@
     const idBits = await part('mathquest lookup id');
     const keyBits = await part('mathquest encryption key');
     const key = await subtle.importKey('raw', keyBits, 'AES-GCM', true, ['encrypt', 'decrypt']);
-    return { lookupId: hex(idBits), key, keyRaw: b64(keyBits) };
+    return { lookupId: hex(idBits), key, keyRaw: b64(keyBits), kind: parsed.kind, secret: parsed.secret };
   }
 
   async function keysFromCreds(c) {
@@ -161,13 +211,15 @@
     syncing: 'Syncing…',
     synced: 'Synced.',
     offline: 'Offline. Will sync when the connection is back.',
-    badKey: 'The family code does not unlock the cloud copy.',
+    badKey: 'The family code or password does not unlock the cloud copy.',
+    tooShort: 'A family password needs at least ' + MIN_PASSWORD + ' characters.',
+    weakPassword: 'That password is too easy to guess.',
     corrupt: 'The cloud copy could not be read. Nothing was overwritten.',
     tooBig: 'The save is too large to sync.',
     conflict: 'Other devices are changing the save. Will try again.',
     denied: 'The cloud service refused the request.',
-    notFound: 'No family matches that code.',
-    exists: 'A family with that code already exists.',
+    notFound: 'No family matches that code or password.',
+    exists: 'A family with that code or password already exists.',
     error: 'Sync hit a problem. Will try again.',
   };
 
@@ -189,6 +241,7 @@
     let applying = false;
     let failures = 0;
     let savedCode = null;
+    let savedKind = null;
 
     const deps = {
       backend: opts.backend,
@@ -209,10 +262,11 @@
     }
 
     const formatCode = (c) => c.match(/.{4}/g).join('-');
-    // The code is kept on this device (like the key it derives, it grants access to the family's save) so a grown-up can show it again.
-    function saveCreds(k, code) {
-      savedCode = normalizeCode(code);
-      storage.setItem(CREDS_KEY, JSON.stringify({ lookupId: k.lookupId, keyRaw: k.keyRaw, code: savedCode, at: now() }));
+    // The code or password is kept on this device (like the key it derives, it grants access to the family's save) so a grown-up can show it again.
+    function saveCreds(k) {
+      savedCode = k.secret;
+      savedKind = k.kind;
+      storage.setItem(CREDS_KEY, JSON.stringify({ lookupId: k.lookupId, keyRaw: k.keyRaw, code: savedCode, kind: savedKind, at: now() }));
     }
 
     function stateFor(e) {
@@ -226,7 +280,8 @@
       try {
         const c = JSON.parse(raw);
         keys = await keysFromCreds(c);
-        savedCode = normalizeCode(c.code);
+        savedKind = c.kind === 'password' ? 'password' : 'code'; // older saves have no kind: they are generated codes
+        savedCode = savedKind === 'password' ? normalizePassword(c.code) : normalizeCode(c.code);
         setStatus('idle');
       } catch (e) {
         storage.removeItem(CREDS_KEY);
@@ -247,17 +302,28 @@
       }
     }
 
-    /** First device: make a new family code and upload this device's save. Returns { code } only if the upload worked. */
-    async function setup() {
-      const code = generateFamilyCode();
-      const k = await deriveKeys(code, { iterations: opts.iterations });
+    /**
+     * First device: make a new family and upload this device's save. With { password } the owner's chosen password is used (it must pass
+     * checkPassword), otherwise a random family code is generated. Returns { code, kind } only if the upload worked.
+     */
+    async function setup(choice) {
+      let input;
+      if (choice && choice.password !== undefined) {
+        const c = checkPassword(choice.password);
+        if (c.problem === 'short') throw new SyncError('tooShort', MESSAGES.tooShort);
+        if (!c.ok) throw new SyncError('weakPassword', MESSAGES.weakPassword);
+        input = choice.password;
+      } else {
+        input = generateFamilyCode();
+      }
+      const k = await deriveKeys(input, { iterations: opts.iterations });
       try {
         const r = await guarded(() => syncOnce(k, deps, 'create'));
         keys = k;
-        saveCreds(k, code);
+        saveCreds(k);
         failures = 0;
         setStatus('synced', { lastSynced: now(), rev: r.rev });
-        return { code };
+        return { code: k.kind === 'code' ? formatCode(k.secret) : k.secret, kind: k.kind };
       } catch (e) {
         setStatus(keys ? 'idle' : 'off');
         throw e;
@@ -270,7 +336,7 @@
       try {
         const r = await guarded(() => syncOnce(k, deps, 'join'));
         keys = k;
-        saveCreds(k, input);
+        saveCreds(k);
         failures = 0;
         setStatus('synced', { lastSynced: now(), rev: r.rev });
         return r;
@@ -330,6 +396,7 @@
       storage.removeItem(CREDS_KEY);
       keys = null;
       savedCode = null;
+      savedKind = null;
       if (timer) timers.clearTimeout(timer);
       timer = null;
       setStatus('off', { lastSynced: null, rev: null });
@@ -340,14 +407,16 @@
       onStatus: (f) => listeners.push(f),
       get status() { return status; },
       get enabled() { return !!keys; },
-      /** The family code saved on this device, formatted like K7PQ-3M9X-B2RD-VW4H (null if sync is off). */
-      getCode: () => (savedCode ? formatCode(savedCode) : null),
+      /** The family code (formatted like K7PQ-3M9X-B2RD-VW4H) or password saved on this device (null if sync is off). */
+      getCode: () => (savedCode ? (savedKind === 'password' ? savedCode : formatCode(savedCode)) : null),
+      /** 'code' or 'password' (null if sync is off). */
+      getKind: () => (savedCode ? savedKind : null),
     };
   }
 
   const api = {
-    ITERATIONS, ENVELOPE_V, MAX_CT, SyncError, MESSAGES,
-    generateFamilyCode, normalizeCode, deriveKeys, keysFromCreds, encryptData, decryptEnvelope, syncOnce, createSyncer,
+    ITERATIONS, ENVELOPE_V, MAX_CT, MIN_PASSWORD, SyncError, MESSAGES,
+    generateFamilyCode, normalizeCode, normalizePassword, checkPassword, parseSecret, deriveKeys, keysFromCreds, encryptData, decryptEnvelope, syncOnce, createSyncer,
   };
   if (isNode) module.exports = api;
   else root.Sync = api;
