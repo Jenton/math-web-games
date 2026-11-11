@@ -466,6 +466,7 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .td-card .c { font-weight: 800; }
 .td-card.on { border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--accent); }
 .td-card.poor { opacity: .55; }
+.td-card.used { opacity: .4; filter: grayscale(.6); }
 .td-card:disabled { cursor: default; }
 .help.center { text-align: center; }
 @media (prefers-reduced-motion: reduce) { .td-lane.hit { animation: none; } .td-enemy { transition: none; } }

@@ -63,6 +63,7 @@ for (const band of BANDS) {
     }
   }
 }
+assert(TD.isPlaced([null, 2, null, null], 2) && !TD.isPlaced([null, 2, null, null], 1), 'isPlaced finds a tower already on the board');
 const rate = randomWins / randomRuns;
 assert(rate < 0.2, 'random placement should rarely get 3 stars, got ' + rate);
 console.log('OK: ' + waves + ' waves verified (solvable within budget, cannot buy the whole shop, solution wins 3 stars, no towers loses); random affordable placement gets 3 stars ' + Math.round(rate * 100) + '% of the time.');

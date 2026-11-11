@@ -215,7 +215,10 @@
   /** Gold left after placing. */
   const spent = (wave, placement) => placement.reduce((s, ri) => s + (ri == null ? 0 : wave.shop[ri].cost), 0);
 
-  const api = { makeWave, simulate, explain, spent, bestCover, fmt, SLOTS, RANGE, MAX_LEAKS, BANDS, MAPS, buildMap };
+  /** A second copy of a tower adds nothing (it catches the same numbers), so each shop tower may be placed once. */
+  const isPlaced = (placement, k) => placement.includes(k);
+
+  const api = { isPlaced, makeWave, simulate, explain, spent, bestCover, fmt, SLOTS, RANGE, MAX_LEAKS, BANDS, MAPS, buildMap };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TDL = api;
 })(typeof window !== 'undefined' ? window : globalThis);

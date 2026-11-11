@@ -46,6 +46,7 @@ snd "$I/maximize_004.ogg"      sfx/card
 snd "$R2/lose2.ogg"            sfx/lose
 snd "$R2/hurt2.ogg"            sfx/hurt
 snd "$RPG/knifeSlice.ogg"      sfx/hit
+snd "$I/drop_002.ogg"          sfx/pop    # soft bubble pop for Number Defense kills (the coin ding was too sharp to hear on every hit)
 snd "$RPG/bookFlip1.ogg"       sfx/flip
 for i in 00 08; do snd "$J/jingles-pizzicato_$i.ogg" sfx/win$i; done   # only rising jingles: 03 and 07 ended lower than they began
 snd "$V/correct.ogg"           voice/correct
