@@ -28,4 +28,5 @@ node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/storage.js`, `js/game.js`
 (Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
 
-See `docs/design-plan.md` and `docs/design-review.md` for the plan and critique.
+See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and
+`docs/game-ideas.md` (backlog of future games, with how to plug a new one in).
