@@ -6,6 +6,7 @@
   <title>Math Quest</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/motion.css">
+  <link rel="stylesheet" href="css/escape.css">
 </head>
 <body data-theme="block">
   <button id="soundBtn" class="sound-btn" type="button" aria-label="Sound is on. Tap to mute" aria-pressed="true">&#128266;</button>
@@ -60,6 +61,12 @@
           <span class="g-ico"><img class="g-img" src="assets/kenney/animals/frog.png" alt=""></span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="escape" type="button">
+          <span class="g-ico"><img class="g-img pix" src="assets/kenney/escape/t89.png" alt=""></span>
+          <span class="g-name">Escape Room</span>
+          <span class="g-desc">Locked in a dungeon! Crack the pattern, code, scale and machine locks to get out.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="defense" type="button">
@@ -177,6 +184,18 @@
         <button id="balCheck" class="btn big" type="button">Lock it in</button>
         <p class="note">Work it out, set the number, then lock it in. You only get 3 tries. Arrow keys work too; Enter locks in.</p>
       </div>
+    </section>
+
+    <!-- GAME: Escape Room Locks -->
+    <section id="escape" class="screen" hidden>
+      <div class="hud">
+        <button id="escBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="escNo" class="pill"></span>
+        <span id="escLocks" class="pill" aria-label="Locks"></span>
+      </div>
+      <div id="escScene" class="esc-scene"></div>
+      <p id="escStory" class="esc-story"></p>
+      <div id="escPlaque" class="esc-plaque"></div>
     </section>
 
     <!-- GAME: Number Defense -->
@@ -502,6 +521,8 @@
   <script src="js/balance.js"></script>
   <script src="js/lemonade.js"></script>
   <script src="js/machine.js"></script>
+  <script src="js/elogic.js"></script>
+  <script src="js/escape.js"></script>
   <script src="js/tdlogic.js"></script>
   <script src="js/td.js"></script>
   <script src="js/art.js"></script>

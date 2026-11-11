@@ -11,6 +11,7 @@ Last updated: 11 Nov 2026 (evening).
 | Firebase adapter (sets `window.MathQuestBackend`) and Hosting deploy script | `claude/firebase-adapter` | **Merged (PR #12).** Firebase project `math-quest-family` is live | `js/firebase-backend.js`, `tests/firebase-backend*.js`, `tests/helpers/fake-firebase.js`, `tools/deploy-hosting.sh`, two script tags in `index.html` | nothing (PR #11 is merged). Publish with `tools/deploy-hosting.sh`, never by deploying from the repo folder |
 | Creature Quest sprite battles, classic/cute art themes, world map | `quest-art-stage3` (Stage 3) | **Stages 1 and 2 merged (#14, #18).** Stage 3 (world map launching `RPG.makeEncounter` fights) is in its own PR. After it merges, `js/quest.js` is free for anyone | `js/art.js`, `js/worldmap.js`, `tools/make_quest_assets.py`, `assets/quest/`, **`js/quest.js` until the port is merged (nobody else edits it)** | Stage 3 waits for PR #13 (`RPG.makeEncounter`) |
 | Sort & Rule, Cut & Share, Balance rework | `feature/sort-share-balance-rework` (original, untouched) and `rework-on-main` (same work merged with current `main`, PR open) | Merged with `main` and tested; waiting for review | `js/sort*.js`, `js/cutshare.js`, `js/share.js`, `js/balance.js` | review and "ship it" |
+| Escape Room (new game) | `escape-room` | PR open for review | `js/elogic.js`, `js/escape.js`, `css/escape.css`, `tests/escape.test.js`, `assets/kenney/escape/` | nothing |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
 | Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
 | Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is merged. Lemonade Stand is merged. Number Defense is built and awaiting "ship it". Then only Balance (after the rework) and Creature Quest (art stream) remain. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js`, `js/lemonade.js`, `js/td.js` (motion hooks only) | Balance rework merged (for Balance only) |
@@ -24,6 +25,8 @@ Next:
 2. **Quest art port** (the `creature-quest-art` stream): staged PRs, each green before the next.
 3. **Sort & Rule / Cut & Share / Balance rework**: merge `main` first and resolve the registry files.
 4. **Animation pass for Balance** only after the Balance rework is merged.
+
+New games and big visual changes also follow `docs/new-game-checklist.md` (scene brief first, look at every state at phone width before the PR).
 
 ## Rules that keep the conflicts small
 

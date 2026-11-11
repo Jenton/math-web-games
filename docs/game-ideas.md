@@ -46,7 +46,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Number Line Runner
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
 - [ ] Build-a-World (Minecraft-style)
-- [ ] Escape Room Locks
+- [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
 - [x] Cut & Share: built (`js/cutshare.js`, `js/share.js`)
 - [ ] Dungeon crawler, Potion lab, Map explorer, Co-op raid (see "Other mechanics worth keeping on the list")
@@ -98,6 +98,8 @@ State of the codebase today (check the files; this may drift):
   sample puzzle for the setup screen, and its module. `SCREEN_OF` maps a game key to its screen id. Every
   game goes through one shared **setup screen** (pick grade and challenge in plain language, then Play).
 - **`index.html`:** a game card in the menu (`data-game="<key>"`) plus one `<section id="<screen>">` per game.
+
+**Before you write any UI, read `docs/new-game-checklist.md`** (scene brief, polish bar, review steps).
 
 Steps to add a game (NOTE: follow "How the code works now" in `docs/sync-design.md`: save under `profile.games.<gameId>` via the `Store` helpers, never write a counter backwards, register a merge rule in `js/save.js`, and add tests to `tests/save.test.js`): (1) DOM-free generators in their own module plus a Node test (verify solvability and
 that wrong answers are really wrong); (2) add skill ids to `SKILLS` if they should appear in the grown-ups

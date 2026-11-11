@@ -70,6 +70,7 @@
   registerGame('td', { waves: 'counter', perfect: 'counter' });
   registerGame('sort', { levels: 'counter' });
   registerGame('share', { levels: 'counter' });
+  registerGame('escape', { rooms: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' }, // cleared / gold: world-map node ids (grow-only sets)
