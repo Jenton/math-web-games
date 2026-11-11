@@ -92,10 +92,30 @@
       b.setAttribute('aria-label', 'Tick ' + (k + 1) + (major ? ': ' + RUN.labelOf(run.line, k) : ''));
       b.appendChild(el('span', 'mark'));
       if (major) b.appendChild(el('span', 'lbl', RUN.labelOf(run.line, k)));
-      b.addEventListener('click', () => { if (!S.busy) aim(k); });
+      b.addEventListener('click', (e) => { if (e.detail === 0 && !S.busy) aim(k); }); // keyboard activation; pointer taps are handled by the scene so a thumb can land anywhere near a tick
       sc.appendChild(b);
       S.tickEls.push(b);
     }
+    // press anywhere along the line and slide: the aim snaps to the nearest tick, so even a 21-tick line has thumb-sized targets
+    const nearest = (ev) => {
+      const r = sc.getBoundingClientRect();
+      const pct = ((ev.clientX - r.left) / r.width) * 100;
+      return Math.max(0, Math.min(run.ticks - 1, Math.round(((pct - X0) / (X1 - X0)) * (run.ticks - 1))));
+    };
+    let dragging = false;
+    sc.addEventListener('pointerdown', (ev) => {
+      if (S.busy) return;
+      const r = sc.getBoundingClientRect();
+      if ((ev.clientY - r.top) / r.height < 0.3) return; // the sky is not part of the line
+      dragging = true;
+      try { sc.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+      const k = nearest(ev);
+      if (k !== S.aimAt) aim(k);
+    });
+    sc.addEventListener('pointermove', (ev) => { if (dragging && !S.busy) { const k = nearest(ev); if (k !== S.aimAt) aim(k); } });
+    const stop = () => { dragging = false; };
+    sc.addEventListener('pointerup', stop);
+    sc.addEventListener('pointercancel', stop);
     // arc preview, ghost, stones, hero
     S.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     S.svg.setAttribute('class', 'run-arc');

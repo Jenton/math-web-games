@@ -26,14 +26,18 @@ const { serve } = require('../helpers/static-server.js');
   await page.waitForSelector('.run-tick');
   const run = await page.evaluate(() => window.__run);
   assert.strictEqual(run.checkpoints.length, 4);
-  const ticks = await page.$$('.run-tick');
-  assert.strictEqual(ticks.length, run.ticks);
+  assert.strictEqual((await page.$$('.run-tick')).length, run.ticks);
+  // aim like a thumb would: press on the line at the tick's x position (the whole line is the tap target and snaps to the nearest tick)
+  const tapTick = async (k) => {
+    const box = await page.locator('#runScene').boundingBox();
+    await page.mouse.click(box.x + (box.width * (7 + (k / (run.ticks - 1)) * 86)) / 100, box.y + box.height * 0.72);
+  };
   // the goal spot is not drawn on the line: no flag exists before a landing
   assert.strictEqual(await page.$$eval('.run-flag', (e) => e.length), 0, 'no flag before landing');
   // a wrong landing: explained in ticks, still on checkpoint 1
   const first = run.checkpoints[0];
   const wrong = first.target === 0 ? 1 : first.target - 1;
-  await ticks[wrong].click();
+  await tapTick(wrong);
   await page.click('#runJump');
   await page.waitForFunction(() => /You landed on/.test(document.getElementById('runMsg').textContent), null, { timeout: 8000 });
   const miss = await page.textContent('#runMsg');
@@ -41,8 +45,7 @@ const { serve } = require('../helpers/static-server.js');
   for (let i = 0; i < 4; i++) {
     const cp = run.checkpoints[i];
     await page.waitForFunction((n) => new RegExp('Flag ' + (n + 1) + ' of 4').test(document.getElementById('runSign').textContent) && !document.getElementById('runLeft').disabled, i, { timeout: 8000 });
-    const t = await page.$$('.run-tick');
-    await t[cp.target].click();
+    await tapTick(cp.target);
     await page.click('#runJump');
     await page.waitForFunction((n) => document.querySelectorAll('.run-flag').length >= n, i + 1, { timeout: 8000 });
   }
