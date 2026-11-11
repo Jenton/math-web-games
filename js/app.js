@@ -39,6 +39,13 @@
       stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
       sample: (s) => MGS.makeStock(s.band, s.stars).text,
     },
+    escape: {
+      name: 'Escape Room', ico: 'escape/t89', extras: false, mod: () => Escape,
+      how: ['You are locked in a dungeon room with <b>three chests</b>, each with a lock. Tap a chest and your hero walks over.', 'Crack the <b>pattern, code, scale or machine</b> lock. A wrong try shows you the arithmetic; hints are always there.', 'Open all three and the <b>exit door</b> opens. Fewer wrong tries and hints means more stars.'],
+      band: { 'K-1': 'Counting patterns by 1s, 2s, 5s and 10s, and codes made of small sums.', '2-3': 'Skip-counting and doubling patterns, code clues with times and take-away, and bigger scales.', '4-5': 'Growing and times-3 patterns, code clues where order of operations matters, longer machines.', '6': 'Squares, Fibonacci-style and negative patterns, clues with powers and negatives, scales with ? on both sides.' },
+      stars: [['★ Easier', 'Shorter patterns, 3-digit codes, simple locks.'], ['★★ Medium', 'Trickier patterns and clues.'], ['★★★ Harder', 'The hardest patterns, 4-digit codes.']],
+      sample: (s) => { const q = ESC.makeSequence(s.band, s.stars); return 'Pattern lock: ' + q.terms.map(ESC.fmt).join(', ') + ', ?'; },
+    },
     defense: {
       name: 'Number Defense', ico: 'animals/owl', extras: false, mod: () => Defense,
       how: ['Numbers march toward your castle. The <b>incoming wave</b> is shown before it starts.', 'Every tower has a <b>rule</b>, like "multiples of 3". It only stops numbers that fit. Gold is limited, so pick towers that cover the whole wave.', '<b>Send the wave</b> and watch. Numbers that slip through are explained.'],
@@ -59,7 +66,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'td', 'machine', 'lemonade', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'td', 'machine', 'lemonade', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -189,11 +196,11 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || ESC.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('rpg', 'wins') + ' Quest battles won';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('rpg', 'wins') + ' Quest battles won';
     show('menu');
   }
 
@@ -231,7 +238,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', defense: 'td', machine: 'machine', lemonade: 'lemonade', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', defense: 'td', machine: 'machine', lemonade: 'lemonade', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);

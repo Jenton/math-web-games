@@ -68,6 +68,7 @@
   registerGame('machine', { levels: 'counter' });
   registerGame('lemonade', { days: 'counter', perfect: 'counter' });
   registerGame('td', { waves: 'counter', perfect: 'counter' });
+  registerGame('escape', { rooms: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' }, // cleared / gold: world-map node ids (grow-only sets)
