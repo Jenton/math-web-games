@@ -92,6 +92,13 @@ devices merged by `Store.mergeIn` add up correctly. **Stages 2 to 4 (crypto, Fir
   are summed once per device (cosmetic inflation). We chose that over the alternative, which could silently drop real progress.
 - `Store.importJSON` (restore) REPLACES everything on this device. `Store.mergeIn` combines and is what sync will use.
 
+### Firebase files in the repo (written, not yet deployed or run)
+`firebase.json` (Hosting config that excludes docs, tests, markdown and the Kenney bundle; Firestore rules pointer), `firestore.rules`
+(one document per family at `families/{64 hex chars}`; anonymous sign-in required; get/create/update only; no list, no delete; the
+document shape is fixed to `v`, `rev`, `iv`, `ct`; each update must bump `rev` by exactly 1) and `firestore.indexes.json`.
+**The rules were not executed by their author**, so `docs/firebase-setup-prompt.md` includes tests that must pass before relying on them.
+`docs/firebase-setup-prompt.md` is the prompt for a Claude Code session on the owner's Mac that drives the browser for the console steps.
+
 ## Stages
 1. **(DONE) Storage restructure (no backend):** v2 format, migration from v1, per-device counters, merge functions, tests, update every existing
    game to the new layout. Valuable on its own and best done before Quest v2 and the map add more progress data.
