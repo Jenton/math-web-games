@@ -254,6 +254,58 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .mac-path li:not(.empty)::before { content: ""; position: absolute; left: 0; top: .45em; bottom: .45em; width: 5px; border-radius: 3px; background: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .fx, .scale.level .blk.mystery { animation: none; } .op-card { transition: none; } }
 
+/* ---- Lemonade Stand ---- */
+.lem-scene { position: relative; max-width: 640px; margin: 4px auto 10px; padding: 12px 12px 8px; border-radius: var(--radius); border: 3px solid #8cc6ee; background: linear-gradient(#bfe6ff 0%, #e9f7ff 62%, #bfe29a 62%, #a6d37e 100%); overflow: hidden; display: grid; grid-template-columns: 96px 1fr; grid-template-rows: auto auto; gap: 6px 10px; align-items: end; }
+.lem-cloud { position: absolute; width: 70px; opacity: .9; }
+.lem-cloud.c1 { top: 6px; right: 14%; }
+.lem-cloud.c2 { top: 30px; right: 2%; width: 54px; }
+.lem-row { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin-top: 4px; }
+.lem-stand { width: min(260px, 62%); flex: none; }
+.lem-queue { display: flex; flex-direction: row-reverse; align-items: flex-end; min-width: 0; flex: 0 1 190px; justify-content: flex-end; }
+.lem-wait { width: 44px; margin-left: -12px; transform: scaleX(-1); animation: lem-shuffle .5s ease-out both; }
+.lem-more { font-weight: 800; background: #fff; border: 2px solid var(--line); border-radius: 999px; padding: 0 8px; margin-right: 4px; align-self: center; font-size: .85rem; }
+.lem-whowrap { grid-column: 1; grid-row: 1; position: relative; align-self: end; }
+.lem-emote { position: absolute; right: -6px; top: -14px; width: 34px; }
+.lem-emote.pop { animation: lem-pop .5s ease-out both; }
+.lem-who.walk { animation: lem-walk .9s ease-out both; }
+.lem-who.leave { animation: lem-leave .7s ease-in .25s both; }
+@keyframes lem-walk { from { transform: translateX(-160px); opacity: 0; } 35% { opacity: 1; } 55% { transform: translateX(-60px) translateY(-6px); } 75% { transform: translateX(-20px) translateY(0); } to { transform: none; } }
+@keyframes lem-leave { to { transform: translateX(200px) translateY(-6px); opacity: 0; } }
+@keyframes lem-pop { from { transform: scale(.2); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } to { transform: scale(1); opacity: 1; } }
+@keyframes lem-shuffle { from { transform: scaleX(-1) translateX(24px); opacity: 0; } to { transform: scaleX(-1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lem-who.walk, .lem-who.leave, .lem-emote.pop, .lem-wait { animation: none; } .lem-who.leave { opacity: 0; } }
+.lem-awning { height: 26px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ffd23f 0 28px, #fff 28px 56px); border: 3px solid #d9a400; border-bottom: 0; }
+.lem-counter { display: flex; align-items: center; justify-content: space-around; background: #c68642; border: 3px solid #8a5a2b; border-radius: 0 0 8px 8px; padding: 4px 8px; color: #fff8e1; font-weight: 800; letter-spacing: .12em; font-size: .8rem; }
+.lem-counter img { height: 38px; }
+.lem-who { width: 90px; height: auto; display: block; }
+.lem-bubble { grid-column: 2; grid-row: 1; position: relative; margin: 0; padding: 10px 14px; background: #fff; border: 2px solid var(--line); border-radius: 14px; font-size: 1.05rem; line-height: 1.35; color: var(--ink); }
+.lem-bubble::before { content: ""; position: absolute; left: -9px; bottom: 16px; width: 14px; height: 14px; background: #fff; border-left: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
+.lem-bush { position: absolute; right: 4px; bottom: 2px; width: 44px; }
+.lem-body { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 120px; }
+.lem-coins, .lem-tray { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lem-tray { min-height: 56px; align-items: center; padding: 8px; width: 100%; max-width: 520px; border: 2px dashed var(--line); border-radius: var(--radius); background: var(--cell); }
+.lem-total { font-weight: 800; font-size: 1.2rem; }
+.coin { display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; font-weight: 800; font-size: .95rem; padding: 6px 8px 4px; min-width: 70px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; touch-action: manipulation; }
+.coin img { height: 58px; width: auto; }
+.coin.c1 img, .coin.c5 img { height: 44px; margin: 7px 0 7px; }
+.coin.c10 img { height: 52px; margin: 3px 0; }
+.coin:hover { border-color: var(--accent); }
+.coin:active { transform: translateY(2px); }
+.coin.small { min-width: 52px; padding: 3px 6px; font-size: .8rem; }
+.coin.small img { height: 40px; }
+.coin.small.c1 img, .coin.small.c5 img { height: 30px; margin: 5px 0; }
+.coin.small.c10 img { height: 36px; margin: 2px 0; }
+.coin:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+.lem-stock { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 520px; min-height: 52px; font-size: 1.6rem; }
+.lem-stock img { height: 46px; }
+.lem-prices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; width: 100%; max-width: 640px; }
+.lem-prices .opt-card { align-items: center; text-align: center; }
+.lem-glass { height: 40px; margin-bottom: 4px; }
+.lem-prices .opt-card:disabled { opacity: .5; cursor: default; }
+.lem-good { color: var(--good); }
+.lem-bad { color: var(--bad); }
+@media (max-width: 480px) { .lem-scene { grid-template-columns: 70px 1fr; } .lem-who { width: 68px; } .lem-wait { width: 34px; } .lem-stand { width: 58%; } .lem-bubble { font-size: .95rem; } }
+
 /* ---- Number Defense ---- */
 .hud .hearts { letter-spacing: 2px; }
 .td-preview { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
