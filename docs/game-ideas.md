@@ -22,15 +22,16 @@ something is built. Details and design notes for each item are further down in t
 
 **Status today:** built = Munchers, Balance, Machine Builder, Creature Quest (first slice). Everything below is open.
 
-### Creature Quest (RPG) next steps
-- [ ] **Tune the numbers after playtesting** (`js/rpg.js` tunables: heal, enemy attack, HP, XP). First suspect: 1 star may be too forgiving, since power-only play still wins ~42%.
-- [ ] World map: regions themed by skill ("Multiples Mountain"), enemies and a boss per region
-- [ ] Character customization (cosmetic only: outfits, colors, hats)
-- [ ] Spellcraft enemies (exact-HP: choose the spell whose damage lands on the enemy's HP)
-- [ ] Machine Builder bosses (reduce the boss's power to 0 in the fewest steps)
-- [ ] More enemy and boss variety, art, and sound beyond emoji
-- [ ] Creature upgrades (stronger creatures that grow with use)
-- [ ] Limited cards / mana, if the lost-turn-plus-heal penalty turns out too soft
+### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
+- [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
+- [ ] Review and choose CC0 art packs (verify each license)
+- [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
+- [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
+- [ ] Stage 4: story chapters per region, scripted ally-rescue encounters, simple region select
+- [ ] Tune the numbers after playtesting (`js/rpg.js` tunables)
+- [ ] Character customization (cosmetic only)
+- [ ] Spellcraft enemies (exact-HP), Machine Builder bosses
+- [ ] Creature/ally upgrades (growth with use)
 
 ### Existing games, possible extensions
 - [ ] Balance: drag-blocks-onto-pans version for the youngest players, negative weights (balloons), limited guesses, two-player "first to level it"
@@ -59,7 +60,7 @@ something is built. Details and design notes for each item are further down in t
 
 ### Playtest notes (add what the kids say and do)
 Write observations here so any chat can act on them. Suggested format: date, who played, game, what happened.
-- _No playtests recorded yet._
+- **Nov 2026, owner review of Creature Quest first slice:** graphics too plain (wants background and sprites, Earthbound-style); wants multiple enemies at once that visibly hit back; allies felt random and thin (wants story-driven rescues and many more allies that matter); "swords = power" was confusing (right answer should do damage, wrong none); worried allies-supply-cards could cause unwinnable fights. Decisions are in "Creature Quest v2".
 
 ---
 
@@ -122,7 +123,84 @@ trace of where a wrong attempt diverged, and a co-op mode where each player owns
 
 ---
 
-## The RPG: Creature Quest (first slice built; the design below still guides the rest)
+## Creature Quest v2: design decisions from the first review
+
+The first slice was playtested by the owner and found too thin. **These decisions supersede the first-slice
+mechanics described further down** (especially "power" on cards and "allies as stat bonuses"). Read this section first.
+
+### What the owner said (Nov 2026)
+- Graphics should be much better: a background image and enemies as **sprites**, Earthbound-style.
+- **More than one enemy at a time**, and enemies must visibly **hit back after the player's turn**. (In the first
+  slice they did hit back, but only as a text line and a health-bar change, which read as nothing happening.)
+- Allies were just randomly added. They want **scripted story events**, e.g. after some battles an encounter frees
+  a trapped ally. Capturing monsters, Pokemon-style, was rejected as not scalable.
+- **Many more kinds of allies**, and allies that actually matter.
+- "Swords = more power" was confusing. **A right answer does damage; a wrong answer does none.** Remove card power.
+- Worry about "allies supply the cards": the wrong ally choice could make a fight unwinnable.
+
+### Design principle: the math never depends on the team
+The question the player must answer (find the card that fits an enemy's weakness) is the same whichever ally is used.
+A right answer always works. **Allies change what a right answer DOES, never whether the player can win.** There must
+be no team that makes a fight unwinnable. Add this to the "can it be played without the math?" checklist, and test it.
+
+### Battle loop (v2)
+1. Two to three enemies on screen (1-2 in early fights, up to 3 later), each with **its own weakness**.
+2. The player taps an **enemy to target it**. The hand is built for that enemy's weakness (reuses `js/engine.js` rules).
+   For armored enemies the card rule is the existing armor rule in `js/rpg.js`.
+3. The player picks which **ally acts** (default: the first, so the youngest player can skip this) and plays a card.
+4. **Right card:** damage to the target plus the acting ally's effect. **Wrong card:** no damage, and the explanation
+   is shown (as today).
+5. **Every living enemy then attacks**, one after another, with visible animation and damage numbers. A wrong turn is
+   costly because all enemies still hit back, which is what makes guessing a bad strategy now that power is gone.
+6. Win by defeating all enemies. Lose = retry at full health (keep the gentle failure behavior).
+
+### Ally effects (owner picked all four)
+A right answer triggers the acting ally's effect. Each effect is themed to the ally's math skill. Examples:
+- **Hit all enemies:** Hopper (multiples) makes a skip-strike across the whole group.
+- **Shield / heal:** Shelly (armor) blocks the next hit; a healer ally restores team health.
+- **Stun:** Pebble (golem) makes an enemy skip its next attack.
+- **Remove a wrong card:** Owlbert (compare) narrows your hand, a hint-style effect.
+- Ideas to add later: critical hit (Primo, primes), armor-pierce, combo bonus on consecutive right answers.
+Plan for 20+ allies across the grade bands, each with a name, a short personality line, a skill theme and one effect.
+Effects must be balanced so no ally is required and none makes the fight trivial (add simulation tests like `tests/rpg.test.js`).
+
+### Getting allies: story chapters, not drops
+- **A story chapter per region.** Each region has a few battles, then a **rescue encounter** where a captor holds a
+  caged ally. Beating the captor frees the ally. Allies are fixed characters, so the roster grows as the story advances.
+- Chapters are **data** (a script file per region: enemies, order, dialogue lines, the ally freed), so adding content
+  does not need new code.
+- Existing saves: the 11 first-slice creatures map onto the new allies by id where they exist; keep `Store.importJSON`
+  backward compatible.
+
+### Art plan
+- **Source: free CC0 art packs** (owner's choice). Backgrounds as images, enemies and allies as sprites.
+- **Practical constraints found:** kenney.nl returns 403 to automated downloads (the site blocks it, not our network
+  policy). OpenGameArt and itch.io are reachable, but licenses vary per asset, so verify each one is CC0 before use.
+  The owner can also download a pack by hand and drop it in the repo.
+- Keep a `assets/CREDITS.md` listing every asset, its source URL and license. Never commit anything without a clear license.
+- Build the scene so art is **swappable data**: a manifest maps enemy/ally/background ids to image files, with a plain
+  emoji or colored-shape fallback if a file is missing.
+- Presentation: a background layer, sprite slots for enemies (left/top) and the team (bottom), attack animations
+  (lunge, flash, shake), floating damage numbers, and a visible turn order. Respect `prefers-reduced-motion`.
+
+### Build plan (stages, each playtestable)
+1. **Battle scene:** background + sprite slots + animations, art manifest with fallbacks, CREDITS file. Still 1 enemy.
+2. **Multi-enemy rules:** remove card power, targeting, every enemy hits back with animation, retune and re-simulate
+   (`tests/rpg.test.js`: perfect play always wins, a learner still usually wins at 1 star, random/ignoring-the-math loses).
+3. **Allies as effects:** ally roster (start with ~12), effect engine (hit all, shield/heal, stun, remove a wrong card),
+   ally picker UI, tests that every effect is optional and no team makes a fight unwinnable.
+4. **Story chapters:** region scripts, rescue encounters, a simple region select, ally unlock on rescue.
+5. **Later:** customization, more regions and allies, Spellcraft enemies, Machine Builder bosses.
+
+### Still to decide
+- Roster: how many allies per grade band, their names and effects, which skill each is tied to.
+- How many regions and chapters in the first release, and the story/tone (the kids like fantasy and cute things).
+- How much of the three-step turn (ally, target, card) is too much for the youngest player. Test with her.
+- Which CC0 packs to use once reviewed.
+
+---
+
+## The RPG: Creature Quest (first slice built; the sections below describe the FIRST slice, partly superseded by v2 above)
 
 **Decision:** the RPG is ONE game that rolls up several mechanics, not separate games. Munchers, Balance and
 Machine Builder stay as standalone games and also appear inside the RPG as mini-challenges and bosses.
