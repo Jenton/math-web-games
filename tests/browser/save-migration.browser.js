@@ -62,7 +62,7 @@ async function newPage(browser, seed) {
   console.log('   quest home:', (await page.textContent('#qLevel')), '|', (await page.textContent('#qXpText')), '|', (await page.textContent('#qStats')));
   assert.match(await page.textContent('#qLevel'), /Level 3/);
   assert.match(await page.textContent('#qXpText'), /25 \/ 80 XP to level 4/);
-  assert.match(await page.textContent('#qStats'), /7 battles won .* 4 of 11 friends/);
+  assert.match(await page.textContent('#qStats'), /7 battles won .* 4 of 22 friends/);
   await page.click('#qBegin'); await page.click('#qFight');
   for (let i = 0; i < 40; i++) {
     const st = await page.evaluate(() => { const b = Quest._state().battle; return { over: b.over, hand: RPG.currentHand(b).map((c) => c.correct), foes: b.foes.map((f) => ({ i: f.i, alive: f.alive, hp: f.hp })), target: b.target }; });

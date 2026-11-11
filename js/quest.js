@@ -75,7 +75,7 @@
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
     RPG.ensureState(profile);
-    Q = { mode: 'home', region: 0, node: null, buff: null, pz: null, lastSkill: null, run: null, encounter: null, battle: null, selected: [], guess: 0, puzzle: null, busy: false, log: '' };
+    Q = { mode: 'home', region: 0, node: null, buff: null, pz: null, intro: {}, lastSkill: null, run: null, encounter: null, battle: null, selected: [], guess: 0, puzzle: null, busy: false, log: '' };
     goHome();
   }
 
@@ -136,6 +136,7 @@
     if (to === undefined) return;
     Q.region = to;
     renderMap();
+    maybeIntro();
   }
 
   function goMap(region) {
@@ -145,6 +146,15 @@
     if (!WorldMap.regionOpen(Q.region, cleared)) Q.region = WorldMap.currentRegion(cleared);
     renderMap();
     showView('qMap');
+    maybeIntro();
+  }
+
+  /** The first time you arrive in a region with nothing cleared there yet, its story opens (once per visit to the quest). */
+  function maybeIntro() {
+    const reg = WorldMap.REGIONS[Q.region];
+    if (!reg.intro || Q.intro[reg.id] || reg.nodes.some((n) => WorldMap.clearedSet(rpg()).has(n.id))) return;
+    Q.intro[reg.id] = true;
+    playScript({ type: 'story', name: reg.name, script: reg.intro }, () => {});
   }
 
   function renderMap() {
@@ -279,7 +289,7 @@
   /** A map node is a v2 encounter: a group of monsters with their own weaknesses, built by the same rpg.js code as Quick adventure. */
   function beginNodeFight(n, kinds) {
     Q.run = null;
-    Q.encounter = RPG.makeEncounter(sel().band, sel().stars, kinds, { prefer: [Q.lastSkill].filter(Boolean), rescue: n.type === 'rescue' ? n.ally : null });
+    Q.encounter = RPG.makeEncounter(sel().band, sel().stars, kinds, { prefer: [Q.lastSkill].filter(Boolean), rescue: n.ally || null });
     Q.lastSkill = Q.encounter.skills[Q.encounter.skills.length - 1] || Q.lastSkill;
     openPrep('fight');
   }
@@ -308,7 +318,7 @@
     Q.pz = { n, kind: n.puzzle, p: n.puzzle === 'machine' ? MGP.makeMachine(g.band, g.stars) : MGP.makeBalance(g.band, g.stars), guess: 0, path: [], missed: false, done: false };
     const t = theme();
     const T = Art.THEMES[t];
-    const bg = Art.src(t, 'bg', T.bgFor.weakness || Object.keys(T.bg)[0]);
+    const bg = Art.src(t, 'bg', regionBackdrop(t) || T.bgFor.weakness || Object.keys(T.bg)[0]);
     const scene = $('qPzScene');
     scene.dataset.art = t;
     scene.style.backgroundImage = bg ? 'url(' + bg + ')' : '';
@@ -540,13 +550,13 @@
     const findable = RPG.reachable(sel().band);
     RPG.CREATURES.forEach((c) => {
       const has = owned.includes(c.id);
-      if (!has && !findable.includes(c.id)) return; // not findable at this grade level
+      if (!has && !findable.includes(c.id)) return; // not findable at this grade level (and story friends only appear once freed: see the note below)
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'creature' + (has ? '' : ' locked') + (Q.selected.includes(c.id) ? ' on' : '');
       b.disabled = !has;
       b.setAttribute('aria-pressed', Q.selected.includes(c.id));
-      const match = has && foes.some((e) => e.themes.includes(c.id));
+      const match = has && foes.some((e) => e.themes.includes(RPG.themeOf(c)));
       b.innerHTML = '<span class="c-emoji"></span><span class="c-name"></span><span class="c-sub"></span><span class="c-eff"></span>';
       if (has) putSprite(b.querySelector('.c-emoji'), allySprite(c));
       else b.querySelector('.c-emoji').textContent = '❓';
@@ -562,6 +572,8 @@
       });
       box.appendChild(b);
     });
+    const waiting = RPG.STORY_FRIENDS.filter((id) => !owned.includes(id));
+    if (waiting.length) box.appendChild(el('p', 'note roster-note', '🗺️ ' + waiting.length + (waiting.length === 1 ? ' more friend is' : ' more friends are') + ' waiting on the world map. Rescue them to meet them!'));
     $('qFight').disabled = !Q.selected.length;
     $('qPrepSummary').textContent = Q.selected.length + ' of ' + RPG.TEAM_SIZE + ' picked';
   }
@@ -623,8 +635,14 @@
     const kind = kinds.includes('boss') ? 'boss' : kinds.includes('armor') ? 'armor' : 'weakness';
     const scene = $('qScene');
     scene.dataset.art = t;
-    const bg = Art.src(t, 'bg', T.bgFor[kind] || Object.keys(T.bg)[0]);
+    const bg = Art.src(t, 'bg', regionBackdrop(t) || T.bgFor[kind] || Object.keys(T.bg)[0]);
     scene.style.backgroundImage = bg ? 'url(' + bg + ')' : '';
+  }
+  /** A map region can pick its own backdrop (Prime Peaks is snowy, Ember Mountain is hot); a Quick adventure uses the default by monster kind. */
+  function regionBackdrop(t) {
+    const reg = Q.node && WorldMap.regionById(Q.node.region);
+    const a = reg && reg.art && reg.art[t];
+    return a && a.bg && Art.get(t, 'bg', a.bg) ? a.bg : null;
   }
 
   function setGuess(v) {
@@ -710,7 +728,7 @@
       putSprite(el.querySelector('.a-emoji'), allySprite(c));
       el.querySelector('.a-name').textContent = c.name + ' · ' + c.effectName;
       el.querySelector('.a-eff').textContent = c.effectText;
-      if (foe && foe.alive && foe.enemy.themes.includes(c.id)) {
+      if (foe && foe.alive && foe.enemy.themes.includes(RPG.themeOf(c))) {
         const s = document.createElement('span');
         s.className = 'star';
         s.textContent = '⭐';
@@ -935,7 +953,7 @@
     if (out.levelUps) text += " Level up! You're now level " + RPG.progress(r).level + ', so your team has more health.';
     if (Q.node) {
       const n = nodeOf(Q.node);
-      const freed = n.type === 'rescue' && n.ally && RPG.creatureById(n.ally);
+      const freed = n.ally && RPG.creatureById(n.ally);
       Q.buff = null; // the camp's head start is used up once the fight is won
       let gold = rw.clean;
       if (freed && !out.joined) {
@@ -943,6 +961,7 @@
         text += ' ' + freed.emoji + ' ' + freed.name + ' is already your friend, and thanks you for the rescue. ⭐';
         gold = true;
       }
+      if (n.type === 'boss' && n.outro) text += '\n\n' + n.outro; // the story beat after a region's boss
       UI.panel({
         title: n.type === 'boss' ? 'Region boss beaten! 🏆' : 'Victory! 🎉',
         text,

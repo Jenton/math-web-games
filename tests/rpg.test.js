@@ -414,6 +414,39 @@ for (const ally of RPG.CREATURES) {
   assert.ok(w / n <= 0.5, `guessing with only ${ally.name} should still mostly lose (${(w / n).toFixed(2)})`);
 }
 
+/* ---------- story friends: 22 allies, the new eleven are expert at an existing skill and only come from the map ---------- */
+{
+  const skills = new Set(RPG.CREATURES.filter((c) => !c.story).map((c) => c.id));
+  assert.strictEqual(RPG.CREATURES.length, 22);
+  assert.strictEqual(new Set(RPG.CREATURES.map((c) => c.id)).size, 22, 'ids are unique');
+  RPG.CREATURES.filter((c) => c.story).forEach((c) => {
+    assert.ok(skills.has(c.theme), c.id + ' is an expert at a real skill (' + c.theme + ')');
+    assert.ok(c.where && c.blurb && c.effect && c.effectName && c.effectText, c.id + ' is fully described');
+    assert.strictEqual(RPG.themeOf(c.id), c.theme);
+  });
+  RPG.CREATURES.filter((c) => !c.story).forEach((c) => assert.strictEqual(RPG.themeOf(c.id), c.id));
+  // a Quick adventure never frees a story friend, and they are not offered at the start
+  for (const band of MG.BANDS) {
+    assert.ok(RPG.rescueCandidates(band, []).every((id) => !RPG.STORY_FRIENDS.includes(id)), 'Quick adventures only free the first eleven');
+    assert.ok(RPG.starters(band).every((id) => !RPG.STORY_FRIENDS.includes(id)));
+    for (let i = 0; i < 20; i++) RPG.planAdventure(band, 1 + (i % 3), []).forEach((enc) => assert.ok(!RPG.STORY_FRIENDS.includes(enc.rescue)));
+  }
+  // the expert bonus follows the theme: Bruno (multiples) hits a multiples monster harder than a primes monster
+  const find = (rule) => { for (let i = 0; i < 500; i++) { const e = RPG.makeEnemy('4-5', 2, 'weakness', null); if (e.rule.id === rule) return e; } return null; };
+  const mult = find('multiples');
+  const other = find('primes') || find('factors');
+  if (mult && other) {
+    const dmgOn = (enemy) => {
+      const b = RPG.newBattle({ band: '4-5', stars: 2, enemies: [enemy], team: ['bruno'], level: 1 });
+      const ev = RPG.play(b, RPG.currentHand(b).findIndex((c) => c.correct));
+      return { dmg: ev.hits[0].amount, specialist: ev.specialist };
+    };
+    const a = dmgOn(mult);
+    const c = dmgOn(other);
+    assert.ok(a.specialist && !c.specialist && a.dmg === c.dmg + T.SPECIALIST_BONUS, 'Bruno is an expert against multiples only');
+  }
+}
+
 /* ---------- camp buffs: a head start that only helps, and never replaces the math ---------- */
 {
   assert.deepStrictEqual(Object.keys(RPG.BUFFS).sort(), ['hint', 'shield']);
