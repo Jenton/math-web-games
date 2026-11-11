@@ -54,6 +54,7 @@ node tests/firebase-backend.test.js  # verifies the Firebase adapter against a f
 node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices
 node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 migration, all four games, backups, merging two devices
 node tests/browser/quest.browser.js          # optional, needs Playwright: plays whole Creature Quest adventures through the real buttons
+node tests/browser/map.browser.js            # optional, needs Playwright: plays a whole Creature Quest world-map region (story, groups, rescue, boss, next region)
 node tests/browser/spacing.browser.js        # optional, needs Playwright: every back button has breathing room above the content below it (any new screen is checked automatically)
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens; they need a cloud backend that is not connected yet), `js/storage.js`, `js/game.js`
