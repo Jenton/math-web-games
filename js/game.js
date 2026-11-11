@@ -282,6 +282,7 @@
     cell.eaten = true;
     if (cell.correct) {
       Store.record(ctx.profile, S.rule.id, true);
+      ctx.onSave(); // save every right answer: closing the tab mid-level must not lose them
       toast('✓ ' + S.rule.ok(cell), true);
       if (remaining() === 0) levelDone();
       else update();

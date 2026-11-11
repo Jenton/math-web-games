@@ -180,7 +180,7 @@
           <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Begin adventure</button>
           <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
         </div>
-        <p class="note">An adventure is 5 battles: three monsters, an armored monster, and a boss.</p>
+        <p class="note">An adventure is 5 battles against groups of monsters. In two of them a friend is trapped in a cage: win to set them free!</p>
       </div>
 
       <div id="qPrep" hidden>
@@ -189,8 +189,8 @@
           <span id="qRun" class="pill"></span>
         </div>
         <div id="qPreview" class="q-preview">
-          <span id="qPvEmoji" class="e-emoji"></span>
-          <div><div id="qPvName" class="e-name"></div><div class="note">Its weakness:</div><div id="qPvWeak" class="pv-weak"></div></div>
+          <div id="qPvFoes" class="pv-foes"></div>
+          <p id="qPvRescue" class="pv-rescue" hidden></p>
         </div>
         <h2 id="qPrepTitle"></h2>
         <p id="qPrepHelp" class="help"></p>
@@ -207,13 +207,9 @@
           <span id="qRunPill" class="pill"></span>
           <span id="qTurn" class="pill"></span>
         </div>
-        <div class="enemy">
-          <span id="qEnemyEmoji" class="e-emoji"></span>
-          <div class="e-info">
-            <div id="qEnemyName" class="e-name"></div>
-            <div class="bar" aria-hidden="true"><div id="qEnemyHp" class="fill hp"></div></div>
-            <div id="qEnemyHpText" class="note"></div>
-          </div>
+        <div id="qScene" class="scene">
+          <div id="qFoes" class="foes"></div>
+          <div id="qFloats" class="floats" aria-hidden="true"></div>
         </div>
         <div class="weak">
           <div id="qWeakTitle" class="weak-title"></div>
@@ -233,14 +229,16 @@
           <p id="qChargeSums" class="sums"></p>
           <button id="qgLock" class="btn" type="button">Lock it in</button>
         </div>
-        <p class="s-label hand-label">Your attack cards <span class="opt">(more &#9876;&#65039; = more power, but only a card that fits the weakness hits)</span></p>
+        <p id="qHandLabel" class="s-label hand-label"></p>
         <div id="qHand" class="hand"></div>
         <p id="qLog" class="log" role="status" aria-live="polite"></p>
+        <p class="s-label">Who acts? <span class="opt">(&#11088; = an expert against the monster you picked)</span></p>
+        <div id="qAllies" class="allies"></div>
         <div class="team-bar">
-          <div id="qTeam" class="q-team"></div>
           <div class="hp"><span class="s-label">Team health</span><div class="bar" aria-hidden="true"><div id="qTeamHp" class="fill good"></div></div><span id="qTeamHpText" class="note"></span></div>
+          <div id="qShield" class="shield" aria-live="polite"></div>
         </div>
-        <p class="note">Tip: keys 1 to 6 play a card.</p>
+        <p class="note">Tip: tap a monster to attack it, tap a friend to choose who acts. Keys 1 to 6 play a card.</p>
       </div>
     </section>
 

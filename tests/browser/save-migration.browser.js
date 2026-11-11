@@ -6,7 +6,8 @@ const path = require('path');
 const os = require('os');
 const fs0 = require('fs');
 const OUT = fs0.mkdtempSync(path.join(os.tmpdir(), 'mq-save-')) + path.sep;
-const PAGE_URL = 'file://' + path.resolve(__dirname, '../../index.html');
+const { serve } = require('../helpers/static-server.js');
+let PAGE_URL;
 const errors = [];
 const V1 = {
   version: 1, lastSaved: 1731000000000,
@@ -24,6 +25,7 @@ const sum = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
 async function newPage(browser, seed) {
   const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
+  await ctx.addInitScript(() => { window.__questFast = true; }); // skip battle animation delays
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   if (seed) await page.addInitScript((v) => { if (!localStorage.getItem('mathQuest.v2') && !localStorage.getItem('seeded')) { localStorage.setItem('mathQuest.v1', JSON.stringify(v)); localStorage.setItem('seeded', '1'); } }, seed);
@@ -32,6 +34,8 @@ async function newPage(browser, seed) {
 }
 
 (async () => {
+  const server = await serve();
+  PAGE_URL = server.url;
   const browser = await chromium.launch();
 
   /* ===== 1. migrate a real v1 save ===== */
@@ -58,13 +62,16 @@ async function newPage(browser, seed) {
   console.log('   quest home:', (await page.textContent('#qLevel')), '|', (await page.textContent('#qXpText')), '|', (await page.textContent('#qStats')));
   assert.match(await page.textContent('#qLevel'), /Level 3/);
   assert.match(await page.textContent('#qXpText'), /25 \/ 80 XP to level 4/);
-  assert.match(await page.textContent('#qStats'), /7 battles won .* 4 of 11 creatures/);
+  assert.match(await page.textContent('#qStats'), /7 battles won .* 4 of 11 friends/);
   await page.click('#qBegin'); await page.click('#qFight');
   for (let i = 0; i < 40; i++) {
-    const st = await page.evaluate(() => { const b = Quest._state().battle; return { over: b.over, hand: b.hand.map(c => c.correct), charging: b.charging, max: b.puzzle && b.puzzle.max }; });
+    const st = await page.evaluate(() => { const b = Quest._state().battle; return { over: b.over, hand: RPG.currentHand(b).map((c) => c.correct), foes: b.foes.map((f) => ({ i: f.i, alive: f.alive, hp: f.hp })), target: b.target }; });
     if (st.over) break;
-    if (st.charging) { await page.evaluate(() => { const b = Quest._state().battle; RPG.cancelCharge(b); }); }
-    await page.locator('.qcard').nth(st.hand.indexOf(true)).click();
+    const foe = st.foes.filter((f) => f.alive).sort((a, b) => a.hp - b.hp)[0];
+    if (foe.i !== st.target) await page.click('#foe' + foe.i);
+    const hand = await page.evaluate(() => RPG.currentHand(Quest._state().battle).map((c) => c.correct));
+    await page.locator('.qcard').nth(hand.indexOf(true)).click();
+    await page.waitForFunction(() => !Quest._state().busy);
     if (await page.locator('#panel:not([hidden])').count()) break;
   }
   await page.waitForSelector('#panel:not([hidden])');
@@ -161,4 +168,5 @@ async function newPage(browser, seed) {
 
   console.log('ERRORS:', errors.length ? errors : 'none');
   await browser.close();
+  server.close();
 })().catch(e => { console.error('FAILED', e); process.exit(1); });

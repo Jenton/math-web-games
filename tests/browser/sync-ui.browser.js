@@ -6,7 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { makeBackend } = require('../helpers/fake-backend.js');
-const URL = 'file://' + path.resolve(__dirname, '../../index.html');
+const { serve } = require('../helpers/static-server.js');
+let URL;
 const OUT = process.env.SHOTS || fs.mkdtempSync(path.join(os.tmpdir(), 'mq-sync-'));
 const errors = [];
 const sum = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
@@ -48,6 +49,8 @@ const cloudData = async (dev) => {
 const stored = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('mathQuest.v2')));
 
 (async () => {
+  const server = await serve();
+  URL = server.url;
   const browser = await chromium.launch();
 
   /* ---- 0. a site with no backend says so, and nothing breaks ---- */
@@ -202,5 +205,6 @@ const stored = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('ma
   console.log('Screenshots:', OUT);
   console.log('ERRORS:', errors.length ? errors : 'none');
   await browser.close();
+  server.close();
   if (errors.length) process.exit(1);
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

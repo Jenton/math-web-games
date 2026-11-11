@@ -13,9 +13,9 @@
   const GAMES = {
     quest: {
       name: 'Creature Quest', ico: '⚔️', extras: false, mod: () => Quest,
-      how: ['Every monster has a <b>weakness</b>, like "multiples of 6".', '<b>Pick the attack card</b> that fits it. More ⚔️ means more power, but a card that does not fit does nothing and heals the monster!', 'Win battles to <b>level up</b>, befriend <b>creatures</b>, and take on the boss.'],
-      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
-      stars: [['★ Easier', 'Weaker monsters, 5 cards to pick from.'], ['★★ Medium', 'Tougher monsters and trickier cards.'], ['★★★ Harder', 'Strong monsters, 6 cards, and cards that nearly fit.']],
+      how: ['Monsters come in <b>groups</b>, and each has its own <b>weakness</b>, like "multiples of 6". <b>Tap a monster</b> to attack it.', '<b>Pick the card</b> that fits its weakness. A right card does damage. A wrong card does nothing, and <b>every monster hits back</b>!', 'Choose which <b>friend</b> acts: each has a special power. <b>Rescue caged friends</b> to grow your team and win the boss fight.'],
+      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves, thirds and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
+      stars: [['★ Easier', 'Smaller numbers, 2 monsters at most, 5 cards.'], ['★★ Medium', 'Bigger numbers, up to 3 monsters.'], ['★★★ Harder', 'The trickiest numbers, up to 3 monsters, 6 cards.']],
       sample: (s) => RPG.sampleText(s.band, s.stars),
     },
     munchers: {
