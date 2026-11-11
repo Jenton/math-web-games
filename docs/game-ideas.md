@@ -26,8 +26,12 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
 - [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
-- [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md` (v2 save format, merge rules, Firebase Hosting + Firestore, family code, no accounts)
-- [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1)
+- [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md`
+  - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
+  - [ ] Stage 2: encryption helpers + sync adapter tested against a local fake
+  - [ ] Stage 3: Firebase project (owner's existing Google account), Hosting for the site, Firestore rules, deploy. Owner wants step-by-step hand-holding (the Firebase UI is confusing to them)
+  - [ ] Stage 4: sync UI (set up family code, add device, sync status, manual sync)
+- [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
 - [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
@@ -100,7 +104,7 @@ State of the codebase today (check the files; this may drift):
   game goes through one shared **setup screen** (pick grade and challenge in plain language, then Play).
 - **`index.html`:** a game card in the menu (`data-game="<key>"`) plus one `<section id="<screen>">` per game.
 
-Steps to add a game (NOTE: once cross-device sync lands, also follow "Rules for every game" in `docs/sync-design.md`: save under `profile.games.<gameId>` and ship a merge rule with tests): (1) DOM-free generators in their own module plus a Node test (verify solvability and
+Steps to add a game (NOTE: follow "How the code works now" in `docs/sync-design.md`: save under `profile.games.<gameId>` via the `Store` helpers, never write a counter backwards, register a merge rule in `js/save.js`, and add tests to `tests/save.test.js`): (1) DOM-free generators in their own module plus a Node test (verify solvability and
 that wrong answers are really wrong); (2) add skill ids to `SKILLS` if they should appear in the grown-ups
 stats; (3) a `js/<game>.js` module with `start`, and a `<section>` in `index.html`; (4) add the card,
 `GAMES` entry and `SCREEN_OF` entry; (5) add progress to the profile backward-compatibly; (6) update the README.

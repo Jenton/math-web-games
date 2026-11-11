@@ -71,8 +71,29 @@ v2 save succeeds.
   Hosting and Firestore, run `firebase login` and `firebase deploy`. Claude cannot log in to the owner's Google account from the cloud session.
   Firebase web config values are not secret (access is controlled by the Firestore rules); the config can live in the repo.
 
+## Status
+**Stage 1 is BUILT** (storage restructure, no backend): `js/save.js` (v2 format, v1 migration, merge, per-game schemas),
+`js/storage.js` (the `Store` API games use), every game moved onto it, and `tests/save.test.js` (random multi-device histories prove
+merge is commutative, associative and idempotent, never loses progress, and that devices converge). Browser-checked: a v1 save migrates with
+nothing lost (the v1 data is left untouched as a backup), all four games play and save, a v1 backup file still imports, and two
+devices merged by `Store.mergeIn` add up correctly. **Stages 2 to 4 (crypto, Firebase, sync UI) are not built.**
+
+### How the code works now (read before adding a game)
+- Progress lives under `profile.games.<gameId>`. Use the `Store` helpers: `Store.game(profile, id)`, `Store.bump(game, field)` and `Store.total(game, field)`
+  for counters, `Store.setField(game, field, value)` for last-write-wins values, `Store.record(profile, skillId, right)` for per-skill stats, and
+  `Store.setSettings(profile, patch)` for settings. **Never write a counter backwards** (no `--`, no resetting to a lower number); counters only go up.
+  If a screen needs "undo", count once per puzzle instead (see Machine Builder).
+- Sets (things you own) only grow. Never save a defaulted value as if the player chose it (Creature Quest computes its default team when reading:
+  `RPG.currentTeam`), because that makes the merge order matter.
+- Register the game's merge rule in `js/save.js` with `Save.registerGame(id, { field: 'counter' | 'set' | 'max' | 'lww' })` and add cases to
+  `tests/save.test.js`. A game with no rule falls back to "the newer whole object wins", which can lose progress.
+- Level in Creature Quest is **derived** from total XP (`RPG.progress`), never stored.
+- Migration filed v1 counters under the migrating device. If the same v1 backup is restored on two devices before they sync, those starting counts
+  are summed once per device (cosmetic inflation). We chose that over the alternative, which could silently drop real progress.
+- `Store.importJSON` (restore) REPLACES everything on this device. `Store.mergeIn` combines and is what sync will use.
+
 ## Stages
-1. **Storage restructure (no backend):** v2 format, migration from v1, per-device counters, merge functions, tests, update every existing
+1. **(DONE) Storage restructure (no backend):** v2 format, migration from v1, per-device counters, merge functions, tests, update every existing
    game to the new layout. Valuable on its own and best done before Quest v2 and the map add more progress data.
 2. **Crypto + sync adapter against a local fake** (so it is testable without Firebase), including conflict and offline cases.
 3. **Firebase setup:** project, Hosting for the site, Firestore rules, deploy instructions.

@@ -15,6 +15,7 @@
   const isNode = typeof module !== 'undefined' && module.exports;
   const MG = isNode ? require('./engine.js') : root.MG;
   const MGP = isNode ? require('./puzzles.js') : root.MGP;
+  const Save = isNode ? require('./save.js') : root.Save;
   const rnd = MG.rnd;
   const pick = (a) => a[rnd(0, a.length - 1)];
   const shuffle = MG.shuffle;
@@ -73,35 +74,60 @@
 
   const SKILLS = { armor: 'Fractions: breaking armor' };
 
-  /* ---------- player state (lives on profile.rpg, backward compatible) ---------- */
+  /* ---------- player state (profile.games.rpg; see js/save.js for how it merges across devices) ---------- */
 
+  const starters = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).slice(0, 3);
   /** Creatures a player can still find at this grade: that band's monsters, plus armor and boss. */
   const reachable = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).concat(['armor', 'boss']);
-  const starters = (band) => (BAND_SKILLS[band] || BAND_SKILLS['2-3']).slice(0, 3);
 
+  /**
+   * Saved fields: xpEarned/wins/bosses (per-device counters, they only ever go up), creatures (a set), team (+teamAt, last write wins).
+   * Level is DERIVED from total XP. A default team is computed when reading (currentTeam) and never saved as if the player chose it.
+   */
   function ensureState(profile) {
-    const r = profile.rpg || (profile.rpg = {});
-    if (typeof r.xp !== 'number') r.xp = 0;
-    if (typeof r.level !== 'number' || r.level < 1) r.level = 1;
+    const games = profile.games || (profile.games = {});
+    const r = games.rpg || (games.rpg = {});
+    ['xpEarned', 'wins', 'bosses'].forEach((k) => { if (!r[k] || typeof r[k] !== 'object') r[k] = {}; });
     if (!Array.isArray(r.creatures) || !r.creatures.length) r.creatures = starters(profile.settings.band);
     r.creatures = [...new Set(r.creatures)].filter((id) => creatureById(id));
-    if (!Array.isArray(r.team)) r.team = [];
-    r.team = [...new Set(r.team)].filter((id) => r.creatures.includes(id)).slice(0, TEAM_SIZE);
-    if (!r.team.length) r.team = r.creatures.slice(0, TEAM_SIZE);
-    r.wins = r.wins || 0;
-    r.bosses = r.bosses || 0;
+    if (Array.isArray(r.team)) r.team = [...new Set(r.team)].filter((id) => r.creatures.includes(id)).slice(0, TEAM_SIZE);
     return r;
   }
 
-  function addXp(r, amount) {
-    let ups = 0;
-    r.xp += amount;
-    while (r.xp >= xpToNext(r.level)) {
-      r.xp -= xpToNext(r.level);
-      r.level++;
-      ups++;
+  const currentTeam = (r) => {
+    const t = (Array.isArray(r.team) ? r.team : []).filter((id) => r.creatures.includes(id)).slice(0, TEAM_SIZE);
+    return t.length ? t : r.creatures.slice(0, TEAM_SIZE);
+  };
+
+  function setTeam(r, ids, now) {
+    r.team = ids.filter((id) => r.creatures.includes(id)).slice(0, TEAM_SIZE);
+    r.teamAt = now === undefined ? Date.now() : now;
+  }
+
+  const totalXp = (r) => Save.sumCounter(r.xpEarned);
+
+  function levelFor(total) {
+    let level = 1;
+    let left = total;
+    while (left >= xpToNext(level)) {
+      left -= xpToNext(level);
+      level++;
     }
-    return ups;
+    return { level, xp: left };
+  }
+
+  /** Everything the screens need: level, XP into this level, XP needed, wins, bosses. */
+  function progress(r) {
+    const total = totalXp(r);
+    const l = levelFor(total);
+    return { level: l.level, xp: l.xp, need: xpToNext(l.level), total, wins: Save.sumCounter(r.wins), bosses: Save.sumCounter(r.bosses) };
+  }
+
+  /** Add XP for this device. Returns how many levels were gained. */
+  function addXp(r, amount, dev) {
+    const before = levelFor(totalXp(r)).level;
+    Save.incCounter(r.xpEarned, dev, amount);
+    return levelFor(totalXp(r)).level - before;
   }
 
   /* ---------- armor rule: compare fractions ---------- */
@@ -321,16 +347,17 @@
     return { xp, creature: k === 'boss' ? 'boss' : b.enemy.rule.id, kind: k, clean: b.misses === 0 };
   }
 
-  /** Apply rewards to profile.rpg. Returns { levelUps, joined } where joined is a creature or null. */
-  function applyRewards(r, rw) {
-    const levelUps = addXp(r, rw.xp);
-    r.wins++;
-    if (rw.kind === 'boss') r.bosses++;
+  /** Apply rewards for this device. Returns { levelUps, joined } where joined is a creature or null. */
+  function applyRewards(r, rw, dev) {
+    const levelUps = addXp(r, rw.xp, dev);
+    Save.incCounter(r.wins, dev, 1);
+    if (rw.kind === 'boss') Save.incCounter(r.bosses, dev, 1);
     let joined = null;
     if (rw.creature && creatureById(rw.creature) && !r.creatures.includes(rw.creature)) {
       r.creatures.push(rw.creature);
       joined = creatureById(rw.creature);
-      if (r.team.length < TEAM_SIZE) r.team.push(rw.creature);
+      const team = currentTeam(r);
+      if (team.length < TEAM_SIZE && !team.includes(rw.creature)) setTeam(r, team.concat(rw.creature));
     }
     return { levelUps, joined };
   }
@@ -339,7 +366,7 @@
 
   const api = {
     PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS, HIT, HEAL, CHARGE,
-    creatureById, starters, reachable, ensureState, addXp, xpToNext, maxHp,
+    creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
     makeEnemy, makeHand, armorRule, weakTitle, sampleText,
     newBattle, play, cancelCharge, specialistBonus, rewards, applyRewards,
   };

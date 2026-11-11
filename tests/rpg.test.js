@@ -189,15 +189,18 @@ assert.ok(onceWrong / trials >= 0.99, 'a single mistake must not lose a fight at
 {
   const p = { settings: { band: '4-5' } };
   const r = RPG.ensureState(p);
+  assert.strictEqual(r, p.games.rpg, 'RPG state lives under profile.games.rpg');
   assert.deepStrictEqual(r.creatures, ['multiples', 'factors', 'primes']);
-  assert.deepStrictEqual(r.team, ['multiples', 'factors', 'primes']);
-  assert.strictEqual(r.level, 1);
-  // backward compatible with partial/bad data
-  const q = { settings: { band: '6' }, rpg: { xp: 5, creatures: ['fractions', 'nope', 'fractions'], team: ['exponents'] } };
+  assert.strictEqual(r.team, undefined, 'a default team is never saved as if the player chose it');
+  assert.deepStrictEqual(RPG.currentTeam(r), ['multiples', 'factors', 'primes']);
+  assert.strictEqual(RPG.progress(r).level, 1);
+  // bad or partial data is repaired
+  const q = { settings: { band: '6' }, games: { rpg: { creatures: ['fractions', 'nope', 'fractions'], team: ['exponents', 'fractions'] } } };
   const r2 = RPG.ensureState(q);
   assert.deepStrictEqual(r2.creatures, ['fractions']);
   assert.deepStrictEqual(r2.team, ['fractions']);
-  // XP and level-ups
+  assert.deepStrictEqual(RPG.currentTeam(r2), ['fractions']);
+  // rewards
   const e = RPG.makeEnemy('4-5', 1, 'weakness', null);
   const b = RPG.newBattle({ band: '4-5', stars: 1, enemy: e, team: [], level: 1 });
   b.misses = 0;
@@ -211,14 +214,24 @@ assert.ok(onceWrong / trials >= 0.99, 'a single mistake must not lose a fight at
   boss.misses = 0;
   assert.strictEqual(RPG.rewards(boss).xp, 50);
   assert.strictEqual(RPG.rewards(boss).creature, 'boss');
-  const s = { xp: 0, level: 1, creatures: ['multiples'], team: ['multiples'], wins: 0, bosses: 0 };
-  assert.strictEqual(RPG.addXp(s, 40), 1);
-  assert.strictEqual(s.level, 2);
-  assert.strictEqual(s.xp, 0);
-  const out = RPG.applyRewards(s, { xp: 5, creature: 'primes', kind: 'weakness' });
+  // XP is stored per device and level is derived from the total
+  const s = { xpEarned: {}, wins: {}, bosses: {}, creatures: ['multiples'], team: ['multiples'] };
+  assert.strictEqual(RPG.addXp(s, 40, 'lap'), 1);
+  assert.deepStrictEqual([RPG.progress(s).level, RPG.progress(s).xp, RPG.progress(s).need], [2, 0, 60]);
+  assert.strictEqual(RPG.addXp(s, 70, 'pad'), 1, 'XP from another device counts toward the same level');
+  assert.deepStrictEqual([RPG.progress(s).level, RPG.progress(s).xp, RPG.progress(s).total], [3, 10, 110]);
+  assert.strictEqual(RPG.levelFor(0).level, 1);
+  assert.strictEqual(RPG.levelFor(39).level, 1);
+  assert.strictEqual(RPG.levelFor(40).level, 2);
+  assert.strictEqual(RPG.levelFor(100).level, 3);
+  const out = RPG.applyRewards(s, { xp: 5, creature: 'primes', kind: 'weakness' }, 'lap');
   assert.strictEqual(out.joined.id, 'primes');
-  assert.deepStrictEqual(s.team, ['multiples', 'primes']);
-  assert.strictEqual(RPG.applyRewards(s, { xp: 5, creature: 'primes', kind: 'weakness' }).joined, null, 'a creature only joins once');
+  assert.deepStrictEqual(RPG.currentTeam(s), ['multiples', 'primes']);
+  assert.ok(s.teamAt > 0, 'a team change is timestamped so it can merge across devices');
+  assert.strictEqual(RPG.applyRewards(s, { xp: 5, creature: 'primes', kind: 'weakness' }, 'lap').joined, null, 'a creature only joins once');
+  assert.strictEqual(RPG.progress(s).wins, 2);
+  RPG.applyRewards(s, { xp: 5, creature: 'boss', kind: 'boss' }, 'pad');
+  assert.strictEqual(RPG.progress(s).bosses, 1);
   assert.ok(RPG.maxHp(5) > RPG.maxHp(1));
   assert.deepStrictEqual(RPG.reachable('K-1'), ['expressions', 'even-odd', 'compare', 'armor', 'boss']);
   // every skill a band can meet has a creature to befriend and a monster to fight

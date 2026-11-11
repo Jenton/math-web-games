@@ -47,7 +47,7 @@
   function start(profile, hooks) {
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
-    S = { level: 0, rule: null, streak: profile.munchers.streak || 0 };
+    S = { level: 0, rule: null, streak: Store.game(profile, 'munchers').streak || 0 };
     newLevel(false);
     stop();
     timer = setInterval(tick, TICK_MS);
@@ -307,9 +307,10 @@
 
   function levelDone() {
     const p = ctx.profile;
-    p.munchers.levels++;
+    const mg = Store.game(p, 'munchers');
+    Store.bump(mg, 'levels');
     S.streak = S.clean ? S.streak + 1 : 0;
-    p.munchers.streak = S.streak;
+    Store.setField(mg, 'streak', S.streak);
     const next = () => newLevel(false);
     let text = S.clean ? 'Perfect: no mistakes!' : 'Nice work! You cleared the board.';
     const opts = { title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
@@ -317,9 +318,9 @@
       opts.text += ' That is ' + S.streak + ' clean levels in a row. Ready for a bigger challenge?';
       opts.btn2 = 'Try harder (★'.concat('★'.repeat(p.settings.stars), ')');
       opts.onBtn2 = () => {
-        p.settings.stars++;
+        Store.setSettings(p, { stars: p.settings.stars + 1 });
         S.streak = 0;
-        p.munchers.streak = 0;
+        Store.setField(mg, 'streak', 0);
         ctx.onSave();
         newLevel(false);
       };

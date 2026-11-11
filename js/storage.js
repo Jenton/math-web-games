@@ -1,22 +1,78 @@
-/* Light, private, on-device storage. No accounts, no network.
- * Everything lives in localStorage; export/import gives a backup file. */
+/* Light, private, on-device storage. No accounts, no network (cloud sync is planned: see docs/sync-design.md).
+ *
+ * Saves use the v2 format in js/save.js, which is versioned, namespaced per game, and mergeable across devices.
+ * Games must save ONLY through this module: progress lives under profile.games.<gameId>, using the helpers below
+ * (counters only go up; sets only grow; "last write wins" fields carry a timestamp), and every game must have a merge
+ * rule in js/save.js (Save.registerGame) with tests.
+ *
+ * Old (v1) saves are migrated on first load. The v1 data is never deleted or modified, so it stays as a backup.
+ */
 (function (root) {
   'use strict';
-  const KEY = 'mathQuest.v1';
-  let data = { version: 1, profiles: [], lastSaved: null };
+  const KEY = 'mathQuest.v2';
+  const OLD_KEY = 'mathQuest.v1';
+  const DEV_KEY = 'mathQuest.device';
+  let data = Save.newData();
   let ok = true;
+  let deviceId = null;
 
-  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on' };
+  const genId = (prefix) => prefix + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 
-  function load() {
+  function getDeviceId() {
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (d && Array.isArray(d.profiles)) data = d;
+      let d = localStorage.getItem(DEV_KEY);
+      if (!d) {
+        d = genId('d');
+        localStorage.setItem(DEV_KEY, d);
       }
+      return d;
+    } catch (e) {
+      return genId('d');
+    }
+  }
+
+  /** v1 stored XP as "level + XP into that level"; v2 stores total XP earned. Uses the RPG level curve when available. */
+  function xpTotal(level, xp) {
+    let t = xp;
+    if (root.RPG) for (let l = 1; l < level; l++) t += root.RPG.xpToNext(l);
+    return t;
+  }
+
+  function tryLoad(key) {
+    let raw = null;
+    try {
+      raw = localStorage.getItem(key);
     } catch (e) {
       ok = false;
+      return null;
+    }
+    if (!raw) return null;
+    try {
+      const r = Save.normalize(JSON.parse(raw), { deviceId, xpTotal });
+      if (r.data) return r;
+    } catch (e) {
+      /* fall through */
+    }
+    // unreadable: keep a copy instead of overwriting it silently
+    try {
+      localStorage.setItem(key + '.unreadable', raw);
+    } catch (e) {
+      /* nothing more we can do */
+    }
+    return null;
+  }
+
+  function load() {
+    deviceId = getDeviceId();
+    const v2 = tryLoad(KEY);
+    if (v2) {
+      data = v2.data;
+      return;
+    }
+    const v1 = tryLoad(OLD_KEY);
+    if (v1) {
+      data = v1.data;
+      save(); // writes v2; the v1 entry is left untouched as a backup
     }
   }
 
@@ -32,73 +88,73 @@
   }
 
   function newProfile(name, avatar, band) {
-    const p = {
-      id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name: name.trim().slice(0, 20) || 'Player',
-      avatar,
-      settings: Object.assign({}, DEFAULT_SETTINGS, { band }),
-      stats: {},
-      munchers: { levels: 0, streak: 0 },
-    };
+    const p = Save.newProfile({ id: genId('p'), name, avatar, band });
     data.profiles.push(p);
     save();
     return p;
   }
 
+  /** Deleting leaves a marker so that, once devices sync, another device does not bring the player back. */
   function remove(id) {
+    data.deleted[id] = Date.now();
     data.profiles = data.profiles.filter((p) => p.id !== id);
     save();
   }
 
-  function record(profile, skillId, right) {
-    const s = profile.stats[skillId] || (profile.stats[skillId] = { right: 0, wrong: 0 });
-    if (right) s.right++;
-    else s.wrong++;
+  /* ---- helpers games use (see the rules at the top of this file) ---- */
+  const record = (profile, skillId, right) => Save.addStat(profile, skillId, deviceId, right);
+  const stat = (profile, skillId) => Save.statTotals(profile, skillId);
+  const statSkills = (profile) => Object.keys(profile.stats || {});
+  const game = (profile, id) => (profile.games[id] || (profile.games[id] = {}));
+  /** Add to this device's counter for a field. Counters only go up. */
+  const bump = (gameObj, key, n) => Save.incCounter(gameObj[key] || (gameObj[key] = {}), deviceId, n);
+  const total = (gameObj, key) => Save.sumCounter(gameObj[key]);
+  /** A "last write wins" value; stored with a timestamp so the newest change wins when devices merge. */
+  function setField(gameObj, key, value) {
+    gameObj[key] = value;
+    gameObj[key + 'At'] = Date.now();
+  }
+  function setSettings(profile, patch) {
+    Object.assign(profile.settings, patch);
+    profile.settingsAt = Date.now();
   }
 
   function exportJSON() {
     return JSON.stringify(data, null, 2);
   }
 
-  /** Returns null on success, or an error message. */
+  /** Replace everything with a backup (v1 or v2 file). Returns null on success, or an error message. */
   function importJSON(text) {
-    let d;
+    let parsed;
     try {
-      d = JSON.parse(text);
+      parsed = JSON.parse(text);
     } catch (e) {
       return 'That file is not a valid backup.';
     }
-    if (!d || !Array.isArray(d.profiles) || d.profiles.some((p) => !p || typeof p.name !== 'string' || !p.settings)) {
-      return 'That file does not look like a Math Quest backup.';
-    }
-    d.profiles.forEach((p) => {
-      p.id = p.id || 'p' + Math.random().toString(36).slice(2, 8);
-      p.settings = Object.assign({}, DEFAULT_SETTINGS, p.settings);
-      p.stats = p.stats || {};
-      p.munchers = p.munchers || { levels: 0, streak: 0 };
-    });
-    data = { version: 1, profiles: d.profiles, lastSaved: d.lastSaved || null };
+    const r = Save.normalize(parsed, { deviceId, xpTotal });
+    if (r.error) return r.error;
+    data = r.data;
+    save();
+    return null;
+  }
+
+  /** Merge a v2 save from elsewhere (for example the cloud copy) into this device's data without losing anything. */
+  function mergeIn(remote) {
+    const r = Save.normalize(remote, { deviceId, xpTotal });
+    if (r.error) return r.error;
+    data = Save.mergeData(data, r.data);
     save();
     return null;
   }
 
   root.Store = {
-    load,
-    save,
-    newProfile,
-    remove,
-    record,
-    exportJSON,
-    importJSON,
-    get profiles() {
-      return data.profiles;
-    },
-    get lastSaved() {
-      return data.lastSaved;
-    },
-    get ok() {
-      return ok;
-    },
+    load, save, newProfile, remove,
+    record, stat, statSkills, game, bump, total, setField, setSettings,
+    exportJSON, importJSON, mergeIn,
+    get profiles() { return data.profiles; },
+    get lastSaved() { return data.lastSaved; },
+    get ok() { return ok; },
+    get deviceId() { return deviceId; },
     find: (id) => data.profiles.find((p) => p.id === id),
   };
 })(window);

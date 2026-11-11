@@ -27,7 +27,6 @@
   function start(profile, hooks) {
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
-    if (!profile.balance) profile.balance = { levels: 0 };
     S = { n: 0, firstTry: 0 };
     nextPuzzle();
   }
@@ -99,7 +98,7 @@
     const prof = ctx.profile;
     if (res.balanced) {
       Store.record(prof, 'balance', true);
-      prof.balance.levels++;
+      Store.bump(Store.game(prof, 'balance'), 'levels');
       if (!S.missed) S.firstTry++;
       ctx.onSave();
       const last = S.n >= ROUND;
