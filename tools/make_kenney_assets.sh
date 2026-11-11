@@ -6,7 +6,7 @@ set -euo pipefail
 K="${1:-/Volumes/JentMini Drive/AI Projects/Kenney Game Assets All-in-1 3.8.0}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/assets/kenney"
 A="$K/2D assets"; S="$K/Audio"
-mkdir -p "$OUT"/{escape,board,animals,aliens,tiles,balance,medals,fx,ui,sfx,music,voice,fonts}
+mkdir -p "$OUT"/{runner,escape,board,animals,aliens,tiles,balance,medals,fx,ui,sfx,music,voice,fonts}
 
 img() { ffmpeg -loglevel error -y -i "$1" -vf "format=rgba,scale='min($3,iw)':-1:flags=lanczos" -pix_fmt rgba "$2"; }   # src dst maxwidth
 for a in frog chick owl rabbit panda penguin pig cow; do img "$A/Animal Pack Remastered/PNG/Round/$a.png" "$OUT/animals/$a.png" 128; done
@@ -26,6 +26,17 @@ for n in 038 048 119 130 131 133 135 136 137; do img "$A/Tower Defense/PNG/Defau
 TD="$A/Tiny Dungeon/Tiles"
 for n in 0 10 11 28 29 40 46 48 49 50 54 55 63 64 75 82 84 85 89 92 96 97 120 121 122 114 116; do
   ffmpeg -loglevel error -y -i "$TD/tile_$(printf %04d $n).png" -vf "format=rgba,scale=48:48:flags=neighbor" -pix_fmt rgba "$OUT/escape/t$n.png"
+done
+# Number Line Runner: Pixel Platformer tiles (18 px) and characters (24 px), scaled 3x with nearest-neighbor so they stay crisp
+PP="$A/Pixel Platformer/Tiles"
+for n in 1 4 5 34 54 44 67 91 111 112 124 125 126 127 128 151; do
+  ffmpeg -loglevel error -y -i "$PP/tile_$(printf %04d $n).png" -vf "format=rgba,scale=iw*3:ih*3:flags=neighbor" -pix_fmt rgba "$OUT/runner/t$n.png"
+done
+for n in 0 1 4 5 24 25; do
+  ffmpeg -loglevel error -y -i "$PP/Characters/tile_$(printf %04d $n).png" -vf "format=rgba,scale=iw*3:ih*3:flags=neighbor" -pix_fmt rgba "$OUT/runner/c$n.png"
+done
+for n in 0 11 15; do
+  ffmpeg -loglevel error -y -i "$PP/Backgrounds/tile_$(printf %04d $n).png" -vf "format=rgba,scale=iw*3:ih*3:flags=neighbor" -pix_fmt rgba "$OUT/runner/b$n.png"
 done
 cp "$K/Other/Fonts/Kenney Future.ttf" "$K/Other/Fonts/Kenney High.ttf" "$OUT/fonts/" 2>/dev/null || true
 

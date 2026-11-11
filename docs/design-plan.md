@@ -1,7 +1,7 @@
 # Math Web Games: Design Plan (v1 draft)
 
 ## Goal
-A web portal of fun, puzzle-first math games for two kids (9 and 5½) that
+A web portal of fun, puzzle-first math games for two kids (an older and a younger child) that
 scales from kindergarten through 6th grade. Inspired by Number Munchers and
 Zoombinis, with Prodigy's collecting/progression appeal, but where the math
 *is* the gameplay, not a toll booth before the "real" game.
