@@ -169,15 +169,17 @@ dialog input, dialog select { display: block; width: 100%; font: inherit; paddin
 .q-mate { position: relative; font-size: 2rem; line-height: 1.2; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 2px 10px; }
 .q-mate .star { position: absolute; top: -9px; right: -7px; font-size: 1rem; }
 
-.q-preview, .enemy { display: flex; align-items: center; gap: 14px; background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px 16px; margin: 10px 0; }
-.e-emoji { font-size: clamp(3rem, 12vw, 4.5rem); line-height: 1; }
-.e-info { flex: 1; min-width: 0; }
-.e-name { font-weight: 800; font-size: 1.2rem; }
-.pv-weak { font-weight: 800; font-size: 1.1rem; }
-.weak { text-align: center; margin: 8px 0; }
-.weak-title { font-weight: 800; font-size: clamp(1.1rem, 4.2vw, 1.5rem); background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 8px 14px; display: inline-block; }
+/* pre-battle preview */
+.q-preview { background: var(--panel); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px 14px; margin: 10px 0; }
+.pv-foes { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.pv-foe { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pv-foe .e-emoji { font-size: 2.6rem; }
+.pv-weak { font-weight: 800; }
+.pv-rescue { margin: 10px 0 0; padding: 8px 12px; background: #fff3cd; border: 2px solid #f0b429; border-radius: 12px; color: #3a2e00; font-weight: 700; }
+.e-emoji { line-height: 1; }
+.e-name { font-weight: 800; }
 
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
 .creature { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; padding: 12px 8px; font: inherit; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; }
 .creature.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent) inset; }
 .creature.match { background: #fff9d6; }
@@ -185,23 +187,68 @@ dialog input, dialog select { display: block; width: 100%; font: inherit; paddin
 .c-emoji { font-size: 2.6rem; line-height: 1.1; }
 .c-name { font-weight: 800; }
 .c-sub { font-size: .8rem; color: var(--muted); }
-.creature:focus-visible, .qcard:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
+.c-eff { font-size: .8rem; font-weight: 700; color: var(--ink); margin-top: 2px; }
+.creature:focus-visible, .qcard:focus-visible, .foe:focus-visible, .ally:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
 
+/* battle scene (placeholder look until real art is chosen) */
+.scene { position: relative; border-radius: var(--radius); border: 3px solid var(--line); padding: 14px 8px 46px; /* room for the lunge */ margin: 8px 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--accent) 22%, #cfe8ff) 0%, var(--bg) 62%, color-mix(in srgb, var(--accent) 30%, var(--bg)) 100%); overflow: hidden; }
+.foes { display: flex; justify-content: center; align-items: flex-end; gap: 10px; flex-wrap: wrap; min-height: 150px; }
+.foe { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: min(30%, 170px); min-width: 104px; padding: 8px 6px 6px; font: inherit; color: var(--ink); background: color-mix(in srgb, var(--panel) 86%, transparent); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; transition: transform .15s, opacity .3s; }
+.foe .e-emoji { font-size: clamp(2.6rem, 11vw, 4rem); }
+.foe .e-name { font-size: .9rem; text-align: center; }
+.foe .bar { width: 100%; min-width: 0; height: 12px; }
+.foe .e-hp { font-size: .75rem; color: var(--muted); }
+.foe .e-weak { font-size: .72rem; line-height: 1.15; text-align: center; color: var(--muted); }
+.foe .e-tags { position: absolute; top: -10px; right: -6px; display: flex; gap: 2px; font-size: 1.1rem; }
+.foe.target { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent); transform: translateY(-4px); background: var(--panel); }
+.foe.target .e-name::before { content: '\1f3af '; }
+.foe.dead { opacity: .0; pointer-events: none; transform: scale(.6); }
+.foe.hit { animation: q-shake .32s; }
+.foe.lunge { animation: q-lunge .42s; z-index: 2; }
+.foe.stunned .e-emoji { filter: grayscale(.8); }
+.floats { position: absolute; inset: 0; pointer-events: none; }
+.float { position: absolute; font-weight: 900; font-size: 1.5rem; text-shadow: 0 2px 0 #fff, 0 0 6px #fff; animation: q-float 1s forwards; white-space: nowrap; }
+.float.dmg { color: var(--bad); } .float.heal { color: var(--good); } .float.info { color: #1b4d8c; }
+@keyframes q-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px) rotate(-3deg); } 60% { transform: translateX(8px) rotate(3deg); } }
+@keyframes q-lunge { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(34px) scale(1.16); } 100% { transform: translateY(0) scale(1); } }
+@keyframes q-float { 0% { opacity: 0; transform: translateY(8px) scale(.8); } 15% { opacity: 1; transform: translateY(-6px) scale(1.1); } 100% { opacity: 0; transform: translateY(-46px) scale(1); } }
+
+.weak { text-align: center; margin: 8px 0; }
+.weak-title { font-weight: 800; font-size: clamp(1.1rem, 4.2vw, 1.5rem); background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 8px 14px; display: inline-block; }
 .hand-label { text-align: center; margin: 12px 0 6px; }
 .hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; max-width: 680px; margin: 0 auto; }
-.qcard { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 92px; padding: 8px 4px; font: inherit; font-weight: 800; font-size: 1.7rem; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.qcard { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; padding: 8px 4px; font: inherit; font-weight: 800; font-size: 1.7rem; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .qcard.long { font-size: 1.15rem; }
 .qcard:hover { border-color: var(--accent); }
-.qcard .pw { font-size: .85rem; letter-spacing: -1px; }
 .qcard .k { position: absolute; top: 3px; left: 8px; font-size: .7rem; font-weight: 600; color: var(--muted); }
 .log { min-height: 3em; text-align: center; font-weight: 600; margin: 12px 0 6px; }
-.team-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; background: var(--panel); border-radius: var(--radius); padding: 8px 14px; }
-.team-bar .q-team { margin: 0; }
+
+.allies { display: flex; flex-wrap: wrap; gap: 10px; }
+.ally { position: relative; display: flex; align-items: center; gap: 8px; text-align: left; padding: 6px 12px 6px 8px; font: inherit; color: var(--ink); background: var(--panel); border: 3px solid var(--line); border-radius: var(--radius); cursor: pointer; touch-action: manipulation; flex: 1 1 150px; max-width: 260px; }
+.ally.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent) inset; }
+.ally .a-emoji { font-size: 2rem; line-height: 1; }
+.ally .a-name { font-weight: 800; display: block; }
+.ally .a-eff { font-size: .74rem; color: var(--muted); display: block; line-height: 1.15; }
+.ally .star { position: absolute; top: -9px; right: -6px; font-size: 1.1rem; }
+.team-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--panel); border-radius: var(--radius); padding: 8px 14px; margin-top: 10px; }
 .team-bar .hp { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 2px; }
+.team-bar.ouch { animation: q-shake .32s; }
+.shield { font-size: 1.4rem; min-width: 2.2rem; }
 
 .charge { background: #fff3cd; border: 3px solid #f0b429; border-radius: var(--radius); padding: 10px 14px; margin: 10px 0; text-align: center; color: #3a2e00; }
 .charge p { margin: 4px 0; }
 .charge-eq { font-size: 1.4rem; font-weight: 800; }
+@media (prefers-reduced-motion: reduce) { .foe.hit, .foe.lunge, .team-bar.ouch { animation: none; } .float { animation-duration: 1.4s; } .xpbar > div, .bar .fill, .foe { transition: none; } }
+
+/* ---- Sync between devices ---- */
+.sync { margin-top: 16px; }
+.sync summary .pill { margin-left: 8px; font-size: .8rem; }
+.code { font: 700 clamp(1.05rem, 5vw, 1.5rem)/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .04em; white-space: nowrap; text-align: center; background: var(--bg); border: 3px dashed var(--accent); border-radius: 12px; padding: 14px 8px; user-select: all; -webkit-user-select: all; }
+.error { color: var(--bad); font-weight: 700; }
+.check { display: flex !important; align-items: center; gap: 10px; font-weight: 700; }
+.check input { width: 22px !important; height: 22px; margin: 0 !important; }
+.check[hidden] { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) { .xpbar > div, .bar .fill { transition: none; } }
 
@@ -344,3 +391,43 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @media (prefers-reduced-motion: reduce) { .td-lane.hit { animation: none; } .td-enemy { transition: none; } }
 
 .panel-box p { white-space: pre-line; }
+
+/* ---- Munchers motion (rules and numbers: docs/animation-guide.md). All motion is opt-in via no-preference, so reduced-motion
+   players get the same game with no animation, and nothing waits on animation events. ---- */
+:root { --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-in: cubic-bezier(.4, 0, 1, 1); --ease-pop: cubic-bezier(.3, 1.4, .5, 1); --t-fast: 100ms; --t-med: 200ms; --t-slow: 400ms; }
+.board { position: relative; }
+.actors { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.actor { position: absolute; left: 0; top: 0; }
+.actor .badge { z-index: auto; }
+.cell .lbl { display: inline-block; }
+.conf { position: absolute; left: 50%; top: 40%; width: 10px; height: 10px; border-radius: 2px; background: var(--c, #ffd54f); }
+@media (prefers-reduced-motion: no-preference) {
+  .actor { transition: transform var(--t-fast) var(--ease-out); }
+  .actor.mon { transition-duration: 220ms; }
+  .actor.snap { transition: none; }
+  .actor .badge { transform-origin: 50% 100%; animation: m-idle 1.8s ease-in-out infinite; }
+  .actor.mon .badge { animation-delay: -.7s; }
+  .actor .badge.hop { animation: m-hop 140ms var(--ease-out); }
+  .actor .badge.chomp { animation: m-chomp 150ms var(--ease-out); }
+  .actor .badge.hurt { animation: m-hurt .9s linear; }
+  .actor.mon .badge.tell { animation: m-tell var(--tell, 300ms) var(--ease-in) forwards; }
+  .actor.mon .badge.land { animation: m-land 160ms var(--ease-out); }
+  .cell .lbl { animation: m-in 160ms var(--ease-pop) backwards; }
+  .cell.eaten .lbl { visibility: visible; animation: m-munched 160ms var(--ease-in) forwards; }
+  .cell.wobble { animation: m-wobble 280ms ease-in-out; }
+  .board.shake { animation: m-shake 220ms linear; }
+  .board.bounce { animation: m-bounce 340ms var(--ease-pop); }
+  .conf { animation: m-conf 800ms var(--ease-out) forwards; }
+}
+@keyframes m-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes m-hop { 0% { transform: scale(1, 1); } 35% { transform: translateY(-7px) scale(.9, 1.14); } 75% { transform: translateY(0) scale(1.1, .9); } 100% { transform: scale(1, 1); } }
+@keyframes m-chomp { 0% { transform: scale(1, 1); } 45% { transform: scale(1.25, .85); } 100% { transform: scale(1, 1); } }
+@keyframes m-hurt { 0%, 100% { opacity: 1; } 25%, 75% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes m-tell { from { transform: translate(0, 0) scale(1, 1); } to { transform: translate(var(--lx, 0), var(--ly, 0)) scale(1.12, .82); } }
+@keyframes m-land { 0% { transform: scale(1.12, .86); } 100% { transform: scale(1, 1); } }
+@keyframes m-in { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes m-munched { from { transform: scale(1); opacity: 1; } to { transform: scale(.2); opacity: 0; } }
+@keyframes m-wobble { 20% { transform: rotate(-4deg); } 60% { transform: rotate(4deg); } }
+@keyframes m-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes m-bounce { 50% { transform: scale(1.02); } }
+@keyframes m-conf { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.6); opacity: 0; } }

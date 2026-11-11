@@ -10,6 +10,8 @@
   const MONSTER_INTERVAL = [1800, 1300, 900]; // ms between monster steps, by stars
   const MONSTER_COUNT = [1, 2, 3];
   const TICK_MS = 120;
+  const TELL_MS = [400, 300, 220]; // glitch wind-up before each step, by stars (+100 ms for K-1): a fair warning, see docs/animation-guide.md
+  const HIT_PAUSE_MS = 70;
 
   // Themes are skins only: same game, different look. Original characters (no licensed IP).
   const THEMES = {
@@ -25,6 +27,7 @@
   let timer = null;
   let toastTimer = null;
   let cellEls = [];
+  let layer = null;
   let bound = false;
   const el = {};
 
@@ -39,6 +42,7 @@
       if (S && !S.paused) eat();
     });
     document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', () => syncActors(true));
   }
 
   function theme() {
@@ -83,6 +87,9 @@
     S.paused = false;
     S.invuln = Date.now() + 1500;
     S.lastMonster = Date.now();
+    S.lastTick = Date.now();
+    S.freezeUntil = 0;
+    S.plan = null;
     placeMonsters();
     hidePanel();
     buildBoardDom();
@@ -95,6 +102,8 @@
   }
 
   function placeMonsters() {
+    (S.monsters || []).forEach((m) => m.el && m.el.remove());
+    S.plan = null;
     S.monsters = [];
     const n = monsterCount();
     let guard = 0;
@@ -115,12 +124,18 @@
       b.className = 'cell' + (cell.label.length > 5 ? ' long' : '');
       b.setAttribute('aria-label', cell.label);
       b.dataset.i = i;
-      b.innerHTML = '<span class="lbl"></span><span class="badge bp"></span><span class="badge bm"></span>';
-      b.querySelector('.lbl').textContent = cell.label;
+      b.innerHTML = '<span class="lbl"></span>';
+      const lbl = b.querySelector('.lbl');
+      lbl.textContent = cell.label;
+      lbl.style.animationDelay = i * 12 + 'ms';
       b.addEventListener('click', () => onCell(i));
       el.board.appendChild(b);
       return b;
     });
+    layer = document.createElement('div');
+    layer.className = 'actors';
+    el.board.appendChild(layer);
+    S.pActor = null;
     el.ruleTitle.textContent = S.rule.title;
     el.ruleHint.textContent = S.rule.hint;
     el.levelNo.textContent = 'Level ' + S.level;
@@ -138,11 +153,78 @@
       b.classList.toggle('eaten', cell.eaten);
       b.classList.toggle('player', i === pi);
       b.classList.toggle('target', i === S.target);
-      badge(b.querySelector('.bp'), i === pi, th.player, th.art && th.art.player);
-      badge(b.querySelector('.bm'), monsterAt.has(i), th.monster, th.art && th.art.monster);
     });
+    syncActors(false);
     el.hearts.textContent = '❤️'.repeat(S.lives) + '🤍'.repeat(Math.max(0, 3 - S.lives));
     el.left.textContent = '🎯 ' + remaining() + ' left';
+  }
+
+  /* ---------- actors: persistent sprites that glide between cells (see docs/animation-guide.md) ---------- */
+
+  function makeActor(cls, emoji, art) {
+    const a = document.createElement('div');
+    a.className = 'actor ' + cls + ' snap';
+    const bd = document.createElement('span');
+    bd.className = 'badge ' + (cls === 'pl' ? 'bp' : 'bm');
+    a.appendChild(bd);
+    badge(bd, true, emoji, art);
+    layer.appendChild(a);
+    a.badge = bd;
+    return a;
+  }
+
+  function place(a, r, c, snap) {
+    const cell = cellEls[r * COLS + c];
+    if (!cell) return;
+    if (snap) a.classList.add('snap');
+    a.style.width = cell.offsetWidth + 'px';
+    a.style.height = cell.offsetHeight + 'px';
+    a.style.transform = 'translate(' + cell.offsetLeft + 'px,' + cell.offsetTop + 'px)';
+    if (snap) {
+      void a.offsetWidth; // commit the jump with no transition, then let later moves glide
+      a.classList.remove('snap');
+    }
+  }
+
+  function syncActors(snapAll) {
+    if (!layer || !S) return;
+    const th = theme();
+    if (!S.pActor) S.pActor = makeActor('pl', th.player, th.art && th.art.player);
+    place(S.pActor, S.player.r, S.player.c, snapAll || S.snapPlayer);
+    S.snapPlayer = false;
+    S.monsters.forEach((m) => {
+      if (!m.el) {
+        m.el = makeActor('mon', th.monster, th.art && th.art.monster);
+        place(m.el, m.r, m.c, true);
+      } else place(m.el, m.r, m.c, snapAll);
+    });
+  }
+
+  /** Restart a short CSS animation class; a timer (not animationend) clears it, so reduced motion can never hang the game. */
+  function flash(node, cls, ms) {
+    if (!node) return;
+    node.classList.remove(cls);
+    void node.offsetWidth;
+    node.classList.add(cls);
+    clearTimeout(node['_t' + cls]);
+    node['_t' + cls] = setTimeout(() => node.classList.remove(cls), ms);
+  }
+
+  function celebrate() {
+    flash(el.board, 'bounce', 340);
+    const colors = ['#ffd54f', '#ff8a65', '#4fc3f7', '#81c784', '#ba68c8'];
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement('span');
+      s.className = 'conf';
+      const ang = (i / 12) * Math.PI * 2 + Math.random() * 0.4;
+      const dist = 70 + Math.random() * 70;
+      s.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(ang) * dist - 30 + 'px');
+      s.style.setProperty('--r', Math.round(Math.random() * 540 - 270) + 'deg');
+      s.style.setProperty('--c', colors[i % colors.length]);
+      layer.appendChild(s);
+      setTimeout(() => s.remove(), 900);
+    }
   }
 
   /** Shows a sprite (or the emoji fallback) in a badge, only touching the DOM when it changes so taps are never lost. */
@@ -241,7 +323,9 @@
     const r = S.player.r + dr;
     const c = S.player.c + dc;
     if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    if (Date.now() < S.freezeUntil) return;
     S.player = { r, c };
+    if (S.pActor) flash(S.pActor.badge, 'hop', 140);
     Sfx.play('step');
     checkHit();
     if (S && !S.paused) update();
@@ -252,6 +336,9 @@
   function tick() {
     if (!S || S.paused || document.hidden) return;
     const now = Date.now();
+    if (now - S.lastTick > 500) S.lastMonster += now - S.lastTick; // time spent in a panel or hidden tab must not eat the glitch warning
+    S.lastTick = now;
+    if (now < S.freezeUntil) return;
     let changed = false;
     if (S.target != null) {
       const tr = Math.floor(S.target / COLS);
@@ -264,25 +351,52 @@
       }
       changed = true;
     }
-    if (S && !S.paused && S.monsters.length && now - S.lastMonster >= MONSTER_INTERVAL[ctx.profile.settings.stars - 1]) {
-      S.lastMonster = now;
-      moveMonsters();
-      checkHit();
-      changed = true;
+    if (S && !S.paused && S.monsters.length) {
+      const st = ctx.profile.settings;
+      const iv = MONSTER_INTERVAL[st.stars - 1];
+      const tell = TELL_MS[st.stars - 1] + (st.band === 'K-1' ? 100 : 0);
+      const since = now - S.lastMonster;
+      if (!S.plan && since >= iv - tell && since < iv) {
+        S.plan = planMonsters();
+        S.monsters.forEach((m, k) => {
+          if (!m.el) return;
+          m.el.badge.style.setProperty('--tell', tell + 'ms');
+          m.el.badge.style.setProperty('--lx', S.plan[k][1] * 7 + 'px');
+          m.el.badge.style.setProperty('--ly', S.plan[k][0] * 5 + 'px');
+          m.el.badge.classList.add('tell');
+        });
+      }
+      if (since >= iv) {
+        S.lastMonster = now;
+        moveMonsters(S.plan);
+        S.plan = null;
+        checkHit();
+        changed = true;
+      }
     }
     if (changed && S && !S.paused) update();
   }
 
-  function moveMonsters() {
-    S.monsters.forEach((m) => {
+  function planMonsters() {
+    return S.monsters.map((m) => {
       const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dr, dc]) => {
         const r = m.r + dr;
         const c = m.c + dc;
         return r >= 0 && r < ROWS && c >= 0 && c < COLS;
       });
-      const [dr, dc] = opts[MG.rnd(0, opts.length - 1)];
-      m.r += dr;
-      m.c += dc;
+      return opts[MG.rnd(0, opts.length - 1)];
+    });
+  }
+
+  function moveMonsters(plan) {
+    const p = plan || planMonsters();
+    S.monsters.forEach((m, k) => {
+      m.r += p[k][0];
+      m.c += p[k][1];
+      if (m.el) {
+        m.el.badge.classList.remove('tell');
+        flash(m.el.badge, 'land', 160);
+      }
     });
   }
 
@@ -303,7 +417,11 @@
       return;
     }
     S.player = { r: 0, c: 0 };
+    S.snapPlayer = true;
     S.invuln = Date.now() + 1500;
+    S.freezeUntil = Date.now() + HIT_PAUSE_MS;
+    flash(el.board, 'shake', 220);
+    if (S.pActor) flash(S.pActor.badge, 'hurt', 900);
     placeMonsters();
     toast('Bump! Watch out for the glitches.', false);
   }
@@ -313,10 +431,12 @@
     const cell = S.cells[i];
     if (cell.eaten) return;
     cell.eaten = true;
+    if (S.pActor) flash(S.pActor.badge, 'chomp', 150);
     if (cell.correct) {
       Sfx.play('correct');
       pop(i, true);
       Store.record(ctx.profile, S.rule.id, true);
+      ctx.onSave(); // save every right answer: closing the tab mid-level must not lose them
       toast('✓ ' + S.rule.ok(cell), true);
       if (remaining() === 0) levelDone();
       else update();
@@ -328,7 +448,10 @@
       S.lives--;
       ctx.onSave();
       const out = S.lives <= 0;
-      showPanel({
+      S.paused = true; // block input while the cell wobbles, then explain
+      S.target = null;
+      flash(cellEls[i], 'wobble', 300);
+      setTimeout(() => S && showPanel({
         icon: 'ui/emote_question',
         title: 'Not quite!',
         text: S.rule.why(cell) + (out ? " You're out of hearts. Let's try this rule again with a new board." : ''),
@@ -339,7 +462,7 @@
           update();
         },
         bad: true,
-      });
+      }), 260);
     }
   }
 
@@ -366,6 +489,7 @@
       };
     }
     ctx.onSave();
+    celebrate();
     showPanel(opts);
   }
 

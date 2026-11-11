@@ -237,5 +237,28 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.strictEqual(f.team, undefined, 'merging never invents a team; the game computes its own default when reading');
 }
 
+/* ---------- merging in place keeps object identity (a running game must keep saving into live data) ---------- */
+{
+  const mk = (id, name) => Save.newProfile({ id, name, avatar: 'x', now: 1 });
+  const local = Save.newData();
+  local.profiles.push(mk('p1', 'One'), mk('p2', 'Two'));
+  const held = local.profiles[0]; // what a game holds
+  const heldArray = local.profiles;
+  const remote = clone(local);
+  Save.incCounter((remote.profiles[0].games.munchers = { levels: {} }).levels, 'pad', 7);
+  remote.profiles.push(mk('p3', 'Three'));
+  remote.deleted.p2 = 99; remote.profiles = remote.profiles.filter((p) => p.id !== 'p2');
+  const merged = Save.mergeData(local, remote);
+  Save.assignInPlace(local, merged);
+  assert.strictEqual(local.profiles, heldArray, 'the profiles array is the same object');
+  assert.strictEqual(local.profiles[0], held, 'an existing profile is updated in place, not replaced');
+  assert.strictEqual(Save.sumCounter(held.games.munchers.levels), 7, 'and it holds the merged progress');
+  assert.deepStrictEqual(local.profiles.map((p) => p.id), ['p1', 'p3'], 'removed players go, new players arrive');
+  assert.deepStrictEqual(Save.canon(local), Save.canon(merged), 'the result equals the merge');
+  // a game that keeps saving into `held` after a merge still saves into live data
+  Save.incCounter(held.games.munchers.levels, 'lap', 1);
+  assert.strictEqual(Save.sumCounter(local.profiles[0].games.munchers.levels), 8);
+}
+
 console.log(`OK: migration verified; merge is commutative, associative and idempotent over ${laws} random multi-device histories; ` +
   `no progress lost over 300 more; all devices converge across ${syncs} simulated syncs.`);
