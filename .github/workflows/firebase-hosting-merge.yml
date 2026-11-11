@@ -61,7 +61,7 @@ jobs:
           for attempt in 1 2 3 4 5 6; do
             failed=""
             for p in js/quest.js assets/kenney/tiles/Wood.png css/style.css; do check "$p" 200 || failed="$failed $p(should be public)"; done
-            for p in .git/HEAD .git/config .github/workflows/firebase-hosting-merge.yml tools/deploy-hosting.sh tools/build-site.sh firebase.json firestore.rules docs/work-streams.md README.md tests/save.test.js; do check "$p" 404 || failed="$failed $p(must NOT be public)"; done
+            for p in .git/HEAD .git/config .github/workflows/firebase-hosting-merge.yml tools/deploy-hosting.sh tools/build-site.sh firebase.json firestore.rules skills-lock.json CLAUDE.md docs/work-streams.md README.md tests/save.test.js; do check "$p" 404 || failed="$failed $p(must NOT be public)"; done
             [ -z "$failed" ] && { echo "Live site check passed on attempt $attempt."; exit 0; }
             echo "Attempt $attempt:$failed"; sleep 10
           done
