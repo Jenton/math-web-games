@@ -43,7 +43,11 @@
     if (!loading[file]) {
       loading[file] = fetch(BASE + file + '.m4a')
         .then((r) => r.arrayBuffer())
-        .then((data) => new Promise((ok, no) => c.decodeAudioData(data, ok, no)))
+        .then((data) => new Promise((ok, no) => {
+          // decodeAudioData also returns its own promise; handle it too, or a browser that cannot decode AAC logs an unhandled rejection on every sound
+          const p = c.decodeAudioData(data, ok, no);
+          if (p && p.catch) p.catch(() => {});
+        }))
         .then((buf) => (buffers[file] = buf))
         .catch(() => { delete loading[file]; return null; });
     }
