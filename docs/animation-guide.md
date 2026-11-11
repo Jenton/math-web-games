@@ -236,7 +236,12 @@ opacity-only ring; reaching it hits the target tile, bursts 8-12 confetti pieces
 With "Reduce motion" (or the device setting) there is no wait and no confetti: the panel opens at once. Its CSS lives in `css/motion.css`
 (new file, to keep `css/style.css` conflicts away); `UI.flash`, `UI.burst` and `UI.reduced` in `js/ui.js` are the shared helpers for the next games.
 
-Not yet done: Creature Quest / Lemonade Stand / Number Defense. Balance is blocked on the rework
+**Lemonade Stand (done, on the branch):** the existing customer walk-in/out and emotes are kept. Added: coins tap and drop into the tray, totals and
+stock counts tick, a stock icon drops in per `+`, a wrong price card shakes gently, messages slide in, the "Next job" button gets a one-time nudge,
+the customer at the counter has a slow idle bob, and the end-of-day panel is preceded by a small confetti burst. Also fixed: the whole waiting
+queue used to replay its entrance on every job; now only newly arrived animals animate. Its CSS is in `css/motion.css`.
+
+Not yet done: Creature Quest / Number Defense. Balance is blocked on the rework
 stream (see `docs/work-streams.md`): its scale will tip only after lock-in, which changes what there is to animate.
 
 ## 8. How to check an animation actually works
@@ -322,3 +327,16 @@ Still open: no authoritative source found for the specific millisecond values; t
 6. **Caught while writing the CSS:** the always-on glow out-ranked the pop/hit animations on the same element (specificity), and the drop-in would replay after every tap. Both fixed before shipping (one-shot classes are timer-removed; glow moved to a pseudo-element).
 7. **Checked and fine:** extra taps and Undo/Start over are ignored during the celebration, and a timer (not an animation event) opens the panel; leaving the game mid-celebration cannot pop a stale panel; confetti cleans up; reduced-motion play completes; no console errors.
 8. **Not verified:** real-finger feel; whether the 350 ms beat before the panel feels slow to kids (try 250 ms if so).
+
+### Review log: Lemonade Stand pass
+
+1. **Existing glitch found and fixed:** the waiting queue rebuilt its images every job, so every animal replayed its entrance each time. Now only new arrivals animate.
+2. **Stock icon drop:** once the icon row hits its 40-icon cap, a `+` would still animate an old icon. Now only genuinely new icons drop.
+3. **Per-job effects kept tiny:** a confetti burst on every correct job would be tiring (guide section 3), so jobs get only the existing emote plus small
+   tap/drop/tick motion; the burst is reserved for the end of the day and skipped when motion is off.
+4. **Idle bob scoped:** `:not(.leave)` keeps the existing leave animation winning, and the whole rule sits inside `no-preference`, so a device-level reduce-motion
+   setting still stops it (a 3-class selector would otherwise out-rank the existing 2-class reduce-motion override).
+5. **Checked:** every effect fires on the right job type (change, stock, price); with "Reduce motion" on no confetti spawns and the game plays through; no console errors.
+6. **Known and left alone:** the existing walk-in (~0.9 s) and leave (~0.95 s) are longer than the guide's ladder, but they are scene motion, never block input and are skipped by the next job.
+   The idle bob keeps running while the player reads the word problem; it is 3 px and slow, but if it distracts, pause it while the question is on screen.
+7. **Not verified:** real-finger feel, and the end-of-day burst size on small phones.

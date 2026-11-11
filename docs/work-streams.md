@@ -14,7 +14,7 @@ Last updated: 11 Nov 2026 (evening).
 | Escape Room (new game) | `escape-room` | PR open for review | `js/elogic.js`, `js/escape.js`, `css/escape.css`, `tests/escape.test.js`, `assets/kenney/escape/` | nothing |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
 | Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
-| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is built and awaiting "ship it". Next: Lemonade Stand, Number Defense. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js` | Balance rework merged (for Balance only) |
+| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is merged. Lemonade Stand is built and awaiting "ship it". Next: Number Defense. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js`, `js/lemonade.js` (motion hooks only) | Balance rework merged (for Balance only) |
 | Done and merged | PR #6 Kenney art and sound, #7 Number Defense, #8 Lemonade Stand | Merged | | |
 
 ## Merge order
