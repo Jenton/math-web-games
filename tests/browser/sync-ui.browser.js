@@ -120,7 +120,17 @@ const stored = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('ma
 
   /* ---- 3. play on B (real game), see it on A ---- */
   await B.page.click('.player-card:not(.add)'); await B.page.click('[data-game=balance]'); await B.page.click('#playNow');
-  for (let i = 0; i < 60; i++) { await B.page.click('#gPlus'); await B.page.click('#balCheck'); if (await B.page.locator('#panel:not([hidden])').count()) break; }
+  // Balance now gives a few tries and does not tip as you change the number, so work the answer out from the equation (no spamming).
+  const solveBalance = async (pg) => {
+    const eq = (await pg.textContent('#balSums')).split('·')[0].trim();
+    const [l, r] = eq.split(' = ');
+    const ev = (s, v) => s.split(' + ').reduce((t, x) => t + (x.includes('?') ? (x.includes('×') ? +x.split(' × ')[0] : 1) * v : +x), 0);
+    let v = 0;
+    while (ev(l, v) !== ev(r, v)) v++;
+    for (let i = 0; i < v; i++) await pg.click('#gPlus');
+    await pg.click('#balCheck');
+  };
+  await solveBalance(B.page);
   assert.match(await B.page.textContent('#panelTitle'), /Balanced/);
   await B.page.click('#panelBtn'); await B.page.click('#balBack');
   const revBefore = [...cloud.docs.values()][0].rev;

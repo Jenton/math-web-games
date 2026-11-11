@@ -84,6 +84,8 @@ v2 save succeeds.
   Firebase web config values are not secret (access is controlled by the Firestore rules); the config can live in the repo.
 
 ## Status
+
+**Summary (Nov 2026): Stages 1 to 4 are all built and live.** Cloud sync works end to end against Firebase project `math-quest-family`. The per-stage notes below are the build history; the parts to read before changing anything are "How the code works now" and "Stage 3 (Firebase)".
 **Stage 1 is BUILT** (storage restructure, no backend): `js/save.js` (v2 format, v1 migration, merge, per-game schemas),
 `js/storage.js` (the `Store` API games use), every game moved onto it, and `tests/save.test.js` (random multi-device histories prove
 merge is commutative, associative and idempotent, never loses progress, and that devices converge). Browser-checked: a v1 save migrates with

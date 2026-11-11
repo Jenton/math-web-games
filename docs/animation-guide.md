@@ -361,3 +361,48 @@ Still open: no authoritative source found for the specific millisecond values; t
 7. **Coupling to know about:** `.td-card.pick`, `#tdGold.tick` and `#tdGold.shake` reuse the `lem-*` keyframes from the Lemonade section of `css/motion.css`.
    If those are renamed or moved, update these too (a shared keyframes block would be cleaner).
 8. **Not verified:** real-finger feel; whether idle-bobbing towers during planning distract from reading the incoming numbers (turn it off if so).
+
+---
+
+## Balance: animation plan (ready to apply once the rework merges)
+
+Status, 11 Nov: the Balance rework (`feature/sort-share-balance-rework`, one commit, no PR yet) is **not on `main`**, and it owns `js/balance.js`. Nothing is animated yet,
+so the two streams never edit the same file. Today's `main` version tips the scale *live* while you change the number; the rework removes that on purpose
+(no totals, the scale tips only to answer a lock-in, a few tries), so the animation has to be designed around the new flow:
+
+| Moment | Plan | Notes |
+|---|---|---|
+| Puzzle start | blocks drop onto the pans one after another (`lem-drop` style, ~60 ms stagger), then rest | no idle bob: the player is reasoning, keep the screen calm |
+| Changing the number | value ticks (`UI.flash(.., 'tick')`); the scale stays level | it must NOT tilt: that would give the answer away and defeat the rework |
+| Lock in (the key moment) | a short *weighing* beat (~150 ms, pans sway about 2 degrees), then the tilt reveals with the existing overshoot | anticipation before the reveal makes the answer feel earned. Keep the beat under ~200 ms so it never feels like lag |
+| Wrong, tries left | tilt toward the heavier side holds; the lost try pops (pips would beat text), message slides in | gentle, never a harsh shake; the explanation stays on screen until the next change |
+| Wrong, out of tries | tilt, then the steps panel after a ~250 ms beat | non-punishing; no red flash |
+| Right | scale levels, mystery blocks hop (already in CSS), small confetti, panel after ~330 ms | no wait and no confetti with Reduce motion |
+
+Rules to honor while doing it: only the lock-in result tilts the scale; sound stays paired with the tilt (`solved` / `wrong` / `lose` fire on the reveal frame, not before);
+use `UI.flash` / `UI.burst` / `UI.reduced`; put CSS in `css/motion.css` (a Balance section); keep `js/balance.js` edits to small labelled hooks;
+and finish with the same adversarial review and browser check as every other game. One markup change needs the rework owner's agreement: replacing the
+"N tries left" text with visible pips (the plan above assumes pips; text-only also works with just the message slide).
+
+**Trigger to start:** `git log origin/main -- js/balance.js` shows the rework merged. Then merge `main`, apply the plan, review, and ship.
+
+---
+
+## Sort & Rule and Cut & Share: animation plan (static scene is built; motion waits for the owner's playtest notes)
+
+Both games were brought up to the polish bar in the same PR as their scene art, with all motion deliberately left for this pass. When the owner sends notes, apply:
+
+| Game | Moment | Plan |
+|---|---|---|
+| Sort & Rule | idle | guard bobs slowly (idle life, 3 px) and blinks the emote now and then; stops while the player is reading hints |
+| Sort & Rule | tap a number | the tile lifts out of the tray, travels to the gate along an arc (200-300 ms), then to its lane; the lane tile drops in with `lem-drop` |
+| Sort & Rule | passes | door swings open (swap `t46` to `t10` with a quick scale in X), happy emote pops; closes again after ~400 ms |
+| Sort & Rule | stopped | the door stays shut, the guard steps forward (small lunge) and the tile bounces back to the stopped lane; gentle, never harsh |
+| Sort & Rule | win / lose | small confetti burst then the panel after a ~330 ms beat (skipped with Reduce motion); the gate opens wide on a win |
+| Cut & Share | idle | friends bob out of phase (2 px); plates sit still so the fraction reads clearly |
+| Cut & Share | change cuts/each | the pizza redraw pops (`tick`), the plates' filled slices pop in one by one |
+| Cut & Share | Share it! | slices travel from the pizzas to each friend's plate in turn (the 'path of the action'); a friend with too little shakes gently, a served friend hops |
+| Cut & Share | win / lose | confetti on win; on lose the missing slices flash on the empty plates |
+
+Reuse `UI.flash`, `UI.burst`, `UI.reduced` and the keyframes in `css/motion.css`; derive durations from one tick so nothing outlasts it; every effect must be skipped
+(no waits, no particles) under Reduce motion; and finish with the standard adversarial review and a browser check.
