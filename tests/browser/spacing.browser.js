@@ -42,6 +42,8 @@ const measure = () => {
       await page.click('#playNow'); await page.waitForTimeout(250);
       await note(g + ' game');
       if (g === 'quest') {
+        await page.click('#qMapBtn'); await page.waitForSelector('#qMap:not([hidden])'); await note('quest world map');
+        await page.click('#qMapBack'); await page.waitForSelector('#qHome:not([hidden])');
         await page.click('#qBegin'); await note('quest prep');
         await page.click('#qFight'); await page.waitForSelector('#qBattle:not([hidden])'); await page.waitForTimeout(200); await note('quest battle');
       }
@@ -51,6 +53,7 @@ const measure = () => {
   await browser.close();
   server.close();
   const tight = rows.filter((r) => r.gap < MIN_GAP);
+  assert.ok(rows.some((r) => r.where === 'quest world map'), 'the world map screen was measured');
   assert.ok(rows.length >= 20, 'expected to measure every screen (measured ' + rows.length + ')');
   assert.deepStrictEqual(tight, [], 'back buttons with less than ' + MIN_GAP + 'px of space below: ' + JSON.stringify(tight));
   console.log('OK: ' + rows.length + ' back buttons measured across ' + new Set(rows.map((r) => r.where)).size + ' screens, phone and desktop; the smallest gap is ' + Math.min(...rows.map((r) => r.gap)) + 'px (minimum ' + MIN_GAP + 'px).');

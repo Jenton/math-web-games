@@ -70,9 +70,11 @@
       const im = el('img', 'lem-wait');
       im.src = IMG + 'animals/' + a + '.png';
       im.alt = '';
-      im.style.animationDelay = i * 0.12 + 's';
+      if (i < (S.queueShown || 0)) im.style.animation = 'none'; // already in line: do not replay the entrance on every job
+      else im.style.animationDelay = (i - (S.queueShown || 0)) * 0.12 + 's';
       q.appendChild(im);
     });
+    S.queueShown = S.waiting.length;
     const more = S.day_.cups - S.waiting.length - (S.served || 0);
     if (S.waiting.length && more > 0 && S.i >= 1) q.appendChild(el('span', 'lem-more', '+' + more));
   }
@@ -86,6 +88,7 @@
     if (p.kind === 'price') {
       S.waiting = Array.from({ length: Math.min(S.day_.cups, 6) }, randAnimal);
       S.served = 0;
+      S.queueShown = 0;
       who.src = IMG + 'animals/' + randAnimal() + '.png';
     } else if (p.kind === 'change' && S.waiting.length) {
       who.src = IMG + 'animals/' + S.waiting.shift() + '.png';
@@ -127,6 +130,7 @@
     const m = $('lemMsg');
     m.textContent = text;
     m.className = 'sums ' + (good ? 'lem-good' : 'lem-bad');
+    UI.flash(m, 'in', 220);
   }
 
   /** Record the attempt and, when right, show the result and move on. */
@@ -153,6 +157,7 @@
     go.hidden = false;
     go.textContent = last ? 'Close the stand' : 'Next job';
     go.focus();
+    UI.flash(go, 'attn', 440);
     S.go = last ? endDay : () => { S.i++; job(); };
     return true;
   }
@@ -166,22 +171,25 @@
     const tray = el('div', 'lem-tray');
     const total = el('div', 'lem-total');
     const given = [];
+    let fresh = null; // value of the coin just added, so only it drops into the tray
     const paint = () => {
       tray.innerHTML = '';
       given.forEach((c, k) => {
         const b = coinBtn(c, true);
         b.setAttribute('aria-label', 'Take back ' + M().money(c));
         b.addEventListener('click', () => { if (S.done) return; given.splice(k, 1); paint(); });
+        if (fresh === c) { UI.flash(b, 'drop', 240); fresh = null; }
         tray.appendChild(b);
       });
       if (!given.length) tray.appendChild(el('span', 'note', 'Tap coins to add them to the change.'));
-      total.textContent = 'Change so far: ' + M().money(given.reduce((a, b) => a + b, 0));
+      const sum = 'Change so far: ' + M().money(given.reduce((a, b) => a + b, 0));
+      if (total.textContent !== sum) { total.textContent = sum; UI.flash(total, 'tick', 180); }
     };
     const box = el('div', 'lem-coins');
     p.coins.forEach((c) => {
       const b = coinBtn(c);
       b.setAttribute('aria-label', 'Add ' + M().money(c));
-      b.addEventListener('click', () => { if (S.done) return; given.push(c); given.sort((a, b2) => b2 - a); paint(); });
+      b.addEventListener('click', () => { if (S.done) return; given.push(c); given.sort((a, b2) => b2 - a); fresh = c; UI.flash(b, 'tap', 150); paint(); });
       box.appendChild(b);
     });
     const clear = el('button', 'btn ghost small', 'Clear');
@@ -218,7 +226,14 @@
         else { const im = el('img'); im.src = IMG + 'pitcher.png'; im.alt = ''; art.appendChild(im); }
       }
     };
-    const set = (v) => { if (S.done) return; n = Math.max(0, Math.min(p.max, v)); paint(); };
+    const set = (v) => {
+      if (S.done) return;
+      const was = n;
+      n = Math.max(0, Math.min(p.max, v));
+      paint();
+      if (n !== was) UI.flash(val, 'tick', 180);
+      if (n > was && n <= 40 && art.lastChild) UI.flash(art.lastChild, 'drop', 240); // only a genuinely new item drops in (the icon row stops growing at 40)
+    };
     minus.addEventListener('click', () => set(n - 1));
     plus.addEventListener('click', () => set(n + 1));
     row.append(minus, val, plus);
@@ -243,8 +258,7 @@
       b.addEventListener('click', () => {
         if (S.done || b.disabled) return;
         const ok = answer(M().checkPrice(p, i));
-        if (ok) b.classList.add('on');
-        else b.disabled = true;
+        if (ok) { b.classList.add('on'); UI.flash(b, 'lem-pop', 260); } else { UI.flash(b, 'lem-shake', 300); b.disabled = true; }
       });
       grid.appendChild(b);
     });
@@ -262,6 +276,8 @@
     if (perfect) Store.bump(g, 'perfect');
     ctx.onSave();
     Sfx.play('win');
+    const scene = document.querySelector('.lem-scene');
+    if (scene && !UI.reduced()) UI.burst(scene, perfect ? 12 : 6);
     UI.panel({
       icon: perfect ? 'medals/m3' : 'medals/m1',
       title: perfect ? 'A perfect day! 🌟' : 'Day ' + S.day + ' done! 🎉',
