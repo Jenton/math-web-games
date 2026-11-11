@@ -1,5 +1,10 @@
 # Deploys the site to Firebase Hosting (https://math-quest-family.web.app) every time something is merged into main,
 # but only if the node tests pass. The secret was created by `firebase init hosting:github`.
+#
+# What gets published is NOT the repo checkout. tools/build-site.sh builds a clean folder (_site) holding only the files the game
+# needs, because deploying the checkout itself publishes .git (and the job's checkout credential header), .github, tools and more.
+# tests/site-build.test.js (run by the test job) checks that folder is complete and contains nothing private, and the last step
+# of this workflow checks the LIVE site the same way after publishing.
 name: Test, then deploy to Firebase Hosting
 on:
   push:
@@ -10,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -22,9 +29,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false   # do not leave the job's token inside .git
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the folder to publish (only the game's files)
+        run: tools/build-site.sh _site
+      - name: Check the folder before publishing
+        run: |
+          set -e
+          test -f _site/index.html
+          test -f _site/assets/kenney/tiles/Wood.png
+          if find _site -name '.*' -not -name '.' | grep -q .; then echo "hidden files in the publish folder:"; find _site -name '.*' -not -name '.'; exit 1; fi
+          if find _site \( -name '*.md' -o -path '_site/docs/*' -o -path '_site/tests/*' -o -path '_site/tools/*' \) | grep -q .; then echo "docs, tests, tools or markdown in the publish folder"; exit 1; fi
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MATH_QUEST_FAMILY }}
           channelId: live
           projectId: math-quest-family
+          entryPoint: _site
+      - name: Check the live site (what must be public is, and what must not be public is not)
+        run: |
+          set -u
+          SITE=https://math-quest-family.web.app
+          check() { # path, expected status
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/$1" || echo 000)
+            [ "$code" = "$2" ]
+          }
+          for attempt in 1 2 3 4 5 6; do
+            failed=""
+            for p in js/quest.js assets/kenney/tiles/Wood.png css/style.css; do check "$p" 200 || failed="$failed $p(should be public)"; done
+            for p in .git/HEAD .git/config .github/workflows/firebase-hosting-merge.yml tools/deploy-hosting.sh tools/build-site.sh firebase.json firestore.rules docs/work-streams.md README.md tests/save.test.js; do check "$p" 404 || failed="$failed $p(must NOT be public)"; done
+            [ -z "$failed" ] && { echo "Live site check passed on attempt $attempt."; exit 0; }
+            echo "Attempt $attempt:$failed"; sleep 10
+          done
+          echo "The live site does not look right:$failed"; exit 1
