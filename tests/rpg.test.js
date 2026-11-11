@@ -509,6 +509,72 @@ for (const ally of RPG.CREATURES) {
   assert.ok(w / n <= 0.5, `guessing with only ${ally.name} should still mostly lose (${(w / n).toFixed(2)})`);
 }
 
+/* ---------- story friends: 22 allies, the new eleven are expert at an existing skill and only come from the map ---------- */
+{
+  const skills = new Set(RPG.CREATURES.filter((c) => !c.story).map((c) => c.id));
+  assert.strictEqual(RPG.CREATURES.length, 22);
+  assert.strictEqual(new Set(RPG.CREATURES.map((c) => c.id)).size, 22, 'ids are unique');
+  RPG.CREATURES.filter((c) => c.story).forEach((c) => {
+    assert.ok(skills.has(c.theme), c.id + ' is an expert at a real skill (' + c.theme + ')');
+    assert.ok(c.where && c.blurb && c.effect && c.effectName && c.effectText, c.id + ' is fully described');
+    assert.strictEqual(RPG.themeOf(c.id), c.theme);
+  });
+  RPG.CREATURES.filter((c) => !c.story).forEach((c) => assert.strictEqual(RPG.themeOf(c.id), c.id));
+  // a Quick adventure never frees a story friend, and they are not offered at the start
+  for (const band of MG.BANDS) {
+    assert.ok(RPG.rescueCandidates(band, []).every((id) => !RPG.STORY_FRIENDS.includes(id)), 'Quick adventures only free the first eleven');
+    assert.ok(RPG.starters(band).every((id) => !RPG.STORY_FRIENDS.includes(id)));
+    for (let i = 0; i < 20; i++) RPG.planAdventure(band, 1 + (i % 3), []).forEach((enc) => assert.ok(!RPG.STORY_FRIENDS.includes(enc.rescue)));
+  }
+  // the expert bonus follows the theme: Bruno (multiples) hits a multiples monster harder than a primes monster
+  const find = (rule) => { for (let i = 0; i < 500; i++) { const e = RPG.makeEnemy('4-5', 2, 'weakness', null); if (e.rule.id === rule) return e; } return null; };
+  const mult = find('multiples');
+  const other = find('primes') || find('factors');
+  if (mult && other) {
+    const dmgOn = (enemy) => {
+      const b = RPG.newBattle({ band: '4-5', stars: 2, enemies: [enemy], team: ['bruno'], level: 1 });
+      const ev = RPG.play(b, RPG.currentHand(b).findIndex((c) => c.correct));
+      return { dmg: ev.hits[0].amount, specialist: ev.specialist };
+    };
+    const a = dmgOn(mult);
+    const c = dmgOn(other);
+    assert.ok(a.specialist && !c.specialist && a.dmg === c.dmg + T.SPECIALIST_BONUS, 'Bruno is an expert against multiples only');
+  }
+}
+
+/* ---------- camp buffs: a head start that only helps, and never replaces the math ---------- */
+{
+  assert.deepStrictEqual(Object.keys(RPG.BUFFS).sort(), ['hint', 'shield']);
+  for (const band of MG.BANDS) for (let stars = 1; stars <= 3; stars++) for (let i = 0; i < 20; i++) {
+    const enc = RPG.makeEncounter(band, stars, ['weakness', 'weakness'], {});
+    const fresh = () => RPG.newBattle({ band, stars, enemies: enc.enemies, team: ['multiples'], level: 1 });
+    // shield: the first enemy attack is blocked, the rest still land
+    let b = fresh();
+    assert.strictEqual(RPG.applyBuff(b, 'shield'), true);
+    assert.strictEqual(b.shield, 1);
+    const wrong = RPG.currentHand(b).findIndex((c) => !c.correct);
+    const hp0 = b.teamHp;
+    const ev = RPG.play(b, wrong);
+    assert.ok(ev.attacks[0].blocked, 'the first attack is blocked');
+    assert.ok(ev.attacks.length < 2 || !ev.attacks[1].blocked, 'only one attack is blocked');
+    assert.ok(b.teamHp > hp0 - ev.attacks.reduce((n, a) => n + a.dmg, 0) - 1, 'a block can only save health');
+    // hint: every hand is one card shorter, still has a right card and a wrong card
+    b = fresh();
+    const before = b.hands.map((h) => h.length);
+    RPG.applyBuff(b, 'hint');
+    b.hands.forEach((h, k) => {
+      assert.strictEqual(h.length, before[k] - 1);
+      assert.ok(h.some((c) => c.correct) && h.some((c) => !c.correct), 'the choice stays real');
+    });
+    // a buff never makes a wrong card right
+    assert.ok(!RPG.currentHand(b)[RPG.currentHand(b).findIndex((c) => !c.correct)].correct);
+    // shield never stacks past the cap
+    b = fresh(); RPG.applyBuff(b, 'shield'); RPG.applyBuff(b, 'shield'); RPG.applyBuff(b, 'shield');
+    assert.ok(b.shield <= T.SHIELD_MAX);
+  }
+  assert.strictEqual(RPG.applyBuff({ shield: 0, hands: [] }, 'nope'), false, 'unknown buffs do nothing');
+}
+
 const pct = (x) => (100 * x).toFixed(0) + '%';
 console.log(`OK: ${hands} hands; encounters, rescues, enemy retaliation and all ally effects verified. Win rates (1/2/3 stars): ` +
   `perfect ${[1, 2, 3].map((s) => pct(Bots.byStars(perfect, s))).join('/')}, perfect with any ally ${[1, 2, 3].map((s) => pct(Bots.byStars(anyAlly, s))).join('/')} ` +

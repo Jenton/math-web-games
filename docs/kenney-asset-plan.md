@@ -94,3 +94,23 @@ Fantasy skin with Tiny Dungeon). That keeps one art setting per player, consiste
 - Portal: Kenney Future headings, sprite icons on the game cards, `assets/CREDITS.md`.
 - Deviations from the plan above: Tiny Dungeon (pixel) was not used, so the three games are all the smooth style; no Particle/Generic Items beyond one star.
   Creature Quest is untouched except its card icon (a medal). Voice numbers play only in Balance.
+
+## Sound choices: why, and what was wrong (Nov 2026)
+**The rule:** a *success* sound must rise in pitch and end high. A sound that ends on falling notes reads as an error or a fail to a
+child, however "positive" its filename sounds.
+
+**What went wrong:** I picked the unlock sound `sfx/solved` (Kenney Digital Audio `powerUp3`) because its name and category said
+"power-up = reward". I never listened to its contour. Measured with `tools/sound_pitch.py`, it starts with a rising sweep (about 370 Hz up
+to 1,300 Hz) but ends on a *descending run of notes* (1,333, 1,230, 1,142 Hz, then a low 551 Hz tail), which is exactly the
+"series of notes going down" the owner heard. Two of the three win jingles had the same problem: `jingles-pizzicato_03` and `_07`
+ended lower than they started.
+
+**Where it was used:** `Sfx.play('solved')` in Escape Room (a chest opens) and Balance (the scale levels). The win jingles
+(`Sfx.play('win')`) play in Munchers (level cleared), Balance, Machine Builder, Number Defense, Lemonade Stand and Escape Room.
+`correct` (the coin ding, Retro Sounds 2 `coin3`) is a clean upward sweep and was not affected.
+
+**What changed:** `solved` is now Retro Sounds 2 `upgrade4`, a steadily rising chiptune sweep (8 rises, 0 falls, ends high) in the
+same family as the coin ding. The win jingles are now only `pizzicato_00` and `pizzicato_08` (the two that rise).
+
+**How to pick sounds from now on:** run `tools/sound_pitch.py` on any candidate success sound (and listen), and prefer a rising
+contour that ends high. Error sounds should do the opposite: fall, and stay low.
