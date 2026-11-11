@@ -87,6 +87,16 @@ Everything below is open. State of play: v2 rules, sprites in two themes, the wo
 - [ ] Offline-first install (PWA) for the iPad
 - [ ] Public web address (for example GitHub Pages) so the iPad can open it without files. Needs a go-ahead first, since it makes the site public.
 
+### Creature Quest: owner feedback, Nov 2026 (second playtest)
+- **Turn order:** wanted a true turn-based RPG: every ally attacks, then every enemy. Built: a turn is one action per ally (fresh hand each), then the monster phase.
+  Monster strength was retuned (`TUNE.ENEMY_ATK`, `ENEMY_HP`, `CHARGE`) so the win rates of the simulated players stay where they were (see `tests/rpg.test.js`).
+- **Cards change with the selected monster:** the owner was unsure. Kept on purpose: every monster has its own weakness, so its cards must belong to it, which keeps the
+  math as the choice. The hand label now names the acting friend and the monster ("Owlbert attacks! Cards for the Scale Serpent..."). Revisit after the next playtest.
+- **Reset:** Quest home, "For grown-ups", "Start Creature Quest over" (confirmed). Resets only Creature Quest; sync-safe via `resetAt` (see `docs/sync-design.md`).
+- **Difficulty of "weak to numbers greater / less than":** cards were drawn from the whole range, so the wrong ones were far from the target. Now difficulty is
+  closeness and size (`COMPARE` in `js/engine.js`): 1 star far apart, 3 stars within 5 and "equal to" traps; grade 2-3 uses bigger numbers than K-1 (up to three digits).
+  This rule is shared with Munchers, so Munchers got harder at 2-3 stars the same way.
+
 ### Playtest notes (add what the kids say and do)
 Write observations here so any chat can act on them. Suggested format: date, who played, game, what happened.
 - **Nov 2026, owner review of Creature Quest first slice:** graphics too plain (wants background and sprites, Earthbound-style); wants multiple enemies at once that visibly hit back; allies felt random and thin (wants story-driven rescues and many more allies that matter); "swords = power" was confusing (right answer should do damage, wrong none); worried allies-supply-cards could cause unwinnable fights. Decisions are in "Creature Quest v2".
@@ -179,9 +189,10 @@ be no team that makes a fight unwinnable. Add this to the "can it be played with
 2. The player taps an **enemy to target it**. The hand is built for that enemy's weakness (reuses `js/engine.js` rules).
    For armored enemies the card rule is the existing armor rule in `js/rpg.js`.
 3. The player picks which **ally acts** (default: the first, so the youngest player can skip this) and plays a card.
+   *(Changed Nov 2026, see "Turn order" below: every ally now gets one action per turn.)*
 4. **Right card:** damage to the target plus the acting ally's effect. **Wrong card:** no damage, and the explanation
    is shown (as today).
-5. **Every living enemy then attacks**, one after another, with visible animation and damage numbers. A wrong turn is
+5. **Every living enemy then attacks** (after EVERY ally has acted, see "Turn order"), one after another, with visible animation and damage numbers. A wrong turn is
    costly because all enemies still hit back, which is what makes guessing a bad strategy now that power is gone.
 6. Win by defeating all enemies. Lose = retry at full health (keep the gentle failure behavior).
 
@@ -369,10 +380,12 @@ The v2 decisions above are implemented except for art and the world map. What ex
 - **An adventure is 5 encounters** with groups of monsters: 1 enemy; 2; armored + 1 (a rescue); 3 (2 at 1 star); boss + a minion (a rescue). Each enemy has
   **its own weakness** and no two enemies in a fight share a skill. Lose and you retry the same encounter at full health (nothing lost).
 - **Turn:** tap a monster to target it (its hand was dealt at the start of the turn, so retargeting never re-rolls), tap an ally to choose who acts, play a
-  card. **A right card does damage (6); a wrong card does none** and is explained. **Card power and the enemy-heals penalty are gone.** Then **every living monster
-  hits back in turn** (2 for ordinary, 3 for armored and bosses), with a lunge animation, floating damage numbers and a team-health flash.
+  card. **A right card does damage (6); a wrong card does none** and is explained. **Card power and the enemy-heals penalty are gone.** **Turn order (Nov 2026):**
+  every ally acts once (any order; an ally who has acted is greyed out), each action gets a FRESH hand, and only then **every living monster hits back in turn**
+  (8 for ordinary, 9 for armored and bosses, 14 for a boss charge, with a full team of 3), with a lunge animation, floating damage numbers and a team-health flash.
+  A team of fewer than 3 acts fewer times per turn, so monster damage is scaled by team size (`RPG.enemyDmg`) and a small team stays winnable.
 - **Ally effects on a right answer** (all 11 allies have one; none is required): Hopper *sweep* (every other enemy takes half), Splish *split* (the weakest other enemy takes half),
-  Primo *crit* (+50%), Pairo *heal* (+3), Owlbert *hint* (next turn every hand loses a wrong card), Puffy and Shelly *shield* (block the next attack, max 2), Octo *combo*
+  Primo *crit* (+50%), Pairo *heal* (+3), Owlbert *hint* (the next hand loses a wrong card), Puffy and Shelly *shield* (block the next attack, max 2), Octo *combo*
   (+2 per right answer in a row, max +6), Fraxie *slice* (at least a quarter of the enemy's health), Powzer and Pebble *stun* (the target skips its next attack).
   An ally whose theme matches the target's skill is an **expert**: +3 damage and a star in the picker.
 - **Scripted rescues instead of random allies:** two encounters per adventure free a caged ally (the armored fight frees the next ally you do not own, the boss fight frees

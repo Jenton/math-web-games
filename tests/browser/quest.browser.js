@@ -31,6 +31,16 @@ const toQuest = async (page, stars = 1) => {
 const st = (page) => page.evaluate(() => { const b = Quest._state().battle; return b && { over: b.over, turn: b.turn, target: b.target, teamHp: b.teamHp, foes: b.foes.map((f) => ({ i: f.i, alive: f.alive, hp: f.hp, ch: f.charging, name: f.enemy.name })), hand: RPG.currentHand(b).map((c) => c.correct), puzzle: b.puzzle && { max: b.puzzle.max }, busy: Quest._state().busy }; });
 const idle = (page) => page.waitForFunction(() => !Quest._state().busy);
 const panelUp = (page) => page.locator('#panel:not([hidden])').count();
+const teamSize = (page) => page.evaluate(() => Quest._state().battle.team.length);
+/** Play n WRONG cards through the real buttons (each friend acts once per turn, so a full turn is one card per friend). */
+async function playWrong(page, n) {
+  for (let k = 0; k < n; k++) {
+    const s0 = await st(page);
+    await page.locator('.qcard').nth(s0.hand.indexOf(false)).click();
+    await idle(page);
+    if (await panelUp(page)) await page.click('#panelBtn');
+  }
+}
 
 /** Play the current battle to the end with perfect answers through the real buttons. */
 async function winBattle(page, opts = {}) {
@@ -81,12 +91,10 @@ async function winBattle(page, opts = {}) {
     if (battle === 3) await page.screenshot({ path: path.join(OUT, 'battle-group.png') });
     if (battle === 4) { // the boss: let two turns pass (wrong cards) so it charges on turn 3
       assert.ok(await page.locator('#qCharge').isHidden(), 'no charge on turn 1');
-      for (let n = 0; n < 2; n++) {
-        const s0 = await st(page);
-        await page.locator('.qcard').nth(s0.hand.indexOf(false)).click();
-        await idle(page);
-        if (await panelUp(page)) await page.click('#panelBtn');
-      }
+      await page.evaluate(() => { const b = Quest._state().battle; b.teamHp = b.teamMax = 99; }); // so two rounds of wrong cards cannot end the fight
+      const n = await teamSize(page);
+      await playWrong(page, 2 * n); // two full turns: every friend acts, then the monsters
+      assert.strictEqual((await st(page)).turn, 3);
       assert.ok(!(await page.locator('#qCharge').isHidden()), 'the boss charges a big attack on turn 3');
       assert.ok((await st(page)).foes.some((f) => f.ch), 'and its card shows it is charging');
       assert.ok((await page.textContent('.foe .e-tags')).includes('⚡') || (await page.$$eval('.e-tags', (e) => e.some((x) => x.textContent.includes('⚡')))));
@@ -98,10 +106,10 @@ async function winBattle(page, opts = {}) {
       assert.match(await page.textContent('#qLog'), /Cancelled/);
       assert.ok(await page.locator('#qCharge').isHidden(), 'the puzzle goes away once solved');
       const s1 = await st(page);
-      await page.locator('.qcard').nth(s1.hand.indexOf(false)).click(); // a wrong card on the stunned turn: the boss skips its attack
-      await idle(page);
-      if (await panelUp(page)) await page.click('#panelBtn');
-      assert.ok((await st(page)).teamHp >= hpBeforeLock - 2 * 3, 'the cancelled boss did not hit (only the minion did)');
+      assert.strictEqual(s1.turn, 3);
+      await playWrong(page, n); // the rest of the turn with wrong cards: the stunned boss skips its attack
+      assert.strictEqual((await st(page)).turn, 4);
+      assert.strictEqual(hpBeforeLock - (await st(page)).teamHp, 8, 'the cancelled boss did not hit (only the minion did, for 8)');
     }
     const r = await winBattle(page);
     console.log(`1.${battle + 1}`, foes.join(' + '), '=>', r.title, '|', r.text.slice(0, 120), r.sawCharge ? '(boss puzzle solved)' : '');
@@ -118,6 +126,24 @@ async function winBattle(page, opts = {}) {
   assert.strictEqual(saved.creatures.length, 5, 'three starters plus two rescued allies');
   assert.ok(sum(saved.xpEarned) > 100);
   console.log('1. adventure complete: wins', sum(saved.wins), '| XP', sum(saved.xpEarned), '| allies', saved.creatures.join(','));
+  // start over (grown-ups section): the safe button keeps everything, the other puts the game back to zero
+  const rpgSave = () => page.evaluate(() => JSON.parse(localStorage.getItem('mathQuest.v2')).profiles[0].games.rpg);
+  await page.click('#qHome summary');
+  await page.click('#qReset');
+  assert.match(await page.textContent('#panelTitle'), /Start Creature Quest over/);
+  await page.click('#panelBtn'); // "Keep my progress" is the focused, safe choice
+  assert.strictEqual((await rpgSave()).creatures.length, 5, 'keeping changes nothing');
+  await page.click('#qReset');
+  await page.click('#panelBtn2'); // "Yes, start over"
+  await page.waitForSelector('#qHome:not([hidden])');
+  const fresh = await rpgSave();
+  assert.deepStrictEqual(fresh.creatures.slice().sort(), ['factors', 'multiples', 'primes'], 'back to the three starting friends');
+  assert.strictEqual(sum(fresh.xpEarned) + sum(fresh.wins) + sum(fresh.bosses), 0);
+  assert.deepStrictEqual(fresh.cleared, []);
+  assert.ok(fresh.resetAt > 0, 'the reset is stamped so other devices follow it');
+  assert.match(await page.textContent('#qLevel'), /Level 1/);
+  assert.match(await page.textContent('#qStats'), /0 battles won/);
+  console.log('1b. start over: back to level 1 with the starting friends');
   await ctx.close();
 
   /* ===== 2. targeting, retaliation you can SEE, wrong answers, allies (3 monsters, real animation timing) ===== */
@@ -151,6 +177,12 @@ async function winBattle(page, opts = {}) {
   // play a WRONG card and watch the three monsters hit back
   const hpBefore = (await st(page)).teamHp;
   const foeHp = (await st(page)).foes.map((f) => f.hp);
+  const n2 = await teamSize(page);
+  // the monsters wait while the other friends take their turns
+  await playWrong(page, n2 - 1);
+  assert.strictEqual((await st(page)).teamHp, hpBefore, 'the monsters do not act until every friend has');
+  assert.strictEqual((await page.$$('.foe.lunge')).length, 0);
+  assert.strictEqual(await page.$$eval('.ally.done', (e) => e.length), n2 - 1, 'friends who have acted are greyed out');
   const wrongIdx = (await st(page)).hand.indexOf(false);
   await page.locator('.qcard').nth(wrongIdx).click();
   await page.waitForSelector('.foe.lunge', { timeout: 3000 });
@@ -165,7 +197,7 @@ async function winBattle(page, opts = {}) {
   assert.ok(lunged.size >= 2, 'each living monster visibly attacked (' + [...lunged] + ')');
   const after = await st(page);
   assert.deepStrictEqual(after.foes.map((f) => f.hp), foeHp, 'a wrong answer damages nobody');
-  assert.strictEqual(hpBefore - after.teamHp, 3 * 2, 'all three monsters hit for 2 each');
+  assert.strictEqual(hpBefore - after.teamHp, 3 * 8, 'all three monsters hit for 8 each');
   await page.screenshot({ path: path.join(OUT, 'battle-wrong.png') });
   await page.click('#panelBtn');
   await page.evaluate(() => { window.__questFast = true; });
