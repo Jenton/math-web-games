@@ -41,8 +41,9 @@ node tests/engine.test.js    # verifies every Munchers rule at every band/star l
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/rpg.test.js       # verifies Quest hands, armor math, progression, and that ignoring the math loses
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
+node tests/sync.test.js      # verifies cloud sync: encryption, family codes, and pull/merge/push against a fake backend
 ```
-Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/storage.js`, `js/game.js`
+Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core, not wired into the page yet), `js/storage.js`, `js/game.js`
 (Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
 
 See `docs/design-plan.md` (plan and decisions), `docs/design-review.md` (critique) and

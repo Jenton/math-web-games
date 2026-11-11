@@ -28,7 +28,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
 - [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md`
   - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
-  - [ ] Stage 2: encryption helpers + sync adapter tested against a local fake
+  - [x] Stage 2: encryption + sync core tested against a fake backend (`js/sync.js`, `tests/sync.test.js`)
   - [ ] Stage 3: Firebase project (owner's existing Google account), Hosting for the site, Firestore rules, deploy. Config and rules are written; the owner runs `docs/firebase-setup-prompt.md` in a Claude Code session on their Mac (it drives the browser). The Firebase UI is confusing to the owner, so keep instructions step by step
   - [ ] Stage 4: sync UI (set up family code, add device, sync status, manual sync)
 - [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)

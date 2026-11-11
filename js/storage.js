@@ -15,6 +15,7 @@
   let data = Save.newData();
   let ok = true;
   let deviceId = null;
+  let saveListener = null;
 
   const genId = (prefix) => prefix + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 
@@ -84,6 +85,7 @@
     } catch (e) {
       ok = false;
     }
+    if (saveListener) saveListener();
     return ok;
   }
 
@@ -147,8 +149,13 @@
     return null;
   }
 
+  /** A copy of everything saved on this device (what cloud sync reads). */
+  const snapshot = () => JSON.parse(JSON.stringify(data));
+  /** Called after every save (cloud sync uses this to schedule an upload). One listener. */
+  const onSave = (fn) => { saveListener = fn; };
+
   root.Store = {
-    load, save, newProfile, remove,
+    load, save, newProfile, remove, snapshot, onSave,
     record, stat, statSkills, game, bump, total, setField, setSettings,
     exportJSON, importJSON, mergeIn,
     get profiles() { return data.profiles; },
