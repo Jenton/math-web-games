@@ -26,7 +26,7 @@
 
   /* ================= make change ================= */
 
-  const COINS = { 'K-1': [1, 5, 10, 25], '2-3': [1, 5, 10, 25, 100], '4-5': [1, 5, 10, 25, 100, 500], '6': [1, 5, 10, 25, 100, 500] };
+  const COINS = { 'K-1': [1, 5, 10, 25, 100], '2-3': [1, 5, 10, 25, 100], '4-5': [1, 5, 10, 25, 100, 500], '6': [1, 5, 10, 25, 100, 500] };
 
   function makeChange(band, stars) {
     band = bandOf(band);
@@ -196,15 +196,94 @@
 
   /* ================= a day at the stand ================= */
 
-  /** One day is four jobs: stock up, make change, set the price, make change again. */
+  /** Stock for a known number of cups (the day's demand). Returns null when the numbers do not suit the band. */
+  function makeStockFor(band, stars, S, priceText) {
+    band = bandOf(band);
+    const st = clampStars(stars);
+    const lead = priceText + ' you will serve ' + S + ' cups today. ';
+    if (band === 'K-1') {
+      const ks = [2, 3, 4, 5].filter((k) => S % k === 0 && S / k >= 2);
+      if (!ks.length) return null;
+      const k = pick(ks);
+      const m = S / k;
+      return pack(band, st, lead + 'Each pitcher fills ' + k + ' cups. How many pitchers do you make?', m, 'pitcher',
+        S + ' cups ÷ ' + k + ' cups per pitcher = ' + plural(m, 'pitcher') + '.', (n) => n + ' × ' + k + ' = ' + n * k + ' cups, and you need ' + S + '.', S);
+    }
+    if (band === '2-3') {
+      const k = pick([4, 6, 8]);
+      const m = Math.ceil(S / k);
+      return pack(band, st, lead + 'A pitcher fills ' + k + ' cups. How many pitchers do you make?', m, 'pitcher',
+        S + ' cups ÷ ' + k + ' per pitcher is ' + (S / k).toFixed(S % k ? 1 : 0) + ', so ' + plural(m, 'pitcher') + ' (a part-pitcher still needs a whole one). ' + m + ' × ' + k + ' = ' + m * k + ' cups.',
+        (n) => n + ' × ' + k + ' = ' + n * k + ' cups, and you need ' + S + '.', S);
+    }
+    if (band === '4-5') {
+      const k = pick([6, 8, 10]);
+      const a = pick([2, 3, 4]);
+      const pitchers = Math.ceil(S / k);
+      return pack(band, st, lead + 'One pitcher uses ' + a + ' lemons and fills ' + k + ' cups. How many lemons do you buy?', pitchers * a, 'lemon',
+        S + ' cups ÷ ' + k + ' cups per pitcher means ' + plural(pitchers, 'pitcher') + ' (rounding up). ' + pitchers + ' × ' + a + ' lemons = ' + pitchers * a + ' lemons.',
+        (n) => n + ' lemons ÷ ' + a + ' per pitcher = ' + plural(Math.round((n / a) * 10) / 10, 'pitcher') + ', which fill ' + Math.round((n / a) * k * 10) / 10 + ' cups, and you need ' + S + '.', S);
+    }
+    const a = pick([2, 3, 5]);
+    const b = pick([4, 6, 8]);
+    const ans = Math.ceil((S * a) / b);
+    return pack(band, st, lead + 'The recipe uses ' + a + ' lemons for every ' + b + ' cups. How many whole lemons do you buy?', ans, 'lemon',
+      S + ' cups × ' + a + ' lemons ÷ ' + b + ' cups = ' + Math.round(((S * a) / b) * 100) / 100 + ' lemons, so buy ' + ans + ' (you cannot buy part of a lemon).',
+      (n) => n + ' lemons feeds ' + n + ' ÷ ' + a + ' × ' + b + ' = ' + Math.round((n / a) * b * 10) / 10 + ' cups, and you need ' + S + '.', S);
+  }
+
+  /** A customer buying at the day's price, so the change job uses numbers the player chose. */
+  function makeChangeFor(band, stars, unit) {
+    band = bandOf(band);
+    const st = clampStars(stars);
+    const bill = (x) => [100, 500, 1000].find((b) => b > x);
+    let owed;
+    let text;
+    let how = '';
+    if (band === 'K-1' || band === '2-3') {
+      owed = unit;
+      text = 'A customer buys a cup at your price, ' + money(unit) + ', and pays with ' + money(bill(owed)) + '.';
+    } else if (band === '4-5') {
+      const qty = rnd(2, 4);
+      owed = qty * unit;
+      text = 'A customer buys ' + qty + ' cups at ' + money(unit) + ' each and pays with ' + money(bill(owed)) + '.';
+      how = qty + ' × ' + money(unit) + ' = ' + money(owed) + '. ';
+    } else {
+      const qty = rnd(2, 4);
+      const pct = pick(st === 1 ? [50, 20] : [10, 20, 25, 50]);
+      const base = qty * unit;
+      owed = (base * (100 - pct)) / 100;
+      text = qty + ' cups at ' + money(unit) + ' each, ' + pct + '% off today. The customer pays with ' + money(bill(owed)) + '.';
+      how = qty + ' × ' + money(unit) + ' = ' + money(base) + ', and ' + pct + '% off is ' + money(base - owed) + ', so they owe ' + money(owed) + '. ';
+    }
+    const paid = bill(owed);
+    const change = paid - owed;
+    return { kind: 'change', band, stars: st, text, owed, paid, change, coins: COINS[band], why: how + money(paid) + ' − ' + money(owed) + ' = ' + money(change) + ' change.' };
+  }
+
+  /**
+   * One day is four linked jobs: set the price (which decides how many cups you will sell), stock up for exactly those cups,
+   * then make change for two customers paying that price. The day's profit is real: cups × (price − cost) − fixed costs.
+   */
   function makeDay(band, stars) {
-    return [makeStock(band, stars), makeChange(band, stars), makePrice(band, stars), makeChange(band, stars)];
+    band = bandOf(band);
+    for (let tries = 0; tries < 300; tries++) {
+      const price = makePrice(band, stars);
+      const o = price.options[price.best];
+      const stock = makeStockFor(band, stars, o.sold, 'At ' + money(o.price) + ' a cup,');
+      if (!stock) continue;
+      return {
+        jobs: [price, stock, makeChangeFor(band, stars, o.price), makeChangeFor(band, stars, o.price)],
+        price: o.price, cups: o.sold, cost: price.cost, fixed: price.fixed, profit: o.profit,
+      };
+    }
+    throw new Error('could not build a day for ' + band);
   }
 
   const SKILLS = { 'lemon-change': 'Lemonade Stand: making change', 'lemon-stock': 'Lemonade Stand: how much to buy', 'lemon-price': 'Lemonade Stand: pricing and profit' };
   const skillOf = (kind) => 'lemon-' + kind;
 
-  const api = { money, makeChange, checkChange, makeStock, checkStock, makePrice, checkPrice, explainPrice, makeDay, SKILLS, skillOf, COINS, PRICE_BAND };
+  const api = { money, makeChange, checkChange, makeStock, checkStock, makePrice, checkPrice, explainPrice, makeDay, makeStockFor, makeChangeFor, SKILLS, skillOf, COINS, PRICE_BAND };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MGS = api;
 })(typeof window !== 'undefined' ? window : globalThis);

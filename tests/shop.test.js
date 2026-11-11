@@ -40,7 +40,24 @@ for (const band of BANDS) {
       p.options.forEach((_, k) => assert.strictEqual(S.checkPrice(p, k).ok, k === p.best));
       if (stars > 1) assert.ok(p.options.length >= 4 || stars === 2);
 
-      assert.strictEqual(S.makeDay(band, stars).length, 4);
+      // a day is linked: the price you pick sets the cups, the cups set the stock, the price sets the change
+      const d = S.makeDay(band, stars);
+      assert.deepStrictEqual(d.jobs.map((j) => j.kind), ['price', 'stock', 'change', 'change']);
+      const best = d.jobs[0].options[d.jobs[0].best];
+      assert.strictEqual(d.cups, best.sold);
+      assert.strictEqual(d.price, best.price);
+      assert.strictEqual(d.profit, d.cups * (d.price - d.cost) - d.fixed);
+      assert.strictEqual(d.jobs[1].need, d.cups, 'stock is for exactly the cups you will sell');
+      assert.ok(S.checkStock(d.jobs[1], d.jobs[1].answer).ok && !S.checkStock(d.jobs[1], d.jobs[1].answer + 1).ok);
+      d.jobs.slice(2).forEach((j) => {
+        assert.ok(S.checkChange(j, [j.change]).ok && !S.checkChange(j, [j.change + 1]).ok);
+        assert.ok(Number.isInteger(j.owed) && j.paid > j.owed);
+        if (band === 'K-1' || band === '2-3') assert.strictEqual(j.owed, d.price, 'the customer pays your price');
+        else if (j.text.indexOf('%') < 0) assert.strictEqual(j.owed % d.price, 0, 'owed is a whole number of cups at your price');
+        let left = j.change;
+        j.coins.slice().sort((a, b2) => b2 - a).forEach((c2) => { left %= c2; });
+        assert.strictEqual(left, 0);
+      });
     }
   }
 }

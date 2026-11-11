@@ -44,7 +44,10 @@
   function newDay() {
     const st = ctx.profile.settings;
     S.day++;
-    S.jobs = M().makeDay(st.band, st.stars);
+    S.day_ = M().makeDay(st.band, st.stars);
+    S.jobs = S.day_.jobs;
+    S.queue = [];
+    S.waiting = [];
     S.i = 0;
     S.firstTry = 0;
     job();
@@ -57,13 +60,60 @@
     return e;
   }
 
+  const randAnimal = () => ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+  const EMOTE = { happy: 'assets/kenney/ui/emote_faceHappy.png', sad: 'assets/kenney/ui/emote_question.png', stars: 'assets/kenney/ui/emote_stars.png', heart: 'assets/kenney/ui/emote_heart.png' };
+
+  function paintQueue() {
+    const q = $('lemQueue');
+    q.innerHTML = '';
+    S.waiting.forEach((a, i) => {
+      const im = el('img', 'lem-wait');
+      im.src = IMG + 'animals/' + a + '.png';
+      im.alt = '';
+      im.style.animationDelay = i * 0.12 + 's';
+      q.appendChild(im);
+    });
+    const more = S.day_.cups - S.waiting.length - (S.served || 0);
+    if (S.waiting.length && more > 0 && S.i >= 1) q.appendChild(el('span', 'lem-more', '+' + more));
+  }
+
+  /** The customer at the counter for this job. Customers in the line come from the day's demand: the cups you will sell. */
+  function arrive(p) {
+    const who = $('lemWho');
+    const emote = $('lemEmote');
+    emote.hidden = true;
+    who.classList.remove('leave', 'walk');
+    if (p.kind === 'price') {
+      S.waiting = Array.from({ length: Math.min(S.day_.cups, 6) }, randAnimal);
+      S.served = 0;
+      who.src = IMG + 'animals/' + randAnimal() + '.png';
+    } else if (p.kind === 'change' && S.waiting.length) {
+      who.src = IMG + 'animals/' + S.waiting.shift() + '.png';
+      S.served = (S.served || 0) + 1;
+    } else {
+      who.src = IMG + 'animals/' + randAnimal() + '.png';
+    }
+    paintQueue();
+    void who.offsetWidth; // restart the walk-in animation
+    who.classList.add('walk');
+  }
+
+  function react(kind) {
+    const e = $('lemEmote');
+    e.src = EMOTE[kind];
+    e.hidden = false;
+    e.classList.remove('pop');
+    void e.offsetWidth;
+    e.classList.add('pop');
+  }
+
   function job() {
     const p = (S.p = S.jobs[S.i]);
     S.missed = false;
     S.done = false;
     $('lemNo').textContent = 'Day ' + S.day + ' · job ' + (S.i + 1) + ' of ' + S.jobs.length;
     $('lemText').textContent = p.text;
-    $('lemWho').src = IMG + 'animals/' + ANIMALS[Math.floor(Math.random() * ANIMALS.length)] + '.png';
+    arrive(p);
     $('lemMsg').textContent = '';
     $('lemMsg').className = 'sums';
     const body = $('lemBody');
@@ -86,11 +136,14 @@
     if (!res.ok) {
       S.missed = true;
       Sfx.play('wrong');
+      react('sad');
       say(res.msg, false);
       ctx.onSave();
       return false;
     }
     Sfx.play('correct');
+    react(p.kind === 'change' ? 'happy' : 'stars');
+    if (p.kind === 'change') $('lemWho').classList.add('leave');
     if (!S.missed) S.firstTry++;
     S.done = true;
     say((S.missed ? 'Got it! ' : 'First try! ') + res.msg, true);
@@ -212,7 +265,7 @@
     UI.panel({
       icon: perfect ? 'medals/m3' : 'medals/m1',
       title: perfect ? 'A perfect day! 🌟' : 'Day ' + S.day + ' done! 🎉',
-      text: 'You got ' + S.firstTry + ' of ' + S.jobs.length + ' jobs right on the first try. ' + (perfect ? 'Every customer left happy.' : 'Practice makes the stand better every day.'),
+      text: 'You served ' + S.day_.cups + ' cups at ' + M().money(S.day_.price) + '. Cups × (price − ' + M().money(S.day_.cost) + ' to make)' + (S.day_.fixed ? ' − ' + M().money(S.day_.fixed) + ' for the sign' : '') + ' = ' + M().money(S.day_.profit) + ' profit today. You got ' + S.firstTry + ' of ' + S.jobs.length + ' jobs right on the first try.' + (perfect ? ' Every customer left happy.' : ''),
       btn: 'Open for another day',
       onBtn: newDay,
       btn2: 'Back to setup',
