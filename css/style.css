@@ -432,6 +432,25 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @keyframes m-bounce { 50% { transform: scale(1.02); } }
 @keyframes m-conf { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.6); opacity: 0; } }
 
+/* ---- Creature Quest art: sprites and themed backdrops (js/art.js). Sprites sit inside the same elements the emoji used. ---- */
+.sprite { display: block; max-width: none; user-select: none; -webkit-user-select: none; margin: 0 auto; }
+.sprite.pixel { image-rendering: pixelated; }
+.sprite.emoji { font-size: 2.4rem; line-height: 1; }
+.q-mate .sprite { height: 48px; width: auto; }
+.q-mate .sprite.emoji { height: auto; font-size: 2rem; }
+.pv-foe .sprite { height: 56px; width: auto; }
+.pv-foe .sprite.emoji { height: auto; font-size: 2.6rem; }
+.c-emoji .sprite { height: 64px; width: auto; }
+.c-emoji .sprite.emoji { height: auto; font-size: 2.6rem; }
+.foe .e-emoji .sprite { height: clamp(64px, 20vw, 104px); width: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .18)); }
+.scene[data-art="cute"] .foe .e-emoji .sprite { height: clamp(72px, 22vw, 116px); }
+.foe .e-emoji .sprite.emoji { height: auto; font-size: clamp(2.6rem, 11vw, 4rem); filter: none; }
+.foe.stunned .e-emoji .sprite { filter: grayscale(.85) drop-shadow(0 4px 0 rgba(0, 0, 0, .18)); }
+.ally .a-emoji .sprite { height: 40px; width: auto; }
+.ally .a-emoji .sprite.emoji { height: auto; font-size: 2rem; }
+.scene[data-art] { background-size: cover; background-position: center bottom; background-repeat: no-repeat; }
+.scene[data-art="classic"] { image-rendering: pixelated; }
+
 /* ---- "Reduce motion" profile setting (docs/animation-guide.md, section 6). Everything finishes instantly at its end state, so nothing
    hangs or disappears; damage numbers keep a gentle fade because they carry information. The device's own setting is handled by each
    component's prefers-reduced-motion block. ---- */

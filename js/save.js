@@ -70,7 +70,7 @@
   registerGame('td', { waves: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
-    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww' },
+    { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set' }, // cleared / gold: world-map node ids (grow-only sets)
     (g) => {
       // the team can only hold creatures you own, at most 3. This only FILTERS: it never invents a team (a defaulted value
       // saved as if a player chose it would make the merge order matter). Games compute their default team when reading.
