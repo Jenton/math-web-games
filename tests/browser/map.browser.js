@@ -62,22 +62,50 @@ async function winBattle(page) {
 /** Tap a spot, read any story lines, and (for a fight) return what the prep screen shows. */
 async function goTo(page, id) {
   await page.click('.mnode[data-id="' + id + '"]');
-  for (let n = 0; n < 6; n++) { // a story or rescue spot shows its lines first
-    await page.waitForSelector('#panel:not([hidden]), #qPrep:not([hidden])'); // (the map is already showing, so it can't be the thing we wait for)
-    if (!(await panelUp(page))) break;
-    await page.click('#panelBtn');
-  }
+  // the first thing that happens is a story panel, a fight prep or a puzzle (the map is already showing, so it can't be what we wait for)
+  await page.waitForSelector('#panel:not([hidden]), #qPrep:not([hidden]), #qPuzzle:not([hidden])');
+  // each story line is shown, then the next one (or the spot itself) follows immediately, so a click's result is final when it returns
+  for (let n = 0; n < 8 && (await panelUp(page)); n++) await page.click('#panelBtn');
 }
 const prepInfo = async (page) => ({
   label: await page.textContent('#qRun'),
   foes: await page.$$eval('.pv-foe .e-name', (els) => els.map((e) => e.textContent)),
   rescue: (await page.locator('#qPvRescue').isHidden()) ? null : await page.textContent('#qPvRescue'),
 });
-async function fight(page) {
+async function fight(page, atStart) {
   await page.click('#qFight');
   await page.waitForSelector('#qBattle:not([hidden])');
+  if (atStart) await atStart();
   return winBattle(page);
 }
+const shieldNow = (page) => page.evaluate(() => Quest._state().battle.shield);
+/** The answer to the open Balance puzzle spot (the test reads it from the puzzle itself). */
+const balanceAnswer = (page) => page.evaluate(() => { const p = Quest._state().pz.p; for (let v = 0; v <= p.max; v++) if (MGP.checkBalance(p, v).balanced) return v; });
+/** Move the guess with the real + and - buttons. */
+const setGuess = async (page, from, to) => {
+  const plus = page.locator('#qPzBody .guess button[aria-label="plus 1"]');
+  const minus = page.locator('#qPzBody .guess button[aria-label="minus 1"]');
+  for (let k = from; k < to; k++) await plus.click();
+  for (let k = from; k > to; k--) await minus.click();
+};
+/** The fewest-steps chain for the open Machine puzzle spot (breadth-first search over its own cards). */
+const machineBest = (page) => page.evaluate(() => {
+  const p = Quest._state().pz.p;
+  let frontier = [{ v: p.start, path: [] }];
+  const seen = new Set([p.start]);
+  for (let d = 0; d < 8; d++) {
+    const next = [];
+    for (const f of frontier) for (let i = 0; i < p.ops.length; i++) {
+      const v = MGP.stepMachine(p, i, f.v);
+      if (v === null || seen.has(v)) continue;
+      const path = f.path.concat(i);
+      if (v === p.target) return path;
+      seen.add(v); next.push({ v, path });
+    }
+    frontier = next;
+  }
+  return null;
+});
 
 (async () => {
   const server = await serve();
@@ -89,7 +117,7 @@ async function fight(page) {
   await toQuest(page, 2);
   await toMap(page);
   assert.strictEqual(await page.textContent('#qMapName'), 'Multiples Meadow');
-  assert.strictEqual((await page.$$('.mnode')).length, 8, 'seven spots on the path plus the optional picnic');
+  assert.strictEqual((await page.$$('.mnode')).length, 9, 'seven spots on the path plus the optional picnic and the bridge puzzle');
   assert.deepStrictEqual(await openIds(page), ['m1'], 'only the first spot is open');
   assert.ok(await page.locator('#qMapPrev').isHidden(), 'one region so far: no arrows');
   await page.screenshot({ path: path.join(OUT, 'map-start.png') });
@@ -122,7 +150,7 @@ async function fight(page) {
   let s = await saved(page);
   assert.deepStrictEqual(s.cleared, ['m1']); assert.deepStrictEqual(s.gold, ['m1'], 'a flawless fight earns a gold star');
   assert.deepStrictEqual(await openIds(page), ['m2'], 'clearing a spot opens the next');
-  assert.match(await page.textContent('#qMapStars'), /1 of 8 spots · 1/);
+  assert.match(await page.textContent('#qMapStars'), /1 of 9 spots · 1/);
   assert.strictEqual(await page.$eval('#qToken', (e) => e.style.left), '8%', 'your friend stands on the cleared spot');
   console.log('1.1 first fight cleared with a gold star');
 
@@ -139,8 +167,15 @@ async function fight(page) {
   assert.ok(s.cleared.includes('m2') && !s.gold.includes('m2'), 'story spots clear but never earn a star');
   assert.deepStrictEqual(await openIds(page), ['m2c', 'm3'], 'the path forks: the picnic is optional');
 
+  // the picnic camp is optional and gives the NEXT fight a head start (a shield) until that fight is won
+  await goTo(page, 'm2c'); // its story lines, then back to the map
+  await page.waitForSelector('#qMap:not([hidden])');
+  assert.match(await page.textContent('#qMapHint'), /Rested: .*shield/, 'the map says you are rested');
+  assert.ok((await saved(page)).cleared.includes('m2c'));
+
   // groups grow: m3 is 2 monsters, m4 is 3 (at 2 stars), m5 is armored
   const sizes = {};
+  const shields = {};
   for (const id of ['m3', 'm4', 'm5']) {
     await goTo(page, id);
     await page.waitForSelector('#qPrep:not([hidden])');
@@ -150,12 +185,45 @@ async function fight(page) {
     const weak = await page.$$eval('.pv-weak', (e) => e.map((x) => x.textContent));
     assert.strictEqual(new Set(weak).size, weak.length, 'monsters in a group have different weaknesses');
     if (id === 'm4') await page.screenshot({ path: path.join(OUT, 'prep-3-monsters.png') });
-    r = await fight(page);
+    r = await fight(page, async () => {
+      shields[id] = await shieldNow(page);
+      if (id === 'm3') assert.match(await page.textContent('#qLog'), /Cozy fire/, 'the battle log says why you have a shield');
+    });
     assert.strictEqual(r.title, 'Victory! 🎉');
     await page.click('#panelBtn'); await page.waitForSelector('#qMap:not([hidden])');
+    if (id === 'm3') assert.ok(!/Rested/.test(await page.textContent('#qMapHint')), 'the head start is used up once that fight is won');
   }
   assert.deepStrictEqual(sizes, { m3: 2, m4: 3, m5: 2 });
-  console.log('1.2 groups of', sizes.m3, sizes.m4, sizes.m5, 'monsters cleared');
+  assert.deepStrictEqual(shields, { m3: 1, m4: 0, m5: 0 }, 'only the fight right after the camp starts with the shield');
+  console.log('1.2 groups of', sizes.m3, sizes.m4, sizes.m5, 'monsters cleared; the camp shield was used once');
+
+  // the wobbly bridge: an optional Balance puzzle spot with no monsters. A wrong lock explains itself and costs nothing; solving pays XP
+  assert.ok((await openIds(page)).includes('m4p'), 'the bridge puzzle opened after the fight before it');
+  const xpBefore = (await saved(page)).xpEarned;
+  const sumXp = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
+  await goTo(page, 'm4p'); // the helper's story line first
+  await page.waitForSelector('#qPuzzle:not([hidden])');
+  assert.strictEqual(await page.textContent('#qPzTitle'), 'Make the scale level');
+  assert.ok((await page.textContent('#qPzSay')).length > 10, 'the helper says what they need');
+  await page.screenshot({ path: path.join(OUT, 'puzzle-balance.png') });
+  const ans = await balanceAnswer(page);
+  const wrongGuess = ans > 0 ? ans - 1 : ans + 1;
+  await setGuess(page, 0, wrongGuess);
+  await page.click('#qPzGo');
+  assert.ok((await page.textContent('#qPzMsg')).length > 5, 'a wrong lock explains why');
+  assert.strictEqual(await panelUp(page), 0, 'a wrong lock does not end the puzzle');
+  assert.ok(sumXp((await saved(page)).xpEarned) === sumXp(xpBefore), 'a wrong lock costs and pays nothing');
+  await setGuess(page, wrongGuess, ans);
+  await page.click('#qPzGo');
+  await page.waitForSelector('#panel:not([hidden])');
+  assert.strictEqual(await page.textContent('#panelTitle'), 'Puzzle solved! 🎉');
+  const pzText = await page.textContent('#panelText');
+  assert.match(pzText, /\+10 XP/); assert.ok(!pzText.includes('⭐'), 'a puzzle solved after a miss earns no star');
+  await page.click('#panelBtn'); await page.waitForSelector('#qMap:not([hidden])');
+  s = await saved(page);
+  assert.ok(s.cleared.includes('m4p') && !s.gold.includes('m4p'), 'cleared, no star');
+  assert.strictEqual(sumXp(s.xpEarned) - sumXp(xpBefore), 10, 'exactly 10 XP for the puzzle');
+  console.log('1.2b balance puzzle spot solved (a miss first, so no star)');
 
   // m6: a rescue. The cage story first, then the fight, then the friend joins
   const before = (await saved(page)).creatures;
@@ -173,7 +241,7 @@ async function fight(page) {
   console.log('1.3 rescue freed Owlbert');
 
   // m7: the boss (with a minion). Beating it opens the next region
-  assert.deepStrictEqual(await openIds(page), ['m2c', 'm7']);
+  assert.deepStrictEqual(await openIds(page), ['m7'], 'the camp and the puzzle are already cleared, so only the boss is left');
   await goTo(page, 'm7');
   await page.waitForSelector('#qPrep:not([hidden])');
   p = await prepInfo(page);
@@ -185,7 +253,6 @@ async function fight(page) {
   assert.match(await page.textContent('#toast'), /A new region opens: Haunted Keep/);
   s = await saved(page);
   ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'].forEach((id) => assert.ok(s.cleared.includes(id), id + ' saved as cleared'));
-  assert.ok(!s.cleared.includes('m2c'), 'the optional picnic stayed optional');
   assert.deepStrictEqual(await openIds(page), ['k1'], 'the new region starts at its first spot');
   assert.ok(!(await page.locator('#qMapPrev').isHidden()), 'two regions now: arrows appear');
   await page.screenshot({ path: path.join(OUT, 'map-region2.png') });
@@ -208,15 +275,48 @@ async function fight(page) {
   console.log('1.5 replayed rescue: thank-you, no duplicate');
 
   // progress that arrives from another device (a sync) redraws the map from the fresh save
+  await page.click('#qMapNext'); // Haunted Keep: nothing cleared yet
+  await page.waitForFunction(() => document.getElementById('qMapName').textContent === 'Haunted Keep');
   const starsBefore = await page.textContent('#qMapStars');
   await page.evaluate(() => {
     const prof = Store.profiles[0];
-    prof.games.rpg = Object.assign({}, prof.games.rpg, { cleared: prof.games.rpg.cleared.concat(['m2c']) }); // the profile object stays, the save is replaced
+    prof.games.rpg = Object.assign({}, prof.games.rpg, { cleared: prof.games.rpg.cleared.concat(['k1', 'k2', 'k3']) }); // the profile object stays, the save is replaced
     document.dispatchEvent(new CustomEvent('mq:data-changed'));
   });
   await page.waitForFunction((b) => document.getElementById('qMapStars').textContent !== b, starsBefore);
-  assert.strictEqual((await nodeStates(page)).m2c, 'cleared', 'the map redrew from the new data');
+  const ks = await nodeStates(page);
+  assert.ok(ks.k1 === 'cleared' && ks.k3 === 'cleared', 'the map redrew from the new data');
+  assert.deepStrictEqual(await openIds(page), ['k3c', 'k3p', 'k4'], 'the optional camp and the gear lock open beside the armor gallery');
   console.log('1.6 a sync redrew the map');
+
+  // the gear lock: an optional Machine Builder puzzle spot. Solving it in the fewest steps earns the gold star
+  const xpMachine = sumXp((await saved(page)).xpEarned);
+  await goTo(page, 'k3p');
+  await page.waitForSelector('#qPuzzle:not([hidden])');
+  assert.match(await page.textContent('#qPzTitle'), /^Turn .+ into .+/);
+  await page.screenshot({ path: path.join(OUT, 'puzzle-machine.png') });
+  const best = await machineBest(page);
+  assert.ok(best && best.length >= 1, 'the puzzle has a shortest chain');
+  for (const i of best) await page.locator('#qPzOps button').nth(i).click();
+  await page.waitForSelector('#panel:not([hidden])');
+  assert.strictEqual(await page.textContent('#panelTitle'), 'Puzzle solved! 🎉');
+  assert.match(await page.textContent('#panelText'), /fewest possible/); assert.ok((await page.textContent('#panelText')).includes('⭐'));
+  await page.click('#panelBtn'); await page.waitForSelector('#qMap:not([hidden])');
+  s = await saved(page);
+  assert.ok(s.cleared.includes('k3p') && s.gold.includes('k3p'), 'the fewest steps earns the gold star');
+  assert.strictEqual(sumXp(s.xpEarned) - xpMachine, 10);
+  // the camp in the Keep gives a different head start: a wrong card taken out of the first hand
+  await goTo(page, 'k3c');
+  await page.waitForSelector('#qMap:not([hidden])');
+  assert.match(await page.textContent('#qMapHint'), /Rested: .*wrong card/);
+  await goTo(page, 'k4');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  await page.click('#qFight'); await page.waitForSelector('#qBattle:not([hidden])');
+  assert.match(await page.textContent('#qLog'), /Quiet thinking/);
+  assert.ok((await st(page)).hand.length === 4, 'at 2 stars a hand is 5 cards; the camp took one wrong card out');
+  await page.click('#qFlee'); await page.waitForSelector('#qMap:not([hidden])');
+  assert.match(await page.textContent('#qMapHint'), /Rested/, 'leaving the fight keeps the head start for next time');
+  console.log('1.7 machine puzzle spot (fewest steps = star) and the second camp buff');
 
   // quest home keeps working alongside the map
   await page.click('#qMapBack');
@@ -261,6 +361,44 @@ async function fight(page) {
   console.log('2.1 1 star: the 3-monster spot shrank to 2');
   await ctx.close();
 
+  /* ===== 2b. the Quick adventure is saved: leave, come back, and continue where you stopped ===== */
+  ({ ctx, page } = await open(browser, { width: 1000, height: 1000 }, '2-3', 'resume'));
+  await toQuest(page, 1);
+  assert.ok(await page.locator('#qResume').isHidden(), 'nothing to continue before an adventure is started');
+  await page.click('#qBegin');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  assert.strictEqual((await saved(page)).run.i, 0, 'starting an adventure saves it');
+  await fight(page);
+  await page.click('#panelBtn'); // Next battle
+  await page.waitForSelector('#qPrep:not([hidden])');
+  assert.strictEqual((await saved(page)).run.i, 1, 'winning saves the NEXT battle');
+  await page.click('#qPrepBack'); // leave to the quest home
+  await page.waitForSelector('#qHome:not([hidden])');
+  assert.ok(await page.locator('#qResume').isVisible());
+  assert.match(await page.textContent('#qResume'), /battle 2 of 5/);
+  // a different grade or star setting is a different adventure, so there is nothing to continue
+  await page.click('#qBack'); await page.waitForSelector('#setup:not([hidden])');
+  await page.locator('#setStars .opt-card').nth(1).click();
+  await page.click('#playNow'); await page.waitForSelector('#qHome:not([hidden])');
+  assert.ok(await page.locator('#qResume').isHidden(), 'a saved 1-star adventure is not offered at 2 stars');
+  await page.click('#qBack'); await page.waitForSelector('#setup:not([hidden])');
+  await page.locator('#setStars .opt-card').nth(0).click();
+  await page.click('#playNow'); await page.waitForSelector('#qHome:not([hidden])');
+  assert.ok(await page.locator('#qResume').isVisible(), 'and it is back at 1 star');
+  await page.click('#qResume');
+  await page.waitForSelector('#qPrep:not([hidden])');
+  assert.strictEqual(await page.textContent('#qRun'), 'Battle 2 of 5', 'continuing picks up at the next battle');
+  for (let battle = 1; battle < 5; battle++) {
+    if (battle > 1) await page.waitForSelector('#qPrep:not([hidden])');
+    await fight(page);
+    await page.click('#panelBtn');
+  }
+  await page.waitForSelector('#qHome:not([hidden])');
+  assert.strictEqual((await saved(page)).run, null, 'a finished adventure is cleared');
+  assert.ok(await page.locator('#qResume').isHidden(), 'nothing to continue after finishing');
+  console.log('2b. quick adventure saved, resumed at battle 2, and cleared when finished');
+  await ctx.close();
+
   /* ===== 3. cute theme and phone ===== */
   ({ ctx, page } = await open(browser, { width: 390, height: 800 }, 'K-1', 'phone'));
   await toQuest(page, 1);
@@ -272,7 +410,7 @@ async function fight(page) {
   assert.ok(!(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)), 'no horizontal scrolling on a phone');
   // every spot is a real, labelled, tappable button at least 40px wide
   const nodes = await page.$$eval('.mnode', (els) => els.map((e) => ({ label: e.getAttribute('aria-label'), w: e.getBoundingClientRect().width })));
-  assert.ok(nodes.length === 8 && nodes.every((n) => n.label && n.w >= 40), 'every spot has an accessible name and a big enough tap target');
+  assert.ok(nodes.length === 9 && nodes.every((n) => n.label && n.w >= 40), 'every spot has an accessible name and a big enough tap target');
   await page.evaluate(() => { Store.setSettings(Store.profiles[0], { questArt: 'classic' }); Store.save(); });
   await page.click('#qMapBack'); await toMap(page);
   assert.strictEqual(await page.getAttribute('#qMapBoard', 'data-art'), 'classic');

@@ -609,6 +609,17 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 .screen > .btn.small:first-child { margin-bottom: 18px; }
 .hud { margin-bottom: 14px; }
 
+/* ---- Quest follow-ups: puzzle spots and the Continue button ---- */
+.mnode.puzzle { background: #20a4d8; }
+.pz-scene { display: flex; align-items: flex-end; gap: 14px; padding: 14px 14px 12px; min-height: 150px; background-size: cover; background-position: center bottom; }
+.pz-scene[data-art="classic"] { image-rendering: pixelated; }
+.pz-helper .sprite { height: clamp(64px, 18vw, 96px); width: auto; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .2)); }
+.pz-helper .sprite.emoji { height: auto; font-size: 3rem; filter: none; }
+.pz-say { position: relative; flex: 1; margin: 0; padding: 10px 14px; background: #fff; border: 2px solid var(--line); border-radius: 14px; color: var(--ink); line-height: 1.35; }
+.pz-say::before { content: ""; position: absolute; left: -9px; bottom: 16px; width: 14px; height: 14px; background: #fff; border-left: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
+#qPuzzle .scale { margin-top: 24px; }
+@media (prefers-reduced-motion: reduce) { .mnode.puzzle { animation: none; } }
+
 /* ---- Breadcrumbs: Players > Games > this game ---- */
 nav.crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; margin: 0 0 2px; padding-right: 52px; /* keeps clear of the sound button */ }
 .hud > nav.crumbs { flex: 1 1 100%; margin-bottom: 4px; }

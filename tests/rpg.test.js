@@ -414,6 +414,39 @@ for (const ally of RPG.CREATURES) {
   assert.ok(w / n <= 0.5, `guessing with only ${ally.name} should still mostly lose (${(w / n).toFixed(2)})`);
 }
 
+/* ---------- camp buffs: a head start that only helps, and never replaces the math ---------- */
+{
+  assert.deepStrictEqual(Object.keys(RPG.BUFFS).sort(), ['hint', 'shield']);
+  for (const band of MG.BANDS) for (let stars = 1; stars <= 3; stars++) for (let i = 0; i < 20; i++) {
+    const enc = RPG.makeEncounter(band, stars, ['weakness', 'weakness'], {});
+    const fresh = () => RPG.newBattle({ band, stars, enemies: enc.enemies, team: ['multiples'], level: 1 });
+    // shield: the first enemy attack is blocked, the rest still land
+    let b = fresh();
+    assert.strictEqual(RPG.applyBuff(b, 'shield'), true);
+    assert.strictEqual(b.shield, 1);
+    const wrong = RPG.currentHand(b).findIndex((c) => !c.correct);
+    const hp0 = b.teamHp;
+    const ev = RPG.play(b, wrong);
+    assert.ok(ev.attacks[0].blocked, 'the first attack is blocked');
+    assert.ok(ev.attacks.length < 2 || !ev.attacks[1].blocked, 'only one attack is blocked');
+    assert.ok(b.teamHp > hp0 - ev.attacks.reduce((n, a) => n + a.dmg, 0) - 1, 'a block can only save health');
+    // hint: every hand is one card shorter, still has a right card and a wrong card
+    b = fresh();
+    const before = b.hands.map((h) => h.length);
+    RPG.applyBuff(b, 'hint');
+    b.hands.forEach((h, k) => {
+      assert.strictEqual(h.length, before[k] - 1);
+      assert.ok(h.some((c) => c.correct) && h.some((c) => !c.correct), 'the choice stays real');
+    });
+    // a buff never makes a wrong card right
+    assert.ok(!RPG.currentHand(b)[RPG.currentHand(b).findIndex((c) => !c.correct)].correct);
+    // shield never stacks past the cap
+    b = fresh(); RPG.applyBuff(b, 'shield'); RPG.applyBuff(b, 'shield'); RPG.applyBuff(b, 'shield');
+    assert.ok(b.shield <= T.SHIELD_MAX);
+  }
+  assert.strictEqual(RPG.applyBuff({ shield: 0, hands: [] }, 'nope'), false, 'unknown buffs do nothing');
+}
+
 const pct = (x) => (100 * x).toFixed(0) + '%';
 console.log(`OK: ${hands} hands; encounters, rescues, enemy retaliation and all ally effects verified. Win rates (1/2/3 stars): ` +
   `perfect ${[1, 2, 3].map((s) => pct(Bots.byStars(perfect, s))).join('/')}, perfect with any ally ${[1, 2, 3].map((s) => pct(Bots.byStars(anyAlly, s))).join('/')} ` +
