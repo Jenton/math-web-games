@@ -25,6 +25,8 @@ Next:
 3. **Sort & Rule / Cut & Share / Balance rework**: merge `main` first and resolve the registry files.
 4. **Animation pass for Balance** only after the Balance rework is merged.
 
+New games and big visual changes also follow `docs/new-game-checklist.md` (scene brief first, look at every state at phone width before the PR).
+
 ## Rules that keep the conflicts small
 
 1. **One owner per area.** Do not edit another stream's files, except the shared registry files below.

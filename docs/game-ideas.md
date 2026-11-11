@@ -99,6 +99,8 @@ State of the codebase today (check the files; this may drift):
   game goes through one shared **setup screen** (pick grade and challenge in plain language, then Play).
 - **`index.html`:** a game card in the menu (`data-game="<key>"`) plus one `<section id="<screen>">` per game.
 
+**Before you write any UI, read `docs/new-game-checklist.md`** (scene brief, polish bar, review steps).
+
 Steps to add a game (NOTE: follow "How the code works now" in `docs/sync-design.md`: save under `profile.games.<gameId>` via the `Store` helpers, never write a counter backwards, register a merge rule in `js/save.js`, and add tests to `tests/save.test.js`): (1) DOM-free generators in their own module plus a Node test (verify solvability and
 that wrong answers are really wrong); (2) add skill ids to `SKILLS` if they should appear in the grown-ups
 stats; (3) a `js/<game>.js` module with `start`, and a `<section>` in `index.html`; (4) add the card,
