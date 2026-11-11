@@ -17,13 +17,39 @@
     return a;
   };
 
-  const LANE = 9; // columns 0..8; an enemy that walks past column 8 reaches the gate
-  const SLOT_COLS = [1, 3, 5, 7];
-  const RANGE = 1; // a tower reaches its own column and one either side
-  const SLOTS = SLOT_COLS.length;
+  const SLOTS = 4;
+  const RANGE = 1; // a tower reaches the path squares within one square of it (diagonals count), so a tower at a bend covers two legs
   const MAX_LEAKS = 2; // a third leak breaks the gate
   const WAVE_SIZE = [7, 9, 11];
   const SLACK = [2, 1, 0]; // spare gold by stars
+
+
+  /* ---------- boards: a winding path (corner points, expanded to squares) and four tower pads beside it ---------- */
+  const MAPS = [
+    { name: 'The switchback', cols: 7, rows: 9, corners: [[0, 1], [5, 1], [5, 3], [1, 3], [1, 5], [5, 5], [5, 7], [2, 7]], pads: [[3, 2], [3, 4], [3, 6], [6, 6]] },
+    { name: 'The zigzag', cols: 7, rows: 9, corners: [[1, 0], [1, 2], [5, 2], [5, 4], [1, 4], [1, 6], [5, 6], [5, 8]], pads: [[3, 1], [3, 3], [3, 5], [3, 7]] },
+    { name: 'The river road', cols: 7, rows: 9, corners: [[6, 0], [6, 2], [1, 2], [1, 4], [6, 4], [6, 6], [2, 6], [2, 8]], pads: [[3, 3], [4, 5], [4, 1], [3, 7]] },
+  ];
+
+  function expand(corners) {
+    const out = [corners[0].slice()];
+    for (let i = 1; i < corners.length; i++) {
+      let [c, r] = out[out.length - 1];
+      const [tc, tr] = corners[i];
+      while (c !== tc || r !== tr) {
+        c += Math.sign(tc - c);
+        r += Math.sign(tr - r);
+        out.push([c, r]);
+      }
+    }
+    return out;
+  }
+
+  function buildMap(m) {
+    const path = expand(m.corners);
+    const reach = m.pads.map((p) => path.map((q, i) => (Math.max(Math.abs(q[0] - p[0]), Math.abs(q[1] - p[1])) <= RANGE ? i : -1)).filter((i) => i >= 0));
+    return { name: m.name, cols: m.cols, rows: m.rows, path, pads: m.pads, reach };
+  }
 
   const fmt = (n) => (n < 0 ? '−' + -n : String(n));
   const isPrime = (n) => {
@@ -106,32 +132,33 @@
       const total = shop.reduce((a, r) => a + r.cost, 0);
       const budget = cover.cost + SLACK[s - 1];
       if (budget >= total) continue; // buying everything must not be possible
-      return { band, stars: s, shop, enemies: shuffle(enemies), budget, slots: SLOT_COLS.slice(), solution: cover.set, minCost: cover.cost };
+      return { band, stars: s, shop, enemies: shuffle(enemies), budget, map: buildMap(pick(MAPS)), solution: cover.set, minCost: cover.cost };
     }
     throw new Error('could not build a wave for ' + band + ' ' + stars);
   }
 
   /**
-   * Run a wave. placement: array of shop indexes (or null) per slot. Enemies enter one per tick; each tick every tower shoots the
+   * Run a wave. placement: array of shop indexes (or null) per slot. Enemies walk the path one square per tick; each tick every tower shoots the
    * front-most enemy in reach that fits its rule (one shot per tower), then enemies step forward. Returns the full timeline.
    */
   function simulate(wave, placement) {
     const n = wave.enemies.length;
+    const P = wave.map.path.length;
     const alive = wave.enemies.map(() => true);
     const state = wave.enemies.map(() => 'march'); // march | killed | leaked
     const ticks = [];
     const fired = placement.map(() => 0);
     const killedBy = wave.enemies.map(() => -1);
-    for (let t = 0; t < n + LANE + 1; t++) {
-      const pos = wave.enemies.map((_, i) => t - i); // enemy i enters column 0 at tick i
+    for (let t = 0; t < n + P + 1; t++) {
+      const pos = wave.enemies.map((_, i) => t - i); // enemy i steps onto the first path square at tick i
       const shots = [];
       placement.forEach((ri, slot) => {
         if (ri == null) return;
-        const col = SLOT_COLS[slot];
+        const reach = wave.map.reach[slot];
         let target = -1;
         wave.enemies.forEach((v, i) => {
-          if (!alive[i] || pos[i] < 0 || pos[i] >= LANE) return;
-          if (Math.abs(pos[i] - col) > RANGE) return;
+          if (!alive[i] || pos[i] < 0 || pos[i] >= P) return;
+          if (!reach.includes(pos[i])) return;
           if (!wave.shop[ri].test(v)) return;
           if (target < 0 || pos[i] > pos[target]) target = i;
         });
@@ -145,14 +172,14 @@
       });
       const leaks = [];
       wave.enemies.forEach((_, i) => {
-        if (alive[i] && pos[i] === LANE - 1) {
+        if (alive[i] && pos[i] === P - 1) {
           alive[i] = false;
           state[i] = 'leaked';
           leaks.push(i);
         }
       });
       ticks.push({ t, pos, shots, leaks, state: state.slice() });
-      if (!alive.some(Boolean) && pos[n - 1] >= LANE - 1) break;
+      if (!alive.some(Boolean) && pos[n - 1] >= P - 1) break;
     }
     const leaked = state.map((s, i) => (s === 'leaked' ? i : -1)).filter((i) => i >= 0);
     const stars = leaked.length > MAX_LEAKS ? 0 : 3 - leaked.length;
@@ -188,7 +215,7 @@
   /** Gold left after placing. */
   const spent = (wave, placement) => placement.reduce((s, ri) => s + (ri == null ? 0 : wave.shop[ri].cost), 0);
 
-  const api = { makeWave, simulate, explain, spent, bestCover, fmt, SLOTS, SLOT_COLS, LANE, RANGE, MAX_LEAKS, BANDS };
+  const api = { makeWave, simulate, explain, spent, bestCover, fmt, SLOTS, RANGE, MAX_LEAKS, BANDS, MAPS, buildMap };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TDL = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -3,7 +3,7 @@
   'use strict';
   const $ = (id) => document.getElementById(id);
   const ROUND = 3;
-  const TICK = 700;
+  const TICK = 520;
   const TOWER_ART = ['owl', 'penguin', 'panda', 'pig', 'cow', 'chick']; // by shop slot, so each rule keeps a face during a wave
   const ENEMY_ART = ['Green', 'Blue', 'Pink', 'Yellow', 'Beige'];
   let ctx = null;
@@ -50,7 +50,7 @@
       S.wave = TDL.makeWave(st.band, st.stars);
       S.tries = 0;
     }
-    S.place = TDL.SLOT_COLS.map(() => null);
+    S.place = Array(TDL.SLOTS).fill(null);
     S.sel = null;
     S.running = false;
     $('tdNo').textContent = 'Wave ' + S.n + ' of ' + ROUND;
@@ -62,31 +62,64 @@
 
   /* ---------- building the scene ---------- */
 
+  const BOARD = 'assets/kenney/board/';
+  const pct = (c, r, m) => ((c + 0.5) / m.cols) * 100 + '%';
+  const pctY = (r, m) => ((r + 0.5) / m.rows) * 100 + '%';
+
   function buildLane() {
     const w = S.wave;
+    const m = w.map;
     const lane = $('tdLane');
     lane.innerHTML = '';
-    lane.style.setProperty('--cols', TDL.LANE);
-    const road = document.createElement('div');
-    road.className = 'td-road';
-    lane.appendChild(road);
-    // tower slots sit above the road at their columns
-    const slots = document.createElement('div');
-    slots.className = 'td-slots';
-    TDL.SLOT_COLS.forEach((col, i) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'td-slot';
-      b.style.left = ((col + 0.5) / TDL.LANE) * 100 + '%';
-      b.setAttribute('aria-label', 'Tower spot ' + (i + 1));
-      b.addEventListener('click', () => onSlot(i));
-      slots.appendChild(b);
-    });
-    lane.appendChild(slots);
+    lane.style.aspectRatio = m.cols + ' / ' + m.rows;
+    lane.style.setProperty('--cw', 100 / m.cols + '%');
+    lane.style.setProperty('--ch', 100 / m.rows + '%');
+    // the dirt road: a smooth stroke through the path squares, textured with Kenney's dirt tile
+    const pts = m.path.map((q) => q[0] + 0.5 + ',' + (q[1] + 0.5)).join(' ');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + m.cols + ' ' + m.rows);
+    svg.setAttribute('class', 'td-svg');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<defs><pattern id="tdDirt" patternUnits="userSpaceOnUse" width="1" height="1"><image href="' + BOARD + 't048.png" width="1" height="1"/></pattern></defs>' +
+      '<polyline points="' + pts + '" fill="none" stroke="#7a4a1f" stroke-width="0.86" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<polyline points="' + pts + '" fill="none" stroke="url(#tdDirt)" stroke-width="0.74" stroke-linecap="round" stroke-linejoin="round"/>';
+    lane.appendChild(svg);
+    // scenery on free squares (same every time for a given board)
+    const used = new Set(m.path.concat(m.pads).map((q) => q.join()));
+    const deco = ['t130', 't131', 't133', 't135', 't136', 't137'];
+    for (let r = 0; r < m.rows; r++) {
+      for (let c = 0; c < m.cols; c++) {
+        if (used.has(c + ',' + r)) continue;
+        if ((c * 7 + r * 13 + m.cols) % 3 !== 0) continue;
+        const d = document.createElement('img');
+        d.className = 'td-deco';
+        d.alt = '';
+        d.draggable = false;
+        d.src = BOARD + deco[(c * 5 + r * 3) % deco.length] + '.png';
+        d.style.left = pct(c, r, m);
+        d.style.top = pctY(r, m);
+        lane.appendChild(d);
+      }
+    }
+    // the castle at the end of the road
+    const end = m.path[m.path.length - 1];
     const gate = document.createElement('div');
     gate.className = 'td-gate';
     gate.textContent = '🏰';
+    gate.style.left = pct(end[0], end[1], m);
+    gate.style.top = pctY(Math.min(end[1] + (end[1] < m.rows - 1 ? 1 : 0), m.rows - 1), m);
     lane.appendChild(gate);
+    // tower pads
+    m.pads.forEach((p, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'td-slot';
+      b.style.left = pct(p[0], p[1], m);
+      b.style.top = pctY(p[1], m);
+      b.setAttribute('aria-label', 'Tower spot ' + (i + 1));
+      b.addEventListener('click', () => onSlot(i));
+      lane.appendChild(b);
+    });
     // the wave preview and the marching enemies
     const prev = $('tdPreview');
     prev.innerHTML = '';
@@ -201,10 +234,6 @@
     step();
   }
 
-  function colPct(pos) {
-    return ((pos + 0.5) / TDL.LANE) * 100 + '%';
-  }
-
   function step() {
     const tk = S.res.ticks[S.t];
     if (!tk) return finish();
@@ -212,8 +241,13 @@
     tk.pos.forEach((p, i) => {
       const { e } = S.enemyEls[i];
       const st = tk.state[i];
-      const live = p >= 0 && p < TDL.LANE && (st === 'march' || tk.shots.some((s) => s.enemy === i) || tk.leaks.includes(i));
-      if (live) { e.hidden = false; e.style.left = colPct(p); }
+      const path = S.wave.map.path;
+      const live = p >= 0 && p < path.length && (st === 'march' || tk.shots.some((s) => s.enemy === i) || tk.leaks.includes(i));
+      if (live) {
+        e.hidden = false;
+        e.style.left = pct(path[p][0], 0, S.wave.map);
+        e.style.top = pctY(path[p][1], S.wave.map);
+      }
     });
     if (S.t > 0) Sfx.play('step');
     tk.shots.forEach((s) => {

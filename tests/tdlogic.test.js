@@ -1,6 +1,19 @@
 // Verifies Number Defense: every wave is solvable, you cannot just buy everything, the preview matches the rules, and the sim is honest.
 const TD = require('../js/tdlogic.js');
 const assert = require('assert');
+// every board: the path is connected, the pads are free squares, and each pad reaches enough of the path
+for (const m of TD.MAPS) {
+  const b = TD.buildMap(m);
+  b.path.forEach((q, i) => { if (i) assert.strictEqual(Math.abs(q[0] - b.path[i - 1][0]) + Math.abs(q[1] - b.path[i - 1][1]), 1, m.name + ': path steps one square at a time'); });
+  b.path.forEach((q) => assert(q[0] >= 0 && q[0] < b.cols && q[1] >= 0 && q[1] < b.rows, m.name + ': path stays on the board'));
+  assert.strictEqual(new Set(b.path.map((q) => q.join())).size, b.path.length, m.name + ': path never crosses itself');
+  assert.strictEqual(b.pads.length, TD.SLOTS);
+  b.pads.forEach((p, k) => {
+    assert(!b.path.some((q) => q[0] === p[0] && q[1] === p[1]), m.name + ': pad ' + k + ' is not on the path');
+    assert(b.reach[k].length >= 3, m.name + ': pad ' + k + ' reaches at least 3 squares');
+  });
+  assert(b.path.length >= 18, m.name + ': path is long and winding');
+}
 const BANDS = ['K-1', '2-3', '4-5', '6'];
 let waves = 0, randomWins = 0, randomRuns = 0, noMathWins = 0;
 for (const band of BANDS) {
