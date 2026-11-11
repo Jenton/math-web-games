@@ -6,7 +6,7 @@ set -euo pipefail
 K="${1:-/Volumes/JentMini Drive/AI Projects/Kenney Game Assets All-in-1 3.8.0}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/assets/kenney"
 A="$K/2D assets"; S="$K/Audio"
-rm -rf "$OUT"; mkdir -p "$OUT"/{animals,aliens,tiles,balance,medals,fx,ui,sfx,music,voice,fonts}
+rm -rf "$OUT"; mkdir -p "$OUT"/{board,animals,aliens,tiles,balance,medals,fx,ui,sfx,music,voice,fonts}
 
 img() { ffmpeg -loglevel error -y -i "$1" -vf "format=rgba,scale='min($3,iw)':-1:flags=lanczos" -pix_fmt rgba "$2"; }   # src dst maxwidth
 for a in frog chick owl rabbit panda penguin pig cow; do img "$A/Animal Pack Remastered/PNG/Round/$a.png" "$OUT/animals/$a.png" 128; done
@@ -20,6 +20,8 @@ for i in 01 05 09; do img "$A/Puzzle Pack 2/PNG/Pipes/Green/pipeGreen_$i.png" "$
 img "$A/Medals/PNG/flat_medal1.png" "$OUT/medals/m0.png" 96
 for f in star_01 star_02 spark_01 spark_02 star_05; do [ -f "$A/Particle Pack/PNG (Transparent)/$f.png" ] && img "$A/Particle Pack/PNG (Transparent)/$f.png" "$OUT/fx/$f.png" 128; done
 for e in exclamation question heart heartBroken stars idea faceHappy faceSad; do img "$A/Emote Pack/PNG/Vector/Style 1/emote_$e.png" "$OUT/ui/emote_$e.png" 64; done
+# Number Defense board: grass, dirt, tower pad and scenery from the Tower Defense pack (64 px top-down tiles)
+for n in 038 048 119 130 131 133 135 136 137; do img "$A/Tower Defense/PNG/Default size/towerDefense_tile$n.png" "$OUT/board/t$n.png" 64; done
 cp "$K/Other/Fonts/Kenney Future.ttf" "$K/Other/Fonts/Kenney High.ttf" "$OUT/fonts/" 2>/dev/null || true
 
 snd() { ffmpeg -loglevel error -y -i "$1" -c:a aac -b:a 64k -ac 1 -ar 44100 "$OUT/$2.m4a"; }

@@ -40,6 +40,12 @@
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="defense" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/animals/owl.png" alt=""></span>
+          <span class="g-name">Number Defense</span>
+          <span class="g-desc">Numbers march at your castle. Build the towers whose rules stop them.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
         <button class="game-card" data-game="balance" type="button">
           <span class="g-ico"><img class="g-img" src="assets/kenney/balance/blockBlue.png" alt=""></span>
           <span class="g-name">Balance</span>
@@ -118,6 +124,28 @@
         <button id="balCheck" class="btn big" type="button">Lock it in</button>
         <p class="note">Change the number and watch the scale tip. Arrow keys work too; press Enter to lock in.</p>
       </div>
+    </section>
+
+    <!-- GAME: Number Defense -->
+    <section id="td" class="screen" hidden>
+      <div class="hud">
+        <button id="tdBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="tdNo" class="pill"></span>
+        <span id="tdGold" class="pill"></span>
+        <span id="tdGate" class="hearts" aria-label="Castle hearts"></span>
+      </div>
+      <h2 class="rule-title">Defend the castle</h2>
+      <p class="rule-hint">Each tower only hurts numbers that fit its rule. Cover every incoming number, but gold is limited.</p>
+      <div class="s-label">Incoming wave (in order)</div>
+      <div id="tdPreview" class="td-preview"></div>
+      <div id="tdLane" class="td-lane"></div>
+      <p id="tdHelp" class="help center" role="status" aria-live="polite"></p>
+      <div class="row center">
+        <button id="tdGo" class="btn big" type="button">&#9654; Send the wave</button>
+        <button id="tdClear" class="btn ghost" type="button">Clear towers</button>
+        <button id="tdSpeed" class="btn ghost small" type="button">Normal</button>
+      </div>
+      <div id="tdShop" class="td-shop"></div>
     </section>
 
     <!-- GAME: Machine Builder -->
@@ -278,6 +306,8 @@
   <script src="js/game.js"></script>
   <script src="js/balance.js"></script>
   <script src="js/machine.js"></script>
+  <script src="js/tdlogic.js"></script>
+  <script src="js/td.js"></script>
   <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
 </body>
