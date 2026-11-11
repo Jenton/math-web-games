@@ -42,7 +42,8 @@ node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine
 node tests/rpg.test.js       # verifies Quest hands, armor math, progression, and that ignoring the math loses
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 node tests/sync.test.js      # verifies cloud sync: encryption, family codes, and pull/merge/push against a fake backend
-node tests/browser/sync-ui.browser.js   # optional, needs Playwright: drives the sync screens with two simulated devices
+node tests/browser/sync-ui.browser.js        # optional, needs Playwright: drives the sync screens with two simulated devices
+node tests/browser/save-migration.browser.js # optional, needs Playwright: v1 migration, all four games, backups, merging two devices
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens; they need a cloud backend that is not connected yet), `js/storage.js`, `js/game.js`
 (Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/rpg.js` (Quest battle logic, no DOM), `js/quest.js` (Quest screens), `js/ui.js` (shared toast/panel), `js/app.js` (portal), `css/style.css`.
