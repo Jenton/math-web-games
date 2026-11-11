@@ -1,4 +1,12 @@
-# Firebase setup prompt (for a Claude Code session on the owner's Mac, with browser access)
+# Firebase setup prompt (HISTORICAL: already done, do not rerun)
+
+> **Status: completed in Nov 2026.** The Firebase project `math-quest-family` exists and is live (Hosting, Firestore with locked-down rules, Anonymous sign-in),
+> `.firebaserc` and `js/firebase-config.js` are committed, and deploys run automatically on merge to `main` (`.github/workflows/firebase-hosting-merge.yml`).
+> **Do not paste the prompt below into a new session:** it would try to create a second project, check out an old branch and treat Hosting as manual.
+> Current facts and the deploy path are in `docs/sync-design.md` ("Stage 3 (Firebase)"). Kept only as a record of how the project was set up
+> and as a template if a second Firebase project is ever needed.
+
+(Original header follows.) For a Claude Code session on the owner's Mac, with browser access.
 
 Paste the prompt below into Claude Code running on the Mac, opened in the `math-web-games` folder. It needs browser access enabled
 (for example the Claude in Chrome extension). If the browser is not available, the prompt tells Claude to give step-by-step instructions

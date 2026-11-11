@@ -1,5 +1,9 @@
 # Kenney assets for the other games (Munchers, Balance, Machine Builder) and sound
 
+> **Status: built.** The picks below were implemented (see "What was built" at the end) and the open questions were settled: smooth-vector art for the three
+> puzzle games, sound on by default with a mute button, voice numbers in use. The "Where the games are today" section describes the state *before* this work and is out of date (sound now exists in `js/sfx.js`).
+> For new games use `docs/new-game-checklist.md` and `docs/art-shortlist.md`; re-run `tools/make_kenney_assets.sh` to regenerate assets.
+
 Scope: everything except Creature Quest art (another chat owns that, see `docs/art-shortlist.md`).
 Source bundle: `AI Projects/Kenney Game Assets All-in-1 3.8.0` (CC0, not committed; copy only what we use into `assets/`).
 
