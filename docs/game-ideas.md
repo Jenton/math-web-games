@@ -26,6 +26,7 @@ something is built. Details and design notes for each item are further down in t
 - [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
 - [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
+- [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md` (v2 save format, merge rules, Firebase Hosting + Firestore, family code, no accounts)
 - [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1)
 - [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
 - [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
@@ -99,7 +100,7 @@ State of the codebase today (check the files; this may drift):
   game goes through one shared **setup screen** (pick grade and challenge in plain language, then Play).
 - **`index.html`:** a game card in the menu (`data-game="<key>"`) plus one `<section id="<screen>">` per game.
 
-Steps to add a game: (1) DOM-free generators in their own module plus a Node test (verify solvability and
+Steps to add a game (NOTE: once cross-device sync lands, also follow "Rules for every game" in `docs/sync-design.md`: save under `profile.games.<gameId>` and ship a merge rule with tests): (1) DOM-free generators in their own module plus a Node test (verify solvability and
 that wrong answers are really wrong); (2) add skill ids to `SKILLS` if they should appear in the grown-ups
 stats; (3) a `js/<game>.js` module with `start`, and a `<section>` in `index.html`; (4) add the card,
 `GAMES` entry and `SCREEN_OF` entry; (5) add progress to the profile backward-compatibly; (6) update the README.
