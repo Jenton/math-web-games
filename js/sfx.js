@@ -15,24 +15,60 @@
   let muted = false;
   let musicOn = false;
   let music = null;
-  const cache = {};
   const listeners = [];
   try { muted = localStorage.getItem(KEY) === 'off'; } catch (e) { /* storage blocked: default on */ }
 
+  /* Sounds are decoded once into memory and played through the Web Audio API. Cloning <audio> elements (what this used to do)
+   * is unreliable on iPad/iPhone Safari: each clone can reload the file, so a sound fired right after another can arrive late or never.
+   * If Web Audio is missing, it falls back to plain <audio> elements. */
+  const AC = root.AudioContext || root.webkitAudioContext;
+  let ac = null;
+  const buffers = {}; // file -> AudioBuffer
+  const loading = {}; // file -> promise
+  const media = {}; // fallback: file -> <audio>
+  let lastLoud = 0; // when the last important sound started (to keep footsteps from masking it)
+  let lastStep = 0;
+
+  function ctx() {
+    if (!AC) return null;
+    if (!ac) { try { ac = new AC(); } catch (e) { ac = null; } }
+    return ac;
+  }
+
   function load(file) {
-    if (!cache[file]) {
-      const a = new Audio(BASE + file + '.m4a');
-      a.preload = 'auto';
-      cache[file] = a;
+    const c = ctx();
+    if (!c) return Promise.resolve(null);
+    if (buffers[file]) return Promise.resolve(buffers[file]);
+    if (!loading[file]) {
+      loading[file] = fetch(BASE + file + '.m4a')
+        .then((r) => r.arrayBuffer())
+        .then((data) => new Promise((ok, no) => c.decodeAudioData(data, ok, no)))
+        .then((buf) => (buffers[file] = buf))
+        .catch(() => { delete loading[file]; return null; });
     }
-    return cache[file];
+    return loading[file];
   }
 
   function fire(file, vol) {
     if (muted) return;
     try {
-      const a = load(file).cloneNode(true); // clone so quick repeats overlap instead of cutting off
+      const c = ctx();
+      if (c) {
+        if (c.state === 'suspended') c.resume();
+        const buf = buffers[file];
+        if (!buf) { load(file); return; } // not decoded yet: skip this one, it will be ready next time
+        const src = c.createBufferSource();
+        const g = c.createGain();
+        g.gain.value = vol;
+        src.buffer = buf;
+        src.connect(g);
+        g.connect(c.destination);
+        src.start(0);
+        return;
+      }
+      const a = media[file] || (media[file] = new Audio(BASE + file + '.m4a'));
       a.volume = vol;
+      a.currentTime = 0;
       const p = a.play();
       if (p && p.catch) p.catch(() => {});
     } catch (e) { /* ignore */ }
@@ -42,7 +78,16 @@
 
   function play(name) {
     const files = MAP[name];
-    if (files) fire(pick(files), VOL.sfx);
+    if (!files) return;
+    const now = Date.now();
+    if (name === 'step') {
+      // footsteps are low priority: never right on top of a result sound, and never faster than a walking pace
+      if (now - lastLoud < 220 || now - lastStep < 90) return;
+      lastStep = now;
+    } else if (name !== 'click') {
+      lastLoud = now;
+    }
+    fire(pick(files), VOL.sfx);
   }
 
   /** Speak a small number or phrase: Sfx.say(7), Sfx.say('level_up'). Only the recorded words exist; others are ignored. */
@@ -70,14 +115,18 @@
     listeners.forEach((f) => f(muted));
   }
 
-  /** Warm the files after the first tap (browsers need a gesture before audio), so the first sound is not late. */
-  function preload() {
+  /** Browsers only allow audio after a tap or key press: start the audio engine then and decode every sound up front. */
+  let warmed = false;
+  function warm() {
+    if (warmed) return;
+    warmed = true;
+    const c = ctx();
+    if (c && c.state === 'suspended') c.resume();
     Object.keys(MAP).forEach((k) => MAP[k].forEach(load));
+    ['voice/correct', 'voice/level_up'].concat(range10()).forEach(load);
   }
-  document.addEventListener('pointerdown', function once() {
-    document.removeEventListener('pointerdown', once);
-    preload();
-  });
+  const range10 = () => Array.from({ length: 10 }, (_, i) => 'voice/' + (i + 1));
+  ['pointerdown', 'keydown', 'touchend'].forEach((ev) => document.addEventListener(ev, warm, { passive: true }));
 
   root.Sfx = { play, say, setMuted, isMuted: () => muted, toggle: () => setMuted(!muted), setMusic, onChange: (f) => listeners.push(f) };
 })(window);
