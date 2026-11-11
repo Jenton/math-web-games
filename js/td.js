@@ -18,7 +18,8 @@
     bound = true;
     $('tdBack').addEventListener('click', exit);
     $('tdGo').addEventListener('click', go);
-    $('tdClear').addEventListener('click', () => { if (S && !S.running) { S.place = S.place.map(() => null); S.sel = null; Sfx.play('close'); render(); } });
+    $('tdRemove').addEventListener('click', () => { if (S && !S.running && S.lift != null) { S.place[S.lift] = null; S.lift = null; Sfx.play('close'); render(); } });
+    $('tdClear').addEventListener('click', () => { if (S && !S.running) { S.place = S.place.map(() => null); S.sel = null; S.lift = null; Sfx.play('close'); render(); } });
     $('tdSpeed').addEventListener('click', () => { if (S) { S.fast = !S.fast; $('tdSpeed').textContent = S.fast ? '⏩ Fast' : '▶ Normal'; } });
   }
 
@@ -52,6 +53,7 @@
     }
     S.place = Array(TDL.SLOTS).fill(null);
     S.sel = null;
+    S.lift = null; // a placed tower picked up to move or remove
     S.running = false;
     $('tdNo').textContent = 'Wave ' + S.n + ' of ' + ROUND;
     $('tdSpeed').textContent = S.fast ? '⏩ Fast' : '▶ Normal';
@@ -177,6 +179,8 @@
       const k = S.place[i];
       b.disabled = S.running;
       b.classList.toggle('filled', k != null);
+      b.classList.toggle('lift', S.lift === i);
+      b.setAttribute('aria-label', k == null ? 'Empty tower spot ' + (i + 1) : w.shop[k].name + ' tower, spot ' + (i + 1) + (S.lift === i ? ', picked up' : ''));
       b.innerHTML = k == null ? '<span class="plus">+</span>' : '<img alt="" draggable="false">';
       if (k != null) b.querySelector('img').src = art('animals', TOWER_ART[k % TOWER_ART.length]);
       if (k != null) {
@@ -188,11 +192,14 @@
     });
     $('tdGo').disabled = S.running || S.place.every((x) => x == null);
     $('tdClear').disabled = S.running || S.place.every((x) => x == null);
+    $('tdRemove').hidden = S.lift == null || S.running;
     $('tdHelp').textContent = S.running
       ? 'The wave is marching. Watch which towers fire!'
-      : S.sel != null
+      : S.lift != null
+        ? 'Tower picked up. Tap an empty spot to move it, tap another tower to swap, or press Remove.'
+        : S.sel != null
         ? 'Now tap a spot to put the "' + w.shop[S.sel].name + '" tower there.'
-        : 'Read the incoming numbers. Pick a tower, then tap a spot. Tap a placed tower to take it back.';
+        : 'Read the incoming numbers. Pick a tower, then tap a spot. Tap a placed tower to move or remove it.';
   }
 
   /* ---------- planning ---------- */
@@ -200,6 +207,7 @@
   function onCard(k) {
     if (S.running) return;
     S.sel = S.sel === k ? null : k;
+    S.lift = null;
     Sfx.play('flip');
     render();
     if (S.sel === k) UI.flash($('tdShop').children[k], 'pick', 180);
@@ -208,9 +216,15 @@
   function onSlot(i) {
     if (S.running) return;
     if (S.sel == null) {
-      if (S.place[i] != null) { S.place[i] = null; Sfx.play('close'); render(); }
+      if (S.lift != null) {
+        if (S.lift === i) S.lift = null; // tap again to put it down
+        else { const t = S.place[S.lift]; S.place[S.lift] = S.place[i]; S.place[i] = t; S.lift = null; Sfx.play('place'); } // move, or swap with the tower there
+        render();
+        if (S.place[i] != null) UI.flash($('tdLane').querySelectorAll('.td-slot')[i], 'placed', 280);
+      } else if (S.place[i] != null) { S.lift = i; Sfx.play('flip'); render(); }
       return;
     }
+    S.lift = null;
     const old = S.place[i];
     S.place[i] = null;
     if (S.wave.shop[S.sel].cost > gold()) {
