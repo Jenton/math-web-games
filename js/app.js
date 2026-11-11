@@ -277,7 +277,7 @@
     paintSound();
     document.addEventListener('click', (e) => {
       const t = e.target.closest && e.target.closest('.btn, .chip, .game-card, .player-card, .opt-card, .creature');
-      if (t && t !== sb && !t.disabled) Sfx.play('click');
+      if (t && t !== sb && t.id !== 'munchBtn' && !t.disabled) Sfx.play('click');
     });
     $('#setupBack').addEventListener('click', () => openMenu(current.id));
     $('#sampleMore').addEventListener('click', updateSetup);

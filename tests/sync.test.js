@@ -320,7 +320,98 @@ const bumpWins = (dev, id, n) => { const p = dev.data.profiles.find((x) => x.id 
     schedules++;
   }
 
+  /* ===== family password (chosen instead of a generated code) ===== */
+  {
+    // what is accepted when CREATING one: at least 10 characters, and not an obvious weak one
+    const good = ['blue dragons eat pizza', 'Mathematics4Fun!', 'tulips are', '  Blue   Dragons  Eat Pizza ', 'Our family 2026 yes!', 'dragon fire 2026', 'k7pq-3m9x-b2rd-vw4h'];
+    good.forEach((x) => assert.strictEqual(Sync.checkPassword(x).ok, true, 'accepts ' + x));
+    assert.strictEqual(Sync.MIN_PASSWORD, 10);
+    assert.strictEqual(Sync.checkPassword('tulips are').length, 10, 'exactly 10 characters is enough');
+    const bad = {
+      short: ['', null, undefined, 'short', '123456789', 'tulips ar', 'a b c d e', '         x         '],
+      repetitive: ['1111111111', 'aaaaaaaaaa', 'abababababab', 'passwordpassword', 'family family', 'xyxyxyxyxy', 'ab ab ab ab ab', 'aabbaabbabba', 'abcabcbacbac'],
+      common: ['password123', 'P@ssw0rd!!', 'mathquest2026', 'MATH QUEST', 'iloveyou123', 'qwertyuiop', '0123456789', '9876543210', 'abcdefghijk', '1234567890123', 'Password1!', 'letmein2026', 'asdfghjklzxcv', 'poiuytrewq', 'wertyuiopasd', 'zyxwvutsrqp'],
+    };
+    for (const [why, list] of Object.entries(bad)) list.forEach((x) => { const r = Sync.checkPassword(x); assert.ok(!r.ok && r.problem === why, JSON.stringify(x) + ' should be rejected as ' + why + ' (got ' + r.problem + ')'); });
+    assert.strictEqual(Sync.checkPassword('blue dragons eat pizza').strength, 'great');
+    assert.strictEqual(Sync.checkPassword('tigerlily99').strength, 'okay');
+    assert.ok(['okay', 'good', 'great'].includes(Sync.checkPassword('Mathematics4Fun!').strength));
+
+    // typing: case, spacing and Unicode width do not matter; a code-shaped entry is a code
+    assert.strictEqual(Sync.normalizePassword('  Blue   DRAGONS eat\tpizza '), 'blue dragons eat pizza');
+    assert.strictEqual(Sync.normalizePassword('ｂｌｕｅ dragons eat pizza'), 'blue dragons eat pizza', 'full-width letters (some keyboards) are folded');
+    assert.deepStrictEqual(Sync.parseSecret('K7PQ-3M9X-B2RD-VW4H'), { kind: 'code', secret: 'K7PQ3M9XB2RDVW4H' });
+    assert.deepStrictEqual(Sync.parseSecret('blue dragons eat pizza'), { kind: 'password', secret: 'blue dragons eat pizza' });
+    assert.strictEqual(Sync.parseSecret('too short'), null);
+    assert.strictEqual(Sync.parseSecret(''), null);
+
+    // keys: any spelling of the same password gives the same family; different passwords do not; codes are unchanged
+    const kp = await Sync.deriveKeys('blue dragons eat pizza', { iterations: ITER });
+    for (const v of ['Blue Dragons Eat Pizza', '  blue   dragons eat   pizza  ', 'BLUE DRAGONS EAT PIZZA', 'ｂｌｕｅ dragons eat pizza']) {
+      const k = await Sync.deriveKeys(v, { iterations: ITER });
+      assert.strictEqual(k.lookupId, kp.lookupId, 'same family for ' + JSON.stringify(v));
+      assert.strictEqual(k.keyRaw, kp.keyRaw);
+    }
+    const kq = await Sync.deriveKeys('blue dragons eat pizzas', { iterations: ITER });
+    assert.notStrictEqual(kq.lookupId, kp.lookupId, 'a different password is a different family');
+    assert.notStrictEqual(kq.keyRaw, kp.keyRaw);
+    assert.match(kp.lookupId, /^[a-f0-9]{64}$/, 'the id fits what firestore.rules accepts');
+    assert.strictEqual(kp.kind, 'password');
+    assert.strictEqual(kp.lookupId, '1d4bd68aa3e9825b78592be9b76cebf47695d9e0c58891a06914c285b76f0394', 'pinned: changing how passwords are derived would orphan every family that used one');
+    const kc = await Sync.deriveKeys('K7PQ-3M9X-B2RD-VW4H', { iterations: ITER });
+    assert.strictEqual(kc.kind, 'code');
+    assert.strictEqual(kc.lookupId, 'c085424d1b31e4aa22b10f62d487671bcc37968720a197cf7c45209d243a9313', 'pinned: generated codes derive exactly what they did before passwords existed');
+    assert.strictEqual(kc.keyRaw, 'INiai5PtMg2237PDok6A1/ni624pkiV8bDN514X/FBs=');
+    const pe = await Sync.encryptData(kp, data);
+    await assert.rejects(() => Sync.decryptEnvelope(kq, pe), (e) => e.code === 'badKey', 'the wrong password cannot unlock it');
+
+    // set up with a password, add devices, restart
+    const pb = makeBackend();
+    const P1 = makeDevice('lap', pb); addKid(P1, 'p1', 'Kid'); bumpWins(P1, 'p1', 2);
+    for (const weak of ['password123', 'aaaaaaaaaa', 'qwertyuiop', '0123456789']) {
+      await assert.rejects(() => P1.syncer.setup({ password: weak }), (e) => e.code === 'weakPassword', 'refuses ' + weak);
+    }
+    for (const short of ['', 'short', '123456789']) await assert.rejects(() => P1.syncer.setup({ password: short }), (e) => e.code === 'tooShort', 'refuses ' + JSON.stringify(short));
+    assert.strictEqual(pb.docs.size, 0, 'a refused password creates nothing in the cloud');
+    assert.ok(!P1.syncer.enabled && P1.syncer.getCode() === null && P1.syncer.getKind() === null, 'and saves nothing on the device');
+    assert.ok(Sync.MESSAGES.tooShort && Sync.MESSAGES.weakPassword);
+    const r1 = await P1.syncer.setup({ password: 'Blue Dragons  Eat Pizza' });
+    assert.deepStrictEqual(r1, { code: 'blue dragons eat pizza', kind: 'password' });
+    assert.strictEqual(P1.syncer.getKind(), 'password');
+    assert.strictEqual(P1.syncer.getCode(), 'blue dragons eat pizza', 'the password can be shown again on this device');
+    assert.deepStrictEqual([...pb.docs.keys()], [kp.lookupId], 'the cloud document is named after the password\'s lookup id');
+    assert.ok(!Buffer.from([...pb.docs.values()][0].ct, 'base64').toString('latin1').includes('Kid'), 'still only ciphertext in the cloud');
+    const P2 = makeDevice('ipad', pb);
+    await assert.rejects(() => P2.syncer.join('blue dragons eat pizzas'), (e) => e.code === 'notFound', 'a wrong password does not find the family');
+    await assert.rejects(() => P2.syncer.join('nope'), (e) => e.code === 'badCode');
+    assert.strictEqual(pb.docs.size, 1, 'a wrong password never creates a family');
+    await P2.syncer.join('  BLUE DRAGONS eat pizza ');
+    assert.ok(P2.data.profiles.some((p) => p.id === 'p1'), 'a sloppily typed password adds the device');
+    assert.strictEqual(P2.syncer.getKind(), 'password');
+    const P3 = makeDevice('phone', pb);
+    await assert.rejects(() => P3.syncer.setup({ password: 'blue dragons eat pizza' }), (e) => e.code === 'exists', 'two families cannot share a password');
+    assert.ok(!P3.syncer.enabled);
+    bumpWins(P2, 'p1', 3); P2.syncer.notifyChanged(); await P2.timers.advance(200); await until(() => P2.syncer.status.state === 'synced');
+    await P1.syncer.syncNow();
+    assert.strictEqual(sum(P1.data.profiles[0].games.rpg.wins), 5, 'progress flows both ways with a password family');
+    // restart: the device remembers it is a password family
+    const P1b = Sync.createSyncer({ backend: pb, iterations: ITER, debounceMs: 100, timers: makeTimers(), storage: P1.storage, getData: () => clone(P1.data), applyRemote: () => {} });
+    await P1b.init();
+    assert.ok(P1b.enabled && P1b.getKind() === 'password' && P1b.getCode() === 'blue dragons eat pizza', 'password and kind survive a restart');
+    // devices that joined before passwords existed saved no kind: they are generated codes
+    const O = makeDevice('old', makeBackend()); addKid(O, 'p1', 'Kid');
+    const { code: oc, kind: ok } = await O.syncer.setup();
+    assert.strictEqual(ok, 'code'); assert.match(oc, /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/, 'no password given: a random code, as before');
+    const saved = JSON.parse(O.storage.getItem('mathQuest.sync')); assert.strictEqual(saved.kind, 'code'); delete saved.kind; O.storage.setItem('mathQuest.sync', JSON.stringify(saved));
+    const Ob = Sync.createSyncer({ backend: makeBackend(), iterations: ITER, timers: makeTimers(), storage: O.storage, getData: () => clone(O.data), applyRemote: () => {} });
+    await Ob.init();
+    assert.ok(Ob.getKind() === 'code' && Ob.getCode() === oc, 'a save from before passwords existed still loads as a code');
+    P1.syncer.disconnect();
+    assert.strictEqual(P1.syncer.getKind(), null, 'disconnecting forgets it');
+  }
+
   console.log(`OK: family codes, key derivation (${kdfMs} ms at production strength), encryption, and sync verified: ` +
     `collisions retry without loss, offline/damaged/oversized/wrong-code cases never overwrite anything, a typo never creates a family, ` +
+    `family passwords (minimum length, weak ones refused, any typing style works, old codes unchanged), ` +
     `and ${schedules} random 3-device histories converge with no lost progress.`);
 })().catch((e) => { console.error(e); process.exit(1); });
