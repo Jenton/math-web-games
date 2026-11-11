@@ -20,12 +20,12 @@ Self-contained reference for any chat or contributor. Read this together with
 The single place to see what is left. Tick items off (`[x]`) and move notes into the detailed sections below when
 something is built. Details and design notes for each item are further down in this file.
 
-**Status today:** built = Munchers, Balance, Machine Builder, Creature Quest (first slice). Everything below is open.
+**Status today (11 Nov 2026):** built = Munchers, Balance, Machine Builder, Number Defense, Lemonade Stand, Escape Room, and Creature Quest (v2 rules, sprite battles, two art themes, world map). Cloud sync is live. Unticked items below are still open; if you find one that is built, tick it.
 
 ### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
-- [ ] Stage 1: battle scene with background image, enemy/ally sprites, art manifest with fallbacks, `assets/CREDITS.md` (animations, floating numbers and a placeholder scene exist already)
-- [ ] Shortlist art from the Kenney All-in-1 bundle (done by a local Claude Code session on the owner's Mac; output: `docs/art-shortlist.md` plus contact sheets), then choose packs for each theme (cute, classic fantasy, default mix) and copy only chosen files into `assets/`
-- [ ] Art theme setting at game start (cute / classic fantasy / mix)
+- [x] Stage 1: battle scene with background image, enemy/ally sprites, art manifest with fallbacks, `assets/CREDITS.md` (animations, floating numbers and a placeholder scene exist already)
+- [x] Shortlist art from the Kenney All-in-1 bundle (done by a local Claude Code session on the owner's Mac; output: `docs/art-shortlist.md` plus contact sheets), then choose packs for each theme (cute, classic fantasy, default mix) and copy only chosen files into `assets/`
+- [x] Art theme setting at game start (cute / classic fantasy / mix)
 - [x] Stage 2: 1-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, card power removed, retuned and simulated
 - [x] Stage 3 (first version): 11 allies with effects (sweep, split, crit, heal, hint, shield, combo, slice, stun), ally picker, "no team can make a fight unwinnable" tests. Still to do: grow to 20+ allies
 - [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure, and a Mario-World-style **world map** (`js/worldmap.js`, two regions: Multiples Meadow and Haunted Keep) launches v2 group fights through `RPG.makeEncounter`, with story, camp, elite, rescue and boss nodes, gold stars for flawless fights, and a boss that opens the next region (classic pixel or cute art). Still to do: puzzle / bonus nodes, camps that heal or buff, more regions and story chapters, more allies
@@ -86,12 +86,12 @@ Write observations here so any chat can act on them. Suggested format: date, who
 State of the codebase today (check the files; this may drift):
 
 - **Logic modules, no DOM, with Node tests:** `js/engine.js` (Munchers rules; `BANDS`, `SKILLS`,
-  `makeLevelRule`, `buildBoard`) and `js/puzzles.js` (Balance and Machine generators). Tests live in
-  `tests/engine.test.js` and `tests/puzzles.test.js`. New game logic should follow this pattern.
+  `makeLevelRule`, `buildBoard`) and `js/puzzles.js` (Balance and Machine generators), plus `js/tdlogic.js`, `js/shop.js`, `js/elogic.js`, `js/rpg.js`. Tests live in
+  `tests/<name>.test.js` (CI runs every `tests/*.test.js`). New game logic should follow this pattern.
 - **`js/storage.js`:** `Store` with profiles (`settings: {band, stars, theme, monsters}`, `stats`, per-game
   progress such as `munchers: {levels, streak}`), `Store.record(profile, skillId, right)`, `Store.save()`.
   Per-game progress objects must be backward-compatible; `Store.importJSON` fills defaults.
-- **Game UI modules:** `js/game.js` (Munchers), `js/balance.js`, `js/machine.js`. Each exposes
+- **Game UI modules:** `js/game.js` (Munchers), `js/balance.js`, `js/machine.js`, `js/td.js`, `js/lemonade.js`, `js/escape.js`, `js/quest.js`. Each exposes
   `start(profile, {onSave, onExit})`.
 - **`js/ui.js`:** shared toast and result panel used by every game (`UI.toast`, `UI.panel`, `UI.hide`).
 - **`js/app.js`:** the portal. A `GAMES` table maps a game key to its name, icon, how-to-play steps, a
