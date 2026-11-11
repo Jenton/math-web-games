@@ -23,23 +23,18 @@ something is built. Details and design notes for each item are further down in t
 **Status today:** built = Munchers, Balance, Machine Builder, Creature Quest (first slice). Everything below is open.
 
 ### Creature Quest (RPG) v2 (see "Creature Quest v2" section for the decisions)
-- [ ] Stage 1: battle scene with background image, enemy/ally sprites, attack animations, art manifest with fallbacks, `assets/CREDITS.md`
-- [ ] Review and choose CC0 art packs for each theme (cute, classic fantasy, default mix) and verify each license
+- [ ] Stage 1: battle scene with background image, enemy/ally sprites, art manifest with fallbacks, `assets/CREDITS.md` (animations, floating numbers and a placeholder scene exist already)
+- [ ] Shortlist art from the Kenney All-in-1 bundle (done by a local Claude Code session on the owner's Mac; output: `docs/art-shortlist.md` plus contact sheets), then choose packs for each theme (cute, classic fantasy, default mix) and copy only chosen files into `assets/`
 - [ ] Art theme setting at game start (cute / classic fantasy / mix)
-- [ ] **Cross-device saving for every game** (owner priority): see `docs/sync-design.md`
-  - [x] Stage 1: v2 save format, v1 migration, merge logic and tests; all games moved onto it
-  - [ ] Stage 2: encryption helpers + sync adapter tested against a local fake
-  - [ ] Stage 3: Firebase project (owner's existing Google account), Hosting for the site, Firestore rules, deploy. Owner wants step-by-step hand-holding (the Firebase UI is confusing to them)
-  - [ ] Stage 4: sync UI (set up family code, add device, sync status, manual sync)
-- [ ] Save the in-progress adventure and map node progress (today only XP, level, creatures and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
-- [ ] Non-combat variant of the RPG for the younger player (see the idea above; no design yet)
-- [ ] Stage 2: 2-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, remove card power, retune and re-simulate
-- [ ] Stage 3: ally roster (~12 to start, 20+ later) with effects: hit all, shield/heal, stun, remove a wrong card; ally picker UI; "no team can make a fight unwinnable" test
-- [ ] Stage 4: Mario-World-style world map (pixel art), node types (battle, elite, boss, rescue, story beat, puzzle, camp), story chapters per region, scripted ally-rescue encounters
-- [ ] Tune the numbers after playtesting (`js/rpg.js` tunables)
+- [x] Stage 2: 1-3 enemies per fight with their own weaknesses, tap-to-target, every enemy visibly hits back, card power removed, retuned and simulated
+- [x] Stage 3 (first version): 11 allies with effects (sweep, split, crit, heal, hint, shield, combo, slice, stun), ally picker, "no team can make a fight unwinnable" tests. Still to do: grow to 20+ allies
+- [~] Stage 4: scripted ally rescues exist inside the 5-encounter adventure. Still to do: the Mario-World-style world map (pixel art), node types (battle, elite, boss, rescue, story beat, puzzle, camp), story chapters per region, region data files
+- [ ] Save the in-progress adventure and map node progress (today only XP, level, allies and wins are saved; the current run restarts at battle 1). New progress must follow the merge rules in `docs/sync-design.md` (cleared map nodes are a set, node stars are a max)
+- [ ] Tune the numbers after playtesting (`TUNE` in `js/rpg.js`)
 - [ ] Character customization (cosmetic only)
 - [ ] Spellcraft enemies (exact-HP), Machine Builder bosses
-- [ ] Creature/ally upgrades (growth with use)
+- [ ] Ally upgrades (growth with use)
+- [ ] Non-combat variant of the RPG for the younger player (see the idea below; no design yet)
 
 ### Existing games, possible extensions
 - [ ] Balance: drag-blocks-onto-pans version for the youngest players, negative weights (balloons), limited guesses, two-player "first to level it"
@@ -231,6 +226,13 @@ player moves through the story chapters.
   is **a mix**: cute allies and heroes with classic-fantasy monsters and landscapes. The art manifest is therefore keyed by
   theme (`theme -> enemy/ally/background -> image`), with each theme falling back to the default and then to plain emoji.
   Check that a theme's pieces look consistent together before shipping it.
+- **Asset workflow (owner decision):** the owner bought **Kenney Game Assets All-in-1 (3.8.0)**, a very large collection. It stays
+  **outside this repo** (at `/Volumes/JentMini Drive/AI Projects/...` on the owner's Mac). Only the specific files we choose are copied into
+  `assets/<theme>/...` and listed in `assets/CREDITS.md`; never commit the whole bundle (repo size, and the deployed site is public).
+  `.gitignore` blocks `assets/Kenney*/` and `assets/incoming/` as a safety net. **A cloud Claude session cannot read that folder** (the Mac's
+  folder is not offered to cloud sessions), so shortlisting and copying must be done by a Claude Code session running on the owner's Mac.
+  That session should write `docs/art-shortlist.md` and small contact-sheet preview images so a cloud session can see the options.
+  Kenney assets are released under CC0, but confirm the license file inside each pack and record it in `CREDITS.md`.
 - Keep a `assets/CREDITS.md` listing every asset, its source URL and license. Never commit anything without a clear license.
 - Build the scene so art is **swappable data**: a manifest maps enemy/ally/background ids to image files, with a plain
   emoji or colored-shape fallback if a file is missing.
@@ -268,7 +270,7 @@ The world-map node system is the right foundation, since a node can be a "help s
 
 ---
 
-## The RPG: Creature Quest (first slice built; the sections below describe the FIRST slice, partly superseded by v2 above)
+## The RPG: original design notes (partly superseded: where this disagrees with "Creature Quest v2" above or "What is built now" below, those win)
 
 **Decision:** the RPG is ONE game that rolls up several mechanics, not separate games. Munchers, Balance and
 Machine Builder stay as standalone games and also appear inside the RPG as mini-challenges and bosses.
@@ -334,30 +336,27 @@ Machine Builder stay as standalone games and also appear inside the RPG as mini-
   xp, level, regions, cosmetics }`. A save backup must keep working.
 - Follow the "How a new game plugs into the current code" steps above for the card, setup screen and section.
 
-### First slice (BUILT: `js/rpg.js` logic, `js/quest.js` screens, `tests/rpg.test.js`)
-What exists now, and where it differs from the plan above:
-- **An adventure is 5 battles:** weakness, weakness, armored, weakness, boss. Win a battle for XP; lose and you retry
-  the same monster at full health (no setback, no lost XP).
-- **Hand and turn:** 5 cards (6 at 3 stars) refreshed every turn, each with a power of 1-3 (shown as swords). A card that
-  fits the weakness hits for 3 x (power + specialist bonus). A card that does not fit does nothing, **heals the monster 4**,
-  and the monster still attacks (2 per turn). A deliberately tempting high-power card that does NOT fit is always in the hand,
-  so "pick the strongest-looking card" is a losing strategy. This replaces the planned limited cards/mana: the cost of a wrong
-  pick is a lost turn plus a heal. Revisit if it feels too forgiving or too harsh.
-- **Armored monsters:** the armor is a fraction; only cards of that value or more break through (comparing fractions). K-1 halves,
-  thirds, quarters; 6th grade mixes fractions, decimals and percents.
-- **Boss:** a normal weakness fight, but every 3rd turn it charges a big attack (5 damage). A Balance puzzle (reusing
-  `MGP.makeBalance`) appears; solving it cancels the attack and stuns the boss for the turn. The player may ignore it and take the hit.
-  Machine Builder bosses are not built yet.
-- **Team and creatures:** 11 original creatures (emoji). A player starts with three matching their grade band and befriends the rest
-  by beating the matching monster (armor and boss included). Up to 3 on the team. A creature strong against the monster's weakness
-  adds +1 power (max +2) and shows a star in the picker. Locked creatures only show if they can be found at the player's grade.
-- **Leveling:** XP is 10/15/30 per monster/armored/boss, +10 (+20 boss) for a flawless fight, +5 for one mistake. Level n needs
-  40 + 20(n-1) XP and gives +2 team health (16 at level 1).
-- **Difficulty:** the player's grade band and stars apply as in the other games. Simulations in `tests/rpg.test.js` check that a
-  perfect player always wins, a learner who misses a third of the time still wins about 85% at 1 star, and random or
-  power-only play mostly loses.
-- **Not built yet:** world map, character customization, Spellcraft (exact-HP) enemies, Machine Builder bosses, sound/art beyond emoji.
-  Next steps after playtesting: tune the numbers in the tunables block at the top of `js/rpg.js`, then add the map and customization.
+### What is built now (v2 rules slice: `js/rpg.js` logic, `js/quest.js` screens, `tests/rpg.test.js`, `tests/browser/quest.browser.js`)
+The v2 decisions above are implemented except for art and the world map. What exists, and where it differs from the older plan below:
+- **An adventure is 5 encounters** with groups of monsters: 1 enemy; 2; armored + 1 (a rescue); 3 (2 at 1 star); boss + a minion (a rescue). Each enemy has
+  **its own weakness** and no two enemies in a fight share a skill. Lose and you retry the same encounter at full health (nothing lost).
+- **Turn:** tap a monster to target it (its hand was dealt at the start of the turn, so retargeting never re-rolls), tap an ally to choose who acts, play a
+  card. **A right card does damage (6); a wrong card does none** and is explained. **Card power and the enemy-heals penalty are gone.** Then **every living monster
+  hits back in turn** (2 for ordinary, 3 for armored and bosses), with a lunge animation, floating damage numbers and a team-health flash.
+- **Ally effects on a right answer** (all 11 allies have one; none is required): Hopper *sweep* (every other enemy takes half), Splish *split* (the weakest other enemy takes half),
+  Primo *crit* (+50%), Pairo *heal* (+3), Owlbert *hint* (next turn every hand loses a wrong card), Puffy and Shelly *shield* (block the next attack, max 2), Octo *combo*
+  (+2 per right answer in a row, max +6), Fraxie *slice* (at least a quarter of the enemy's health), Powzer and Pebble *stun* (the target skips its next attack).
+  An ally whose theme matches the target's skill is an **expert**: +3 damage and a star in the picker.
+- **Scripted rescues instead of random allies:** two encounters per adventure free a caged ally (the armored fight frees the next ally you do not own, the boss fight frees
+  Pebble first). Ordinary fights free nobody. This is the first step toward the story chapters and world map.
+- **Armor:** only attacks of at least the armor fraction break through (comparing fractions; 6th grade mixes fractions, decimals and percents).
+- **Boss:** every 3rd turn it charges a 7-damage attack; a Balance puzzle cancels it and stuns the boss for the turn, or you take the hit.
+- **Leveling:** XP per enemy (8 ordinary, 12 armored, 25 boss) +10 (+20 with a boss) for a flawless fight, +5 for one mistake. Level n needs 40 + 20(n-1) XP and gives +2 team health (26 at level 1).
+- **Balance, verified by simulation** (`tests/rpg.test.js`, helpers in `tests/helpers/quest-bots.js`): a perfect player wins 100%; perfect answers win 100% even with the least useful
+  single ally; a learner who misses a third of the time wins 90/82/82% at 1/2/3 stars; ignoring the math (random enemy, ally and card) wins 41/33/27%. Enemy strength is the same at every star
+  level (stars change the math and the hand: 5, 5, 6 cards, with 1 to 2 right cards), and fewer right cards per hand is what makes guessing lose. All numbers are in the `TUNE` object at the top of `js/rpg.js`.
+- **Still placeholder:** emoji sprites and a CSS gradient scene. **Not built yet:** the art pass (backgrounds and sprites from the chosen CC0 packs), world map, story chapters, customization,
+  more allies (11 now; 20+ planned), Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
 ---
 

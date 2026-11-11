@@ -19,6 +19,27 @@
         <button id="backupBtn" class="btn ghost" type="button">Save a backup file</button>
         <label class="btn ghost file">Load a backup<input id="restoreInput" type="file" accept="application/json,.json" hidden></label>
       </div>
+      <details id="syncBox" class="grownups sync">
+        <summary>Sync between devices (grown-ups) <span id="syncPill" class="pill" hidden></span></summary>
+        <div id="syncUnavailable" hidden>
+          <p class="help">Cloud sync is not connected on this website yet. Use the backup file above to move progress between devices.</p>
+        </div>
+        <div id="syncOff" hidden>
+          <p>Keep the same players and progress on every device (laptop, iPad, phone). Progress is encrypted on the device before it is uploaded, so nobody can read it without your family code.</p>
+          <div class="row">
+            <button id="syncSetupBtn" class="btn small" type="button">Set up sync on this device</button>
+            <button id="syncJoinBtn" class="btn ghost small" type="button">Add this device to my family</button>
+          </div>
+        </div>
+        <div id="syncOn" hidden>
+          <p id="syncStatus" role="status" aria-live="polite"></p>
+          <div class="row">
+            <button id="syncNowBtn" class="btn small" type="button">Sync now</button>
+            <button id="syncShowBtn" class="btn ghost small" type="button">Show family code</button>
+            <button id="syncStopBtn" class="btn danger small" type="button">Stop syncing on this device</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- MENU: games + settings for one player -->
@@ -221,7 +242,7 @@
           <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Begin adventure</button>
           <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
         </div>
-        <p class="note">An adventure is 5 battles: three monsters, an armored monster, and a boss.</p>
+        <p class="note">An adventure is 5 battles against groups of monsters. In two of them a friend is trapped in a cage: win to set them free!</p>
       </div>
 
       <div id="qPrep" hidden>
@@ -230,8 +251,8 @@
           <span id="qRun" class="pill"></span>
         </div>
         <div id="qPreview" class="q-preview">
-          <span id="qPvEmoji" class="e-emoji"></span>
-          <div><div id="qPvName" class="e-name"></div><div class="note">Its weakness:</div><div id="qPvWeak" class="pv-weak"></div></div>
+          <div id="qPvFoes" class="pv-foes"></div>
+          <p id="qPvRescue" class="pv-rescue" hidden></p>
         </div>
         <h2 id="qPrepTitle"></h2>
         <p id="qPrepHelp" class="help"></p>
@@ -248,13 +269,9 @@
           <span id="qRunPill" class="pill"></span>
           <span id="qTurn" class="pill"></span>
         </div>
-        <div class="enemy">
-          <span id="qEnemyEmoji" class="e-emoji"></span>
-          <div class="e-info">
-            <div id="qEnemyName" class="e-name"></div>
-            <div class="bar" aria-hidden="true"><div id="qEnemyHp" class="fill hp"></div></div>
-            <div id="qEnemyHpText" class="note"></div>
-          </div>
+        <div id="qScene" class="scene">
+          <div id="qFoes" class="foes"></div>
+          <div id="qFloats" class="floats" aria-hidden="true"></div>
         </div>
         <div class="weak">
           <div id="qWeakTitle" class="weak-title"></div>
@@ -274,14 +291,16 @@
           <p id="qChargeSums" class="sums"></p>
           <button id="qgLock" class="btn" type="button">Lock it in</button>
         </div>
-        <p class="s-label hand-label">Your attack cards <span class="opt">(more &#9876;&#65039; = more power, but only a card that fits the weakness hits)</span></p>
+        <p id="qHandLabel" class="s-label hand-label"></p>
         <div id="qHand" class="hand"></div>
         <p id="qLog" class="log" role="status" aria-live="polite"></p>
+        <p class="s-label">Who acts? <span class="opt">(&#11088; = an expert against the monster you picked)</span></p>
+        <div id="qAllies" class="allies"></div>
         <div class="team-bar">
-          <div id="qTeam" class="q-team"></div>
           <div class="hp"><span class="s-label">Team health</span><div class="bar" aria-hidden="true"><div id="qTeamHp" class="fill good"></div></div><span id="qTeamHpText" class="note"></span></div>
+          <div id="qShield" class="shield" aria-live="polite"></div>
         </div>
-        <p class="note">Tip: keys 1 to 6 play a card.</p>
+        <p class="note">Tip: tap a monster to attack it, tap a friend to choose who acts. Keys 1 to 6 play a card.</p>
       </div>
     </section>
 
@@ -315,6 +334,41 @@
     </div>
   </main>
 
+  <dialog id="syncSetup">
+    <div id="ssIntro">
+      <h2>Set up sync</h2>
+      <p>This makes a <b>family code</b>. Anyone who has the code can see and change your kids' progress, so keep it private, like a password.</p>
+      <p>You will type the code once on each other device (laptop, iPad, phone).</p>
+      <p id="ssError" class="error" role="alert" hidden></p>
+      <div class="row">
+        <button id="ssCreate" class="btn" type="button">Create my family code</button>
+        <button id="ssCancel" class="btn ghost" type="button">Cancel</button>
+      </div>
+    </div>
+    <div id="ssCode" hidden>
+      <h2 id="ssCodeTitle">Your family code</h2>
+      <p id="ssCodeText" class="code" aria-label="Your family code"></p>
+      <div class="row">
+        <button id="ssCopy" class="btn ghost small" type="button">Copy</button>
+        <button id="ssSave" class="btn ghost small" type="button">Save as a text file</button>
+      </div>
+      <p id="ssWarn" class="help">Write this down or save it somewhere safe. You will need it to add other devices. You can also see it again on this device under "Show family code".</p>
+      <label id="ssSavedLabel" class="check"><input type="checkbox" id="ssSaved"> I saved my family code</label>
+      <div class="row"><button id="ssDone" class="btn" type="button" disabled>Done</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="syncJoin">
+    <h2>Add this device</h2>
+    <p>Enter your family code. Players already on this device will be combined with your family's players.</p>
+    <label>Family code <input id="sjCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"></label>
+    <p id="sjError" class="error" role="alert" hidden></p>
+    <div class="row">
+      <button id="sjGo" class="btn" type="button">Add this device</button>
+      <button id="sjCancel" class="btn ghost" type="button">Cancel</button>
+    </div>
+  </dialog>
+
   <dialog id="newPlayer">
     <form id="npForm" method="dialog">
       <h2>New player</h2>
@@ -331,7 +385,9 @@
 
   <script src="js/engine.js"></script>
   <script src="js/save.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/sync-ui.js"></script>
   <script src="js/sfx.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/puzzles.js"></script>

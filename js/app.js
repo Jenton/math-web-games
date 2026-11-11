@@ -13,9 +13,9 @@
   const GAMES = {
     quest: {
       name: 'Creature Quest', ico: 'medals/m3', extras: false, mod: () => Quest,
-      how: ['Every monster has a <b>weakness</b>, like "multiples of 6".', '<b>Pick the attack card</b> that fits it. More ⚔️ means more power, but a card that does not fit does nothing and heals the monster!', 'Win battles to <b>level up</b>, befriend <b>creatures</b>, and take on the boss.'],
-      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
-      stars: [['★ Easier', 'Weaker monsters, 5 cards to pick from.'], ['★★ Medium', 'Tougher monsters and trickier cards.'], ['★★★ Harder', 'Strong monsters, 6 cards, and cards that nearly fit.']],
+      how: ['Monsters come in <b>groups</b>, and each has its own <b>weakness</b>, like "multiples of 6". <b>Tap a monster</b> to attack it.', '<b>Pick the card</b> that fits its weakness. A right card does damage. A wrong card does nothing, and <b>every monster hits back</b>!', 'Choose which <b>friend</b> acts: each has a special power. <b>Rescue caged friends</b> to grow your team and win the boss fight.'],
+      band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves, thirds and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
+      stars: [['★ Easier', 'Smaller numbers, 2 monsters at most, 5 cards.'], ['★★ Medium', 'Bigger numbers, up to 3 monsters.'], ['★★★ Harder', 'The trickiest numbers, up to 3 monsters, 6 cards.']],
       sample: (s) => RPG.sampleText(s.band, s.stars),
     },
     munchers: {
@@ -69,8 +69,8 @@
 
   /* ---------- home ---------- */
 
-  function renderHome() {
-    applyTheme(null);
+  /** Rebuild the player list and save note (safe to call any time; does not switch screens or scroll). */
+  function renderPlayers() {
     const list = $('#players');
     list.innerHTML = '';
     Store.profiles.forEach((p) => {
@@ -93,6 +93,11 @@
     if (!Store.ok) note.textContent = '⚠️ Your browser is blocking saving. Progress will be lost when you close this page.';
     else if (Store.lastSaved) note.textContent = 'Saved on this device · last saved ' + new Date(Store.lastSaved).toLocaleString();
     else note.textContent = 'Everything is saved privately on this device. No accounts, no ads.';
+  }
+
+  function renderHome() {
+    applyTheme(null);
+    renderPlayers();
     show('home');
   }
 
@@ -243,6 +248,9 @@
 
   function boot() {
     Store.load();
+    // a background sync changed the data: refresh the player list if it is showing (profile objects are updated in place)
+    document.addEventListener('mq:data-changed', () => { if (!$('#home').hidden) renderPlayers(); });
+    if (window.SyncUI) SyncUI.init();
     $('#npForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = $('#npName').value.trim();
