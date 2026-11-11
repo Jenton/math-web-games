@@ -18,6 +18,10 @@ function walk(dir, base = '') {
 const files = walk(OUT);
 const has = (p) => fs.existsSync(path.join(OUT, p));
 
+/* ---------- only the site's own top-level entries are published (an allow-list, not just a block-list) ---------- */
+const top = [...new Set(files.map((f) => f.split('/')[0]))].sort();
+assert.deepStrictEqual(top, ['assets', 'css', 'firebase.json', 'index.html', 'js'], 'unexpected top-level entries in the published folder (a stray file at the repo root would go public): ' + top.join(', '));
+
 /* ---------- nothing private is published ---------- */
 const bad = [];
 files.forEach((f) => {
