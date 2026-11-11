@@ -15,10 +15,15 @@ mkdir -p "$OUT"
 LIST="$(mktemp)"
 trap 'rm -f "$LIST"' EXIT
 
-# tracked files + untracked-but-not-ignored files, minus everything that must not be public:
+# ALLOW-LIST first: only index.html and the css/, js/ and assets/ folders can be published. Anything else at the repo root (a lock file, notes,
+# a config someone adds later) stays private by default instead of going public by accident (skills-lock.json did). If the game ever needs
+# another top-level file (a manifest, a service worker), add it to the pattern below; tests/site-build.test.js fails with the missing file's
+# name if index.html references something that is not published.
+# Then, within those, minus everything that must not be public:
 #   tests/ docs/ tools/ and the build output itself (_site/), markdown, Firebase config and rules, any dotfile or dot-folder at any depth
 #   (.git, .github, .firebase, ...), the raw Kenney download bundle (assets/Kenney Game ... , NOT assets/kenney/), assets/incoming, node_modules
 (git ls-files; git ls-files --others --exclude-standard) | sort -u \
+  | grep -E '^(index\.html$|css/|js/|assets/)' \
   | grep -v -E '^(tests|docs|tools|_site)/|\.md$|^firebase\.json$|^firestore\.(rules|indexes\.json)$|^\.firebaserc$|(^|/)\.[^/]*$|(^|/)\.[^/]+/|^assets/Kenney Game[^/]*/|^assets/incoming/|node_modules/' \
   > "$LIST"
 

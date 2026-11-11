@@ -44,6 +44,7 @@
     $('qBegin').addEventListener('click', () => beginRun());
     $('qMyTeam').addEventListener('click', () => openPrep('collection'));
     $('qMapBtn').addEventListener('click', () => goMap());
+    $('qReset').addEventListener('click', onReset);
     $('qResume').addEventListener('click', resumeRun);
     $('qPzBack').addEventListener('click', () => { Q.pz = null; goMap(Q.region); });
     $('qMapBack').addEventListener('click', goHome);
@@ -120,6 +121,25 @@
     $('qResume').hidden = !saved;
     if (saved) $('qResume').textContent = '▶️ Continue: battle ' + (saved.i + 1) + ' of ' + RPG.ADVENTURE.length;
     showView('qHome');
+  }
+
+  /** Grown-up action: put Creature Quest back to zero. The safe choice is the focused one; nothing is deleted until the second button. */
+  function onReset() {
+    UI.panel({
+      title: 'Start Creature Quest over?',
+      text: 'This erases the level, the friends you have found, the world map and your stars for this player. Other games are not changed. It cannot be undone.',
+      btn: 'Keep my progress',
+      onBtn: () => {},
+      btn2: 'Yes, start over',
+      onBtn2: () => {
+        RPG.resetState(ctx.profile);
+        ctx.onSave();
+        Q = { mode: 'home', region: 0, node: null, buff: null, pz: null, intro: {}, lastSkill: null, run: null, encounter: null, battle: null, selected: [], guess: 0, puzzle: null, busy: false, log: '' };
+        goHome();
+        UI.toast('Creature Quest is back to the start.', true);
+      },
+      bad: true,
+    });
   }
 
   /* ---------- world map ---------- */
@@ -595,7 +615,7 @@
     });
     Q.puzzle = null;
     Q.busy = false;
-    Q.log = 'Tap a monster to attack it, pick a friend, then play a card that fits its weakness.';
+    Q.log = 'Every friend gets one attack, then the monsters take their turn. Tap a monster, then play a card that fits its weakness.';
     if (Q.node && Q.buff && RPG.applyBuff(Q.battle, Q.buff)) Q.log = '⛺ ' + RPG.BUFFS[Q.buff].name + ': ' + RPG.BUFFS[Q.buff].text + ' ' + Q.log;
     showView('qBattle');
     paintScene();
@@ -611,7 +631,7 @@
     b.team.forEach((id, j) => {
       const c = RPG.creatureById(id);
       const m = document.createElement('div');
-      m.className = 'mate' + (j === b.ally ? ' on' : '');
+      m.className = 'mate' + (j === b.ally ? ' on' : '') + (b.acted[j] ? ' done' : '');
       m.dataset.j = j;
       m.appendChild(allySprite(c));
       m.addEventListener('click', () => onAlly(j)); // a tap on the friend works too (the picker buttons stay for keyboards and screen readers)
@@ -620,7 +640,10 @@
   }
   const mateEls = () => [...$('qMates').children];
   function markActing() {
-    mateEls().forEach((m, j) => m.classList.toggle('on', j === Q.battle.ally));
+    mateEls().forEach((m, j) => {
+      m.classList.toggle('on', j === Q.battle.ally);
+      m.classList.toggle('done', !!Q.battle.acted[j]);
+    });
   }
   // anticipation: a younger player gets a longer, clearer warning before a monster strikes (docs/animation-guide.md)
   const motionOff = () => reduced() || document.documentElement.dataset.motion === 'reduced'; // device setting or the Reduce motion profile setting
@@ -722,13 +745,14 @@
       const c = RPG.creatureById(id);
       const el = document.createElement('button');
       el.type = 'button';
-      el.className = 'ally' + (j === b.ally ? ' on' : '');
+      el.className = 'ally' + (j === b.ally ? ' on' : '') + (b.acted[j] ? ' done' : '');
+      el.disabled = !!b.acted[j];
       el.setAttribute('aria-pressed', j === b.ally);
       el.innerHTML = '<span class="a-emoji"></span><span><span class="a-name"></span><span class="a-eff"></span></span>';
       putSprite(el.querySelector('.a-emoji'), allySprite(c));
       el.querySelector('.a-name').textContent = c.name + ' · ' + c.effectName;
-      el.querySelector('.a-eff').textContent = c.effectText;
-      if (foe && foe.alive && foe.enemy.themes.includes(RPG.themeOf(c))) {
+      el.querySelector('.a-eff').textContent = b.acted[j] ? 'Already attacked this turn' : c.effectText;
+      if (!b.acted[j] && foe && foe.alive && foe.enemy.themes.includes(RPG.themeOf(c))) {
         const s = document.createElement('span');
         s.className = 'star';
         s.textContent = '⭐';
@@ -744,7 +768,9 @@
     const hand = $('qHand');
     hand.innerHTML = '';
     const foe = b.foes[b.target];
-    $('qHandLabel').textContent = foe ? 'Pick the card that fits the ' + foe.enemy.name + "'s weakness" : '';
+    const who = RPG.creatureById(b.team[b.ally]);
+    // the cards belong to the monster you target (each has its own weakness), so the label says whose cards they are
+    $('qHandLabel').textContent = foe ? (who ? who.name + ' attacks! ' : '') + 'Cards for the ' + foe.enemy.name + ': pick the one that fits its weakness' : '';
     RPG.currentHand(b).forEach((c, i) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -770,7 +796,7 @@
   function renderBattle() {
     const b = Q.battle;
     const foe = b.foes[b.target];
-    $('qTurn').textContent = 'Turn ' + b.turn;
+    $('qTurn').textContent = 'Turn ' + b.turn + ' · friend ' + Math.min(b.team.length, b.acted.filter(Boolean).length + 1) + ' of ' + b.team.length;
     $('qRunPill').textContent = runLabel();
     renderFoes();
     $('qWeakTitle').textContent = foe ? foe.enemy.weakness : '';
@@ -791,7 +817,7 @@
   function onAlly(j) {
     const b = Q && Q.battle;
     if (!b || Q.busy || !$('panel').hidden) return;
-    if (RPG.setAlly(b, j)) { renderAllies(); markActing(); }
+    if (RPG.setAlly(b, j)) { renderAllies(); markActing(); renderHand(); }
   }
 
   /* ---------- animation helpers ---------- */
@@ -819,7 +845,7 @@
   function describe(ev, b) {
     const names = (i) => b.foes[i].enemy.name;
     const ally = RPG.creatureById(ev.ally);
-    if (!ev.correct) return '✗ No damage this turn.';
+    if (!ev.correct) return '✗ No damage from ' + ally.name + '.';
     const parts = ['✓ ' + ev.msg];
     const main = ev.hits.find((h) => h.i === ev.target);
     if (main) parts.push(ally.name + ' hits the ' + names(ev.target) + ' for ' + main.amount + (ev.specialist ? ' (⭐ expert bonus!)' : '') + '.');
@@ -828,7 +854,7 @@
     if (ev.healed) parts.push('Your team heals ' + ev.healed + '.');
     if (ev.shieldGained) parts.push('A shield will block the next attack.');
     if (ev.stunned !== null) parts.push('The ' + names(ev.stunned) + ' will skip its attack.');
-    if (ev.hint) parts.push('Next turn each hand has a wrong card removed.');
+    if (ev.hint) parts.push('The next hand has a wrong card removed.');
     return parts.join(' ');
   }
 
@@ -889,7 +915,19 @@
       return showWin();
     }
 
-    // 2) every living enemy hits back, one after another
+    if (!ev.turnEnded) {
+      // more friends still have to act: the monsters wait, and the next friend gets a fresh hand
+      Q.log = lines.join(' ') + ' Now it is ' + RPG.creatureById(b.team[b.ally]).name + "'s turn.";
+      Q.busy = false;
+      renderBattle();
+      markActing();
+      if (!ev.correct) UI.panel({ title: 'Not quite!', text: ev.msg + ' No damage from that attack. The next friend gets a turn.', btn: 'Keep going', onBtn: () => {}, bad: true });
+      return;
+    }
+
+    // 2) every friend has acted: now every living monster takes its turn, one after another
+    lines.push('The monsters take their turn.');
+    $('qLog').textContent = lines.join(' ');
     let hp = hp0 + ev.healed;
     for (const a of ev.attacks) {
       const el = foeEl(a.i);
@@ -936,9 +974,10 @@
       });
     }
     renderBattle();
+    markActing();
     Q.busy = false;
     if (!ev.correct) {
-      UI.panel({ title: 'Not quite!', text: ev.msg + ' No damage this turn, and the monsters hit back.', btn: 'Keep going', onBtn: () => {}, bad: true });
+      UI.panel({ title: 'Not quite!', text: ev.msg + ' No damage from that attack, and then the monsters took their turn.', btn: 'Keep going', onBtn: () => {}, bad: true });
     }
   }
 
