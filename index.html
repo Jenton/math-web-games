@@ -377,7 +377,11 @@
       <p class="rule-hint">Send numbers through the gate and watch. When you think you know its secret rule, say so. Fewer tests earn more stars.</p>
       <div class="sort-lanes">
         <div class="lane"><span class="s-label">✅ Let through</span><div id="sortPass" class="lane-box"></div></div>
-        <div id="sortGate" class="gate" aria-hidden="true">🚪</div>
+        <div class="sort-scene" aria-hidden="true">
+          <img id="sortGuard" class="px sort-guard" src="assets/kenney/escape/t96.png" alt="" draggable="false">
+          <img id="sortGate" class="px sort-door" src="assets/kenney/escape/t46.png" alt="" draggable="false">
+          <img id="sortEmote" class="sort-emote" alt="" draggable="false" hidden>
+        </div>
         <div class="lane"><span class="s-label">🚫 Stopped</span><div id="sortStop" class="lane-box"></div></div>
       </div>
       <p id="sortMsg" class="sums" role="status" aria-live="polite"></p>

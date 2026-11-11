@@ -29,6 +29,16 @@
     ctx.onExit();
   }
 
+  /* The gate scene (static states for now; motion comes in the animation pass): a closed door, an open archway when a number goes
+     through, and a guard whose emote says what just happened. */
+  const ART = 'assets/kenney/escape/';
+  function setGate(state) {
+    $('sortGate').src = ART + (state === 'pass' ? 't10.png' : 't46.png');
+    const e = $('sortEmote');
+    e.hidden = state === 'idle';
+    if (state !== 'idle') e.src = 'assets/kenney/ui/' + (state === 'pass' ? 'emote_faceHappy' : 'emote_exclamation') + '.png';
+  }
+
   function nextPuzzle() {
     const st = ctx.profile.settings;
     S.n++;
@@ -39,7 +49,7 @@
     $('sortNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
     $('sortPass').innerHTML = '';
     $('sortStop').innerHTML = '';
-    $('sortGate').textContent = '🚪';
+    setGate('idle');
     $('sortMsg').textContent = 'Pick a number to send through the gate.';
     const tray = $('sortTray');
     tray.innerHTML = '';
@@ -70,10 +80,10 @@
     btn.disabled = true;
     btn.classList.add('used');
     const chip = document.createElement('span');
-    chip.className = 'blk ' + (ok ? 'known' : 'mystery');
+    chip.className = 'sort-chip ' + (ok ? 'pass' : 'stop');
     chip.textContent = v;
     $(ok ? 'sortPass' : 'sortStop').appendChild(chip);
-    $('sortGate').textContent = ok ? '✅' : '🚫';
+    setGate(ok ? 'pass' : 'stop');
     $('sortMsg').textContent = v + (ok ? ' went through!' : ' was stopped.');
     update();
   }
@@ -110,6 +120,7 @@
       Sfx.play(stars === 3 ? 'solved' : 'win');
       const last = S.n >= ROUND;
       UI.panel({
+        icon: 'medals/m' + stars,
         title: 'You cracked it! ' + '⭐'.repeat(stars),
         text: 'The gate lets through ' + S.p.rule.text + '. You tested ' + S.tested.length + ' of ' + S.p.tray.length + ' numbers.' + (last ? ' Round done: ' + S.stars + ' of ' + ROUND * 3 + ' stars.' : ''),
         btn: last ? 'Play another round' : 'Next puzzle',
@@ -129,6 +140,7 @@
       Sfx.play('lose');
       const last = S.n >= ROUND;
       UI.panel({
+        icon: 'ui/emote_faceSad',
         title: 'Not quite',
         text: why + ' The secret rule was: ' + S.p.rule.text + '.',
         btn: last ? 'Play another round' : 'Next puzzle',
@@ -140,7 +152,7 @@
       return;
     }
     Sfx.play('wrong');
-    UI.panel({ title: 'Not that one', text: why, btn: 'Keep going', onBtn: () => showChoices(false), bad: true });
+    UI.panel({ icon: 'ui/emote_question', title: 'Not that one', text: why, btn: 'Keep going', onBtn: () => showChoices(false), bad: true });
   }
 
   root.Sort = { start };
