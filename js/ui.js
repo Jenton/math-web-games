@@ -13,6 +13,9 @@
   }
 
   function panel(o) {
+    const ic = $('panelIcon');
+    ic.hidden = !o.icon;
+    if (o.icon) ic.src = 'assets/kenney/' + o.icon + '.png';
     $('panelTitle').textContent = o.title;
     $('panelText').textContent = o.text;
     const b = $('panelBtn');

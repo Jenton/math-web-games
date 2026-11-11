@@ -13,10 +13,11 @@
 
   // Themes are skins only: same game, different look. Original characters (no licensed IP).
   const THEMES = {
-    block: { name: 'Block World', player: '🐸', monster: '🧟' },
-    creature: { name: 'Creatures', player: '🐣', monster: '🦇' },
-    fantasy: { name: 'Fantasy', player: '🧙', monster: '🐉' },
-    cute: { name: 'Cute', player: '🐱', monster: '🐛' },
+    // player / monster are the emoji fallback; art is Kenney CC0 (assets/kenney): a round animal and an alien "glitch", per skin
+    block: { name: 'Block World', player: '🐸', monster: '🧟', art: { player: 'animals/frog', monster: 'aliens/Green', tile: 'Wood' } },
+    creature: { name: 'Creatures', player: '🐣', monster: '🦇', art: { player: 'animals/chick', monster: 'aliens/Blue', tile: 'Blue' } },
+    fantasy: { name: 'Fantasy', player: '🧙', monster: '🐉', art: { player: 'animals/owl', monster: 'aliens/Pink', tile: 'Marble' } },
+    cute: { name: 'Cute', player: '🐱', monster: '🐛', art: { player: 'animals/rabbit', monster: 'aliens/Yellow', tile: 'Yellow' } },
   };
 
   let S = null;
@@ -129,6 +130,7 @@
 
   function update() {
     const th = theme();
+    el.board.dataset.tile = (th.art && th.art.tile) || '';
     const pi = S.player.r * COLS + S.player.c;
     const monsterAt = new Set(S.monsters.map((m) => m.r * COLS + m.c));
     cellEls.forEach((b, i) => {
@@ -136,11 +138,36 @@
       b.classList.toggle('eaten', cell.eaten);
       b.classList.toggle('player', i === pi);
       b.classList.toggle('target', i === S.target);
-      b.querySelector('.bp').textContent = i === pi ? th.player : '';
-      b.querySelector('.bm').textContent = monsterAt.has(i) ? th.monster : '';
+      badge(b.querySelector('.bp'), i === pi, th.player, th.art && th.art.player);
+      badge(b.querySelector('.bm'), monsterAt.has(i), th.monster, th.art && th.art.monster);
     });
     el.hearts.textContent = '❤️'.repeat(S.lives) + '🤍'.repeat(Math.max(0, 3 - S.lives));
     el.left.textContent = '🎯 ' + remaining() + ' left';
+  }
+
+  /** Shows a sprite (or the emoji fallback) in a badge, only touching the DOM when it changes so taps are never lost. */
+  function badge(elb, on, emoji, art) {
+    const key = on ? (art || emoji) : '';
+    if (elb.dataset.k === key) return;
+    elb.dataset.k = key;
+    elb.textContent = '';
+    if (!on) return;
+    if (!art) { elb.textContent = emoji; return; }
+    const img = new Image();
+    img.src = 'assets/kenney/' + art + '.png';
+    img.alt = '';
+    img.draggable = false;
+    img.onerror = () => { elb.textContent = emoji; };
+    elb.appendChild(img);
+  }
+
+  function pop(i, good) {
+    const cellEl = cellEls[i];
+    if (!cellEl) return;
+    const fx = document.createElement('span');
+    fx.className = 'fx ' + (good ? 'fx-good' : 'fx-bad');
+    cellEl.appendChild(fx);
+    setTimeout(() => fx.remove(), 700);
   }
 
   function remaining() {
@@ -157,6 +184,9 @@
   function showPanel(o) {
     S.paused = true;
     S.target = null;
+    const ic = $('panelIcon');
+    ic.hidden = !o.icon;
+    if (o.icon) ic.src = 'assets/kenney/' + o.icon + '.png';
     el.panelTitle.textContent = o.title;
     el.panelText.textContent = o.text;
     el.panelBtn.textContent = o.btn;
@@ -212,6 +242,7 @@
     const c = S.player.c + dc;
     if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
     S.player = { r, c };
+    Sfx.play('step');
     checkHit();
     if (S && !S.paused) update();
   }
@@ -259,8 +290,10 @@
     if (!S || S.paused || Date.now() < S.invuln) return;
     if (!S.monsters.some((m) => m.r === S.player.r && m.c === S.player.c)) return;
     S.lives--;
+    Sfx.play(S.lives <= 0 ? 'lose' : 'hurt');
     if (S.lives <= 0) {
       showPanel({
+        icon: 'ui/emote_faceSad',
         title: 'A glitch got you!',
         text: "You're out of hearts. Let's try this rule again with a new board.",
         btn: 'Try again',
@@ -281,18 +314,23 @@
     if (cell.eaten) return;
     cell.eaten = true;
     if (cell.correct) {
+      Sfx.play('correct');
+      pop(i, true);
       Store.record(ctx.profile, S.rule.id, true);
       ctx.onSave(); // save every right answer: closing the tab mid-level must not lose them
       toast('✓ ' + S.rule.ok(cell), true);
       if (remaining() === 0) levelDone();
       else update();
     } else {
+      Sfx.play('wrong');
+      pop(i, false);
       Store.record(ctx.profile, S.rule.id, false);
       S.clean = false;
       S.lives--;
       ctx.onSave();
       const out = S.lives <= 0;
       showPanel({
+        icon: 'ui/emote_question',
         title: 'Not quite!',
         text: S.rule.why(cell) + (out ? " You're out of hearts. Let's try this rule again with a new board." : ''),
         btn: out ? 'Try again' : 'Keep going',
@@ -314,7 +352,9 @@
     Store.setField(mg, 'streak', S.streak);
     const next = () => newLevel(false);
     let text = S.clean ? 'Perfect: no mistakes!' : 'Nice work! You cleared the board.';
-    const opts = { title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
+    Sfx.play('win');
+    if (S.clean) setTimeout(() => Sfx.say('correct'), 700);
+    const opts = { icon: S.clean ? 'medals/m3' : 'medals/m1', title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
     if (S.streak >= 3 && p.settings.stars < 3) {
       opts.text += ' That is ' + S.streak + ' clean levels in a row. Ready for a bigger challenge?';
       opts.btn2 = 'Try harder (★'.concat('★'.repeat(p.settings.stars), ')');
