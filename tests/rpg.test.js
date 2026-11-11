@@ -87,6 +87,40 @@ for (const band of MG.BANDS) {
   assert.deepStrictEqual(RPG.rescueCandidates('K-1', ['expressions']), ['even-odd', 'compare', 'armor']);
 }
 
+/* ---------- makeEncounter: build one fight from enemy kinds (used by the world map) ---------- */
+for (const band of MG.BANDS) {
+  for (let stars = 1; stars <= 3; stars++) {
+    for (let i = 0; i < 40; i++) {
+      for (const kinds of [['weakness'], ['weakness', 'weakness'], ['armor', 'weakness'], ['weakness', 'weakness', 'weakness'], ['boss', 'weakness'], ['boss', 'weakness', 'weakness']]) {
+        const enc = RPG.makeEncounter(band, stars, kinds, { rescue: kinds.includes('armor') ? 'armor' : null });
+        const cap = RPG.maxGroup(stars);
+        assert.strictEqual(RPG.maxGroup(1), 2); assert.strictEqual(RPG.maxGroup(3), 3);
+        assert.strictEqual(enc.enemies.length, Math.min(kinds.length, cap), 'the group is capped by the star level');
+        assert.deepStrictEqual(enc.enemies.map((e) => e.kind), kinds.slice(0, cap), 'kinds are kept in order');
+        const ids = enc.enemies.filter((e) => e.kind !== 'armor').map((e) => e.rule.id);
+        assert.strictEqual(new Set(ids).size, ids.length, 'different weaknesses in one fight');
+        assert.deepStrictEqual(enc.skills, ids);
+        assert.strictEqual(enc.hasBoss, kinds.slice(0, cap).includes('boss'));
+        assert.strictEqual(enc.rescue, kinds.includes('armor') ? 'armor' : null, 'a named rescue passes straight through');
+        // it plugs straight into a battle
+        const b = RPG.newBattle({ band, stars, enemies: enc.enemies, team: RPG.starters(band), level: 1, rescue: enc.rescue });
+        assert.strictEqual(b.foes.length, enc.enemies.length);
+        assert.strictEqual(RPG.rewards(b).creature, enc.rescue);
+      }
+    }
+  }
+  // "prefer" is honored when the grade has enough skills, and relaxed (never an error) when it does not
+  const withPrefer = RPG.makeEncounter('4-5', 2, ['weakness', 'weakness'], { prefer: ['multiples', 'factors'] });
+  assert.ok(withPrefer.skills.every((id) => !['multiples', 'factors'].includes(id)) && withPrefer.skills.length === 2);
+  const tooMany = RPG.makeEncounter('K-1', 3, ['weakness', 'weakness', 'weakness'], { prefer: ['expressions', 'even-odd', 'compare'] });
+  assert.strictEqual(new Set(tooMany.skills).size, 3, 'with only 3 skills at this grade, "prefer" gives way and the weaknesses stay different');
+  // a map node that names its rescue ally and one that already owns it: rewards only join someone new
+  const own = { xpEarned: {}, wins: {}, bosses: {}, creatures: ['multiples', 'armor'], team: ['multiples'] };
+  const fightB = RPG.newBattle({ band: '4-5', stars: 1, enemies: RPG.makeEncounter('4-5', 1, ['armor', 'weakness'], { rescue: 'armor' }).enemies, team: ['multiples'], level: 1, rescue: 'armor' });
+  assert.strictEqual(RPG.applyRewards(own, RPG.rewards(fightB), 'dev').joined, null, 'already owned: nobody joins (the UI shows a thank-you instead)');
+  assert.strictEqual(RPG.rewards(fightB).creature, 'armor');
+}
+
 /* ---------- battle mechanics ---------- */
 // build a battle whose enemies do not match any ally's theme, so damage is the plain base amount
 function mk(team, n, o) {
@@ -350,8 +384,8 @@ for (const [k, v] of Object.entries(perfect)) assert.ok(v >= 0.99, `perfect play
 for (const [k, v] of Object.entries(anyAlly)) assert.ok(v >= 0.96, `perfect answers must win whichever ally and enemy are chosen (${k}: ${v})`);
 assert.ok(Bots.byStars(learner, 1) >= 0.8, `a learner who misses a third still usually wins at 1 star (${Bots.byStars(learner, 1).toFixed(2)})`);
 assert.ok(Bots.byStars(learner, 2) >= 0.7 && Bots.byStars(learner, 3) >= 0.7, 'and at 2 and 3 stars');
-assert.ok(Bots.byStars(random, 1) <= 0.5 && Bots.byStars(random, 2) <= 0.42 && Bots.byStars(random, 3) <= 0.36, `ignoring the math mostly loses (${[1, 2, 3].map((s) => Bots.byStars(random, s).toFixed(2))})`);
-assert.ok(Bots.overall(random) <= 0.4, 'overall, ignoring the math loses at least 60% of the time');
+assert.ok(Bots.byStars(random, 1) <= 0.5 && Bots.byStars(random, 2) <= 0.3 && Bots.byStars(random, 3) <= 0.28, `ignoring the math mostly loses (${[1, 2, 3].map((s) => Bots.byStars(random, s).toFixed(2))})`);
+assert.ok(Bots.overall(random) <= 0.35, 'overall, ignoring the math loses at least 65% of the time');
 
 // no team makes a fight unwinnable: perfect answers win with EACH ally alone on the team (worst-case effects)
 const lone = {};

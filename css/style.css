@@ -432,6 +432,15 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @keyframes m-bounce { 50% { transform: scale(1.02); } }
 @keyframes m-conf { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.6); opacity: 0; } }
 
+/* ---- "Reduce motion" profile setting (docs/animation-guide.md, section 6). Everything finishes instantly at its end state, so nothing
+   hangs or disappears; damage numbers keep a gentle fade because they carry information. The device's own setting is handled by each
+   component's prefers-reduced-motion block. ---- */
+:root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after {
+  animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+}
+:root[data-motion="reduced"] .float { animation-duration: 1.4s !important; }
+
 /* family password screens (sync) */
 .code.password { white-space: normal; overflow-wrap: anywhere; letter-spacing: 0; font-size: clamp(1rem, 4.5vw, 1.3rem); }
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }

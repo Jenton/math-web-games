@@ -35,7 +35,9 @@
     // enemy strength is the SAME at every star level: stars make the math (and the hand) harder, not the fight longer
     ENEMY_HP: { weakness: [10, 10, 10], armor: [12, 12, 12], boss: [22, 22, 22] },
     HAND_SIZE: [5, 5, 6], // cards dealt, by stars 1..3
-    CORRECT_PER_HAND: [[1, 2], [1, 2], [1, 2]], // how many of them fit the weakness (min, max), by stars 1..3: fewer right cards makes guessing a losing plan
+    // how many cards fit the weakness (min, max), by stars 1..3. Fewer right cards makes guessing a losing plan and does not hurt a player who
+    // knows the math. 1 star keeps 1-2 right cards so a beginner who can only half-judge each card still has a fair chance.
+    CORRECT_PER_HAND: [[1, 2], [1, 1], [1, 1]],
     ENEMY_ATK: { weakness: 2, armor: 3, boss: 3 },
     CHARGE: { every: 3, dmg: 7 },
     XP_BASE: { weakness: 8, armor: 12, boss: 25 },
@@ -256,6 +258,28 @@
     return (BAND_SKILLS[band] || BAND_SKILLS['2-3']).concat(['armor']).filter((id, i, a) => !owned.includes(id) && a.indexOf(id) === i);
   }
 
+  /** Largest group a fight may have: at 1 star at most 2 monsters (gentler for the youngest), otherwise 3. */
+  const maxGroup = (stars) => (clampStars(stars) === 1 ? 2 : 3);
+
+  /**
+   * Build ONE encounter from enemy kinds, e.g. ['weakness', 'weakness'] or ['armor', 'weakness'] or ['boss', 'weakness'].
+   * Every enemy gets a different weakness. The group is capped by maxGroup(stars). The shape matches what planAdventure returns:
+   * { enemies, rescue, rescueSlot, hasBoss, skills }, ready for RPG.newBattle({ enemies, team, level, rescue }).
+   * opts: { prefer: skill ids to avoid if the grade has enough skills (e.g. the previous fight's), rescue: ally id freed by winning (or null) }.
+   */
+  function makeEncounter(band, stars, kinds, opts) {
+    const o = opts || {};
+    const s = clampStars(stars);
+    const list = kinds.slice(0, maxGroup(s));
+    const used = [];
+    const enemies = list.map((kind) => {
+      const e = makeEnemy(band, s, kind, used, o.prefer);
+      if (kind !== 'armor') used.push(e.rule.id);
+      return e;
+    });
+    return { enemies, rescue: o.rescue || null, rescueSlot: !!o.rescue, hasBoss: list.includes('boss'), skills: used };
+  }
+
   /**
    * Build the five encounters of an adventure. Groups have 1 to 3 enemies, each with a different weakness (at 1 star, at most 2 enemies).
    * Two encounters are rescues: the ally freed is the next one the player does not own (the boss always guards Pebble first).
@@ -266,15 +290,10 @@
     const cand = rescueCandidates(band, have);
     let last = null;
     const encounters = ADVENTURE.map((slot) => {
-      const kinds = slot.kinds.slice(0, s === 1 ? 2 : 3);
-      const used = [];
-      const enemies = kinds.map((kind) => {
-        const e = makeEnemy(band, s, kind, used, [last].filter(Boolean));
-        if (kind !== 'armor') used.push(e.rule.id);
-        return e;
-      });
-      last = used[used.length - 1] || last;
-      return { enemies, rescue: null, rescueSlot: !!slot.rescue, hasBoss: kinds.includes('boss') };
+      const enc = makeEncounter(band, s, slot.kinds, { prefer: [last].filter(Boolean) });
+      enc.rescueSlot = !!slot.rescue;
+      last = enc.skills[enc.skills.length - 1] || last;
+      return enc;
     });
     const first = cand.shift() || null;
     encounters[2].rescue = first;
@@ -502,7 +521,7 @@
   const api = {
     TUNE, ADVENTURE, PLAN, TEAM_SIZE, CREATURES, ENEMY_ART, SKILLS, BAND_SKILLS,
     creatureById, starters, reachable, ensureState, currentTeam, setTeam, totalXp, levelFor, progress, addXp, xpToNext, maxHp,
-    makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, planAdventure,
+    makeEnemy, makeHand, armorRule, weakTitle, sampleText, rescueCandidates, maxGroup, makeEncounter, planAdventure,
     newBattle, setTarget, setAlly, currentHand, play, cancelCharge, rewards, applyRewards,
   };
   if (isNode) module.exports = api;

@@ -223,8 +223,15 @@ Ordered by "biggest polish for least risk". Each is a small, separate change.
 Munchers (steps 1-4 of the plan above) is animated: persistent actor layer that glides between cells, hop with squash and
 stretch, age-scaled glitch wind-up (crouch + lean 220-500 ms before each step), chomp, cell pop-in and munch-out, gentle wobble then
 explanation on a wrong munch, 70 ms hit pause with blink and light board shake when a glitch touches you, and a confetti burst on clear.
-All motion is gated by `prefers-reduced-motion: no-preference`. Shared tokens live at the end of `css/style.css`. Not yet done:
-the profile-level "Reduce motion" switch, and Balance / Machine Builder / Creature Quest / Lemonade Stand / Number Defense.
+All motion is gated by `prefers-reduced-motion: no-preference`. Shared tokens live at the end of `css/style.css`.
+
+**"Reduce motion" profile setting (done):** player menu, Settings, Motion. Saved per player as `settings.motion` (`full` | `reduced`).
+`applyTheme()` sets `<html data-motion>`, and one CSS block makes every animation and transition finish instantly at its end state
+(damage numbers keep a gentle fade). The device's own reduce-motion setting is still handled by each component's media query.
+New animations need nothing extra: they are covered automatically. Do not wait on `animationend` (it still fires, but do not depend on it).
+
+Not yet done: Balance / Machine Builder / Creature Quest / Lemonade Stand / Number Defense. Balance is blocked on the rework
+stream (see `docs/work-streams.md`): its scale will tip only after lock-in, which changes what there is to animate.
 
 ## 8. How to check an animation actually works
 
@@ -284,3 +291,17 @@ Checked this guide against the actual code and against itself. Changes made:
 9. **Sourcing:** the 3-flashes-per-second figure is WCAG general knowledge, now labelled as such.
 
 Still open: no authoritative source found for the specific millisecond values; they remain playtest-tuned starting points.
+
+### Review log: Munchers pass (adversarial review of the built animation)
+
+1. **Warning could be skipped.** The wind-up only started inside a one-tick window, so a late tick (slow phone) let a glitch step with no tell.
+   Fixed: a glitch never steps until its full wind-up has played.
+2. **Stale panel.** The 260 ms delay before the wrong-answer panel could pop up in a *new* game if the player left and restarted inside that gap.
+   Fixed with a game-identity guard.
+3. **Layout thrash.** Actor size/position styles were rewritten every update. Now written only when they change.
+4. **Honest note on hit pause.** At a 120 ms game tick, a 70 ms freeze mostly blocks input rather than visibly pausing movement; the blink and
+   light board shake carry the "that hurt" feeling. Left as is (it is cheap and harmless), but do not count on it for feel. If a stronger
+   pause is wanted, freeze for at least one full tick.
+5. **Checked and fine:** reduced motion leaves the game fully playable; no clicks are swallowed by the actor layer (`pointer-events: none`);
+   timers (not events) clear animation classes; confetti cleans up; resize re-snaps actors.
+6. **Not verified:** real-finger touch feel, and long-session fatigue (guide section 8). Needs a human playtest.

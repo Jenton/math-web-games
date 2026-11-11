@@ -353,8 +353,9 @@ The v2 decisions above are implemented except for art and the world map. What ex
 - **Boss:** every 3rd turn it charges a 7-damage attack; a Balance puzzle cancels it and stuns the boss for the turn, or you take the hit.
 - **Leveling:** XP per enemy (8 ordinary, 12 armored, 25 boss) +10 (+20 with a boss) for a flawless fight, +5 for one mistake. Level n needs 40 + 20(n-1) XP and gives +2 team health (26 at level 1).
 - **Balance, verified by simulation** (`tests/rpg.test.js`, helpers in `tests/helpers/quest-bots.js`): a perfect player wins 100%; perfect answers win 100% even with the least useful
-  single ally; a learner who misses a third of the time wins 90/82/82% at 1/2/3 stars; ignoring the math (random enemy, ally and card) wins 41/33/27%. Enemy strength is the same at every star
-  level (stars change the math and the hand: 5, 5, 6 cards, with 1 to 2 right cards), and fewer right cards per hand is what makes guessing lose. All numbers are in the `TUNE` object at the top of `js/rpg.js`.
+  single ally; a learner who misses a third of the time wins about 90/83/82% at 1/2/3 stars; ignoring the math (random enemy, ally and card) wins about 40/20/16%. Enemy strength is the same at every star
+  level (stars change the math and the hand: 5, 5, 6 cards; 1-2 right cards at 1 star, exactly 1 at 2 and 3 stars). Fewer right cards per hand is what makes guessing lose, and it does not hurt a player
+  who knows the math (measured). All numbers are in the `TUNE` object at the top of `js/rpg.js`. A world map or any other caller can build a fight with `RPG.makeEncounter(band, stars, kinds, { prefer, rescue })`.
 - **Still placeholder:** emoji sprites and a CSS gradient scene. **Not built yet:** the art pass (backgrounds and sprites from the chosen CC0 packs), world map, story chapters, customization,
   more allies (11 now; 20+ planned), Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
