@@ -28,6 +28,8 @@ creatures already earned are kept.
   (one unknown at K-1, unknown on both sides at 6th)
 - **Machine Builder**: chain operation cards to turn a start number into a target in the fewest steps
   (par is computed exactly by search, so star ratings are fair)
+- **Number Defense**: tower defense where the math is choosing towers. Numbers march at your castle; each tower has a rule
+  ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Creature Quest**: a turn-based RPG. Each monster has a weakness ("multiples of 6", "armored: only 3/4 or more
   breaks through"); you pick the attack card that fits it. A card that doesn't fit does nothing and heals the monster.
   Five battles per adventure (monsters, an armored monster, a boss whose big attack a Balance puzzle cancels),
@@ -41,6 +43,7 @@ node tests/engine.test.js    # verifies every Munchers rule at every band/star l
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band
 node tests/rpg.test.js       # verifies Quest hands, armor math, progression, and that ignoring the math loses
+node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/storage.js`, `js/game.js`

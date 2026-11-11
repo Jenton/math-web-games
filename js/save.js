@@ -67,6 +67,7 @@
   registerGame('balance', { levels: 'counter' });
   registerGame('machine', { levels: 'counter' });
   registerGame('lemonade', { days: 'counter', perfect: 'counter' });
+  registerGame('td', { waves: 'counter', perfect: 'counter' });
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww' },

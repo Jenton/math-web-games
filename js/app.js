@@ -34,10 +34,17 @@
     },
     lemonade: {
       name: 'Lemonade Stand', ico: 'lemonade/pitcher', extras: false, mod: () => Lemonade,
-      how: ['Each <b>day</b> has four jobs: buy the right amount, make <b>change</b> for two customers, and set the <b>price</b>.', 'Build change from coins, or pick a number with − and +.', 'Wrong answers show the arithmetic, so you can try again.'],
+      how: ['Each <b>day</b> has four linked jobs: set the <b>price</b>, buy the right amount for the customers it brings, then make <b>change</b> for two of them.', 'Build change from coins, or pick a number with − and +.', 'Wrong answers show the arithmetic, so you can try again.'],
       band: { 'K-1': 'Change from $1 in coins, and small pitcher counts.', '2-3': 'Change to the cent, and how many pitchers for the crowd.', '4-5': 'Several cups at once, lemons per pitcher, and a sign that costs money.', '6': 'Percent-off sales, recipe ratios, and bigger profits.' },
       stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
       sample: (s) => MGS.makeStock(s.band, s.stars).text,
+    },
+    defense: {
+      name: 'Number Defense', ico: 'animals/owl', extras: false, mod: () => Defense,
+      how: ['Numbers march toward your castle. The <b>incoming wave</b> is shown before it starts.', 'Every tower has a <b>rule</b>, like "multiples of 3". It only stops numbers that fit. Gold is limited, so pick towers that cover the whole wave.', '<b>Send the wave</b> and watch. Numbers that slip through are explained.'],
+      band: { 'K-1': 'Even, odd, more than and less than, counting by 5s and 10s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, odd numbers, more and less than.', '4-5': 'Multiples up to 9, prime numbers, factors of a number.', '6': 'Primes, squares, powers of 2, bigger multiples, negatives, factors.' },
+      stars: [['★ Easier', '7 numbers, a little spare gold.'], ['★★ Medium', '9 numbers, less spare gold.'], ['★★★ Harder', '11 numbers and only just enough gold.']],
+      sample: (s) => { const w = TDL.makeWave(s.band, s.stars); return 'Stop ' + w.enemies.slice(0, 5).map(TDL.fmt).join(', ') + '… with ' + w.budget + ' gold. Towers: ' + w.shop.map((r) => r.name).join(', '); },
     },
     machine: {
       name: 'Machine Builder', ico: 'balance/pipe01', extras: false, mod: () => Machine,
@@ -52,7 +59,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'machine', 'lemonade', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'td', 'machine', 'lemonade', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -179,7 +186,7 @@
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('rpg', 'wins') + ' Quest battles won';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('rpg', 'wins') + ' Quest battles won';
     show('menu');
   }
 
@@ -214,7 +221,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', machine: 'machine', lemonade: 'lemonade', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', defense: 'td', machine: 'machine', lemonade: 'lemonade', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);
