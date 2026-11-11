@@ -218,6 +218,14 @@ Ordered by "biggest polish for least risk". Each is a small, separate change.
 
 ---
 
+## 7b. Status
+
+Munchers (steps 1-4 of the plan above) is animated: persistent actor layer that glides between cells, hop with squash and
+stretch, age-scaled glitch wind-up (crouch + lean 220-500 ms before each step), chomp, cell pop-in and munch-out, gentle wobble then
+explanation on a wrong munch, 70 ms hit pause with blink and light board shake when a glitch touches you, and a confetti burst on clear.
+All motion is gated by `prefers-reduced-motion: no-preference`. Shared tokens live at the end of `css/style.css`. Not yet done:
+the profile-level "Reduce motion" switch, and Balance / Machine Builder / Creature Quest / Lemonade Stand / Number Defense.
+
 ## 8. How to check an animation actually works
 
 A screenshot cannot show motion. For each animation:

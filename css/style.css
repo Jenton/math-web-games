@@ -391,3 +391,43 @@ h1 { font-size: 1.7rem; } h2 { font-size: 1rem; }
 @media (prefers-reduced-motion: reduce) { .td-lane.hit { animation: none; } .td-enemy { transition: none; } }
 
 .panel-box p { white-space: pre-line; }
+
+/* ---- Munchers motion (rules and numbers: docs/animation-guide.md). All motion is opt-in via no-preference, so reduced-motion
+   players get the same game with no animation, and nothing waits on animation events. ---- */
+:root { --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-in: cubic-bezier(.4, 0, 1, 1); --ease-pop: cubic-bezier(.3, 1.4, .5, 1); --t-fast: 100ms; --t-med: 200ms; --t-slow: 400ms; }
+.board { position: relative; }
+.actors { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.actor { position: absolute; left: 0; top: 0; }
+.actor .badge { z-index: auto; }
+.cell .lbl { display: inline-block; }
+.conf { position: absolute; left: 50%; top: 40%; width: 10px; height: 10px; border-radius: 2px; background: var(--c, #ffd54f); }
+@media (prefers-reduced-motion: no-preference) {
+  .actor { transition: transform var(--t-fast) var(--ease-out); }
+  .actor.mon { transition-duration: 220ms; }
+  .actor.snap { transition: none; }
+  .actor .badge { transform-origin: 50% 100%; animation: m-idle 1.8s ease-in-out infinite; }
+  .actor.mon .badge { animation-delay: -.7s; }
+  .actor .badge.hop { animation: m-hop 140ms var(--ease-out); }
+  .actor .badge.chomp { animation: m-chomp 150ms var(--ease-out); }
+  .actor .badge.hurt { animation: m-hurt .9s linear; }
+  .actor.mon .badge.tell { animation: m-tell var(--tell, 300ms) var(--ease-in) forwards; }
+  .actor.mon .badge.land { animation: m-land 160ms var(--ease-out); }
+  .cell .lbl { animation: m-in 160ms var(--ease-pop) backwards; }
+  .cell.eaten .lbl { visibility: visible; animation: m-munched 160ms var(--ease-in) forwards; }
+  .cell.wobble { animation: m-wobble 280ms ease-in-out; }
+  .board.shake { animation: m-shake 220ms linear; }
+  .board.bounce { animation: m-bounce 340ms var(--ease-pop); }
+  .conf { animation: m-conf 800ms var(--ease-out) forwards; }
+}
+@keyframes m-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes m-hop { 0% { transform: scale(1, 1); } 35% { transform: translateY(-7px) scale(.9, 1.14); } 75% { transform: translateY(0) scale(1.1, .9); } 100% { transform: scale(1, 1); } }
+@keyframes m-chomp { 0% { transform: scale(1, 1); } 45% { transform: scale(1.25, .85); } 100% { transform: scale(1, 1); } }
+@keyframes m-hurt { 0%, 100% { opacity: 1; } 25%, 75% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes m-tell { from { transform: translate(0, 0) scale(1, 1); } to { transform: translate(var(--lx, 0), var(--ly, 0)) scale(1.12, .82); } }
+@keyframes m-land { 0% { transform: scale(1.12, .86); } 100% { transform: scale(1, 1); } }
+@keyframes m-in { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes m-munched { from { transform: scale(1); opacity: 1; } to { transform: scale(.2); opacity: 0; } }
+@keyframes m-wobble { 20% { transform: rotate(-4deg); } 60% { transform: rotate(4deg); } }
+@keyframes m-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes m-bounce { 50% { transform: scale(1.02); } }
+@keyframes m-conf { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.6); opacity: 0; } }
