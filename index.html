@@ -272,6 +272,7 @@
         <span class="s-label">Your team</span>
         <div id="qHomeTeam" class="q-team"></div>
         <div class="row">
+          <button id="qResume" class="btn big" type="button" hidden></button>
           <button id="qMapBtn" class="btn big" type="button">&#128506;&#65039; World map</button>
           <button id="qBegin" class="btn big" type="button">&#9876;&#65039; Quick adventure</button>
           <button id="qMyTeam" class="btn ghost big" type="button">My creatures</button>
@@ -291,7 +292,22 @@
         </div>
         <div id="qMapBoard" class="mapboard"></div>
         <p id="qMapHint" class="note map-hint" role="status" aria-live="polite"></p>
-        <p class="note map-key">&#9876;&#65039; battle &nbsp; &#128737;&#65039; armored &nbsp; &#128081; boss &nbsp; &#128477;&#65039; rescue &nbsp; &#128172; story &nbsp; &#9978; camp &nbsp; &#10003; cleared &nbsp; &#11088; perfect</p>
+        <p class="note map-key">&#9876;&#65039; battle &nbsp; &#128737;&#65039; armored &nbsp; &#128081; boss &nbsp; &#128477;&#65039; rescue &nbsp; &#128172; story &nbsp; &#9978; camp &nbsp; &#129513; puzzle &nbsp; &#10003; cleared &nbsp; &#11088; perfect</p>
+      </div>
+
+      <div id="qPuzzle" hidden>
+        <div class="hud">
+          <button id="qPzBack" class="btn ghost small" type="button">&larr; Map</button>
+          <span id="qPzPill" class="pill"></span>
+        </div>
+        <div id="qPzScene" class="scene pz-scene">
+          <div id="qPzHelper" class="pz-helper" aria-hidden="true"></div>
+          <p id="qPzSay" class="pz-say"></p>
+        </div>
+        <h2 id="qPzTitle" class="rule-title"></h2>
+        <div id="qPzBody"></div>
+        <p id="qPzMsg" class="sums" role="status" aria-live="polite"></p>
+        <div class="controls"><button id="qPzGo" class="btn big" type="button">Lock it in</button></div>
       </div>
 
       <div id="qPrep" hidden>

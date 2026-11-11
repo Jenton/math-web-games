@@ -249,6 +249,19 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.deepStrictEqual(Save.mergeGame('rpg', { creatures: [] }, { creatures: [], cleared: ['m1'] }).cleared, ['m1'], 'a device with no map progress loses nothing');
 }
 
+/* ---------- Quest: the in-progress Quick adventure is last-write-wins (never invented, never half-merged) ---------- */
+{
+  const a = { creatures: [], run: { i: 1, band: '2-3', stars: 2 }, runAt: 100 };
+  const b = { creatures: [], run: { i: 3, band: '2-3', stars: 2 }, runAt: 200 };
+  const ab = Save.mergeGame('rpg', a, b);
+  assert.deepStrictEqual(ab.run, b.run, 'the newer save of the run wins');
+  assert.strictEqual(ab.runAt, 200);
+  assert.deepStrictEqual(Save.mergeGame('rpg', b, a), ab, 'merge order does not matter');
+  const done = Save.mergeGame('rpg', { creatures: [], run: b.run, runAt: 200 }, { creatures: [], run: null, runAt: 300 });
+  assert.strictEqual(done.run, null, 'finishing the adventure on one device clears it everywhere (a newer null beats an older run)');
+  assert.deepStrictEqual(Save.mergeGame('rpg', { creatures: [] }, a).run, a.run, 'a device that never saved a run does not erase one');
+}
+
 /* ---------- merging in place keeps object identity (a running game must keep saving into live data) ---------- */
 {
   const mk = (id, name) => Save.newProfile({ id, name, avatar: 'x', now: 1 });

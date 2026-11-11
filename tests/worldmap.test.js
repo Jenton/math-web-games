@@ -7,6 +7,7 @@ const path = require('path');
 const W = require('../js/worldmap.js');
 const Art = require('../js/art.js');
 const RPG = require('../js/rpg.js');
+const MGP = require('../js/puzzles.js');
 const Save = require('../js/save.js');
 
 /* ---------- the map data is sound ---------- */
@@ -42,6 +43,23 @@ W.REGIONS.forEach((reg) => reg.nodes.filter((n) => n.type === 'story' || n.type 
   const b = RPG.newBattle({ band: '2-3', stars: 2, enemies: enc.enemies, team: ['multiples'], level: 1, rescue: enc.rescue });
   assert.strictEqual(RPG.applyRewards(owned, RPG.rewards(b), 'dev').joined, null, 'an owned friend does not join twice');
 }
+// camps and puzzle spots: optional, with data the screens can use
+W.REGIONS.forEach((reg) => reg.nodes.forEach((n) => {
+  if (n.type === 'camp' && n.buff) assert.ok(RPG.BUFFS[n.buff], n.id + ' gives a buff rpg.js knows');
+  if (n.type === 'puzzle') {
+    assert.ok(['balance', 'machine'].includes(n.puzzle), n.id + ' is a balance or machine puzzle');
+    assert.strictEqual(W.kindsOf(n), null, 'a puzzle spot has no monsters');
+    assert.ok(n.script && n.script.length, n.id + ' tells you what to do');
+    // it is a side spot: nothing past it needs it, so a player can always finish the region without it
+    assert.ok(!reg.nodes.some((m) => m.next.includes(n.id) && m.type === 'boss'));
+    ['K-1', '2-3', '4-5', '6'].forEach((band) => [1, 2, 3].forEach((stars) => {
+      const pz = n.puzzle === 'machine' ? MGP.makeMachine(band, stars) : MGP.makeBalance(band, stars);
+      assert.ok(pz, n.id + ' builds a puzzle for ' + band + ' ' + stars);
+    }));
+  }
+}));
+assert.ok(W.REGIONS.some((r) => r.nodes.some((n) => n.type === 'puzzle' && n.puzzle === 'balance')) && W.REGIONS.some((r) => r.nodes.some((n) => n.type === 'puzzle' && n.puzzle === 'machine')), 'both kinds of puzzle spot exist');
+assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'puzzle', x: 1, y: 1, next: ['b'], script: ['hi'] }, { id: 'b', type: 'boss', x: 2, y: 2, next: [] }] }]).some((m) => /puzzle must be/.test(m)), 'the validator flags a puzzle with no kind');
 // the validator really catches mistakes
 assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'battle', x: 1, y: 1, next: ['zz'] }] }]).length > 0, 'validator flags a dangling link and a missing boss');
 
@@ -62,7 +80,7 @@ assert.ok(W.validate([{ id: 'x', start: 'a', nodes: [{ id: 'a', type: 'battle', 
     st = W.nodeStates(reg, cleared);
     const open = reg.nodes.filter((n) => st[n.id] === 'open');
     assert.ok(open.length, 'never stuck before the boss');
-    const pick = open.find((n) => n.type !== 'camp') || open[0]; // skip optional camps to prove they are optional
+    const pick = open.find((n) => n.type !== 'camp' && n.type !== 'puzzle') || open[0]; // skip optional camps and puzzle spots to prove they are optional
     cleared.add(pick.id);
     order.push(pick.id);
     assert.ok(++steps < 50);

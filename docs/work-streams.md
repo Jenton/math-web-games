@@ -13,7 +13,7 @@ Last updated: 11 Nov 2026 (evening).
 | Sort & Rule, Cut & Share, Balance rework | `feature/sort-share-balance-rework` (no PR yet) | In progress | `js/sort*.js`, `js/cutshare.js`, `js/share.js`, `js/balance.js` | PR #11 merged, then merge `main` (registry-file conflicts) |
 | Escape Room (new game) | `escape-room` | PR open for review | `js/elogic.js`, `js/escape.js`, `css/escape.css`, `tests/escape.test.js`, `assets/kenney/escape/` | nothing |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
-| Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
+| Kenney art shortlist | `art-shortlist` | Docs only. The 17 MB candidate samples live on this branch (the build script `tools/make_quest_assets.py` reads them) | `docs/art-shortlist.md` | nothing |
 | Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers and "Reduce motion" are merged. Machine Builder is merged. Lemonade Stand is merged. Number Defense is built and awaiting "ship it". Then only Balance (after the rework) and Creature Quest (art stream) remain. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, `css/motion.css` (new, per-game motion), the Munchers motion block at the end of `css/style.css`, `js/machine.js`, `js/lemonade.js`, `js/td.js` (motion hooks only) | Balance rework merged (for Balance only) |
 | Done and merged | PR #6 Kenney art and sound, #7 Number Defense, #8 Lemonade Stand | Merged | | |
 
@@ -22,7 +22,7 @@ Last updated: 11 Nov 2026 (evening).
 Done: #6, #7, #8, **#11** (sync, Quest v2 rules), **#12** (Firebase adapter).
 Next:
 1. **#9** (sound fix) and the next PR from `claude/dreamy-pasteur-xues94` (`RPG.makeEncounter`, Munchers animation fixes, "Reduce motion"): both small and independent.
-2. **Quest art port** (the `creature-quest-art` stream): staged PRs, each green before the next.
+2. **Quest art port**: done (PRs #14, #18, #21). Quest follow-ups (saved adventure, camps, puzzle spots, more allies, more regions) go in small PRs on top of `main`.
 3. **Sort & Rule / Cut & Share / Balance rework**: merge `main` first and resolve the registry files.
 4. **Animation pass for Balance** only after the Balance rework is merged.
 
