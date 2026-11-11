@@ -27,7 +27,7 @@
   function start(profile, hooks) {
     init();
     ctx = { profile, onSave: hooks.onSave, onExit: hooks.onExit };
-    S = { n: 0, firstTry: 0 };
+    S = { n: 0, firstTry: 0, solved: 0 };
     nextPuzzle();
   }
 
@@ -43,6 +43,7 @@
     S.n++;
     S.p = MGP.makeBalance(st.band, st.stars);
     S.guess = 0;
+    S.tries = MGP.BAL_TRIES;
     S.missed = false;
     $('balNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
     $('gBig-').hidden = $('gBig+').hidden = S.p.max <= 20;
@@ -79,21 +80,20 @@
     return frag;
   }
 
-  function render() {
+  /* The scale does NOT tip while you change the number, and no totals are shown: you have to work out the
+   * weight, then lock it in. It only tips to answer a lock-in, and you get a few tries (guessing is not a strategy). */
+  function render(reveal) {
     const { p, guess } = S;
-    const l = MGP.sideVal(p.L, guess);
-    const r = MGP.sideVal(p.R, guess);
-    const diff = l - r;
-    const tilt = diff === 0 ? 0 : -Math.sign(diff) * Math.min(16, 4 + Math.abs(diff) * 1.2);
+    const tilt = reveal ? -Math.sign(reveal.diff) * Math.min(14, 6 + Math.abs(reveal.diff) * 0.6) : 0;
     $('scale').style.setProperty('--tilt', tilt + 'deg');
-    $('scale').classList.toggle('level', diff === 0);
+    $('scale').classList.toggle('level', !!reveal && reveal.diff === 0);
     [['panL', p.L], ['panR', p.R]].forEach(([id, side]) => {
       const el = $(id);
       el.innerHTML = '';
-      el.appendChild(blocks(side, guess));
+      el.appendChild(blocks(side, '?'));
     });
     $('gVal').textContent = '? = ' + guess;
-    $('balSums').textContent = 'Left ' + l + '  ·  Right ' + r + '   (' + p.text.replace('?', '?') + ')';
+    $('balSums').textContent = p.text + '   ·   ' + S.tries + (S.tries === 1 ? ' try left' : ' tries left');
     $('gMinus').disabled = $('gBig-').disabled = guess <= 0;
     $('gPlus').disabled = $('gBig+').disabled = guess >= p.max;
   }
@@ -102,30 +102,48 @@
     if (!S) return;
     const res = MGP.checkBalance(S.p, S.guess);
     const prof = ctx.profile;
+    render(res);
+    const last = S.n >= ROUND;
+    const again = () => { S.n = 0; S.firstTry = 0; S.solved = 0; nextPuzzle(); };
     if (res.balanced) {
       Sfx.play('solved');
       setTimeout(() => Sfx.play('win'), 350);
       Store.record(prof, 'balance', true);
       Store.bump(Store.game(prof, 'balance'), 'levels');
       if (!S.missed) S.firstTry++;
+      S.solved++;
       ctx.onSave();
-      const last = S.n >= ROUND;
       UI.panel({
         icon: S.missed ? 'medals/m1' : 'medals/m3',
         title: S.missed ? 'Balanced! 🎉' : 'Balanced first try! 🌟',
-        text: 'One ? weighs ' + S.guess + '. ' + res.msg + (last ? ' That is the round: ' + S.firstTry + ' of ' + ROUND + ' on the first try.' : ''),
+        text: 'One ? weighs ' + S.guess + '. Both sides weigh ' + res.l + '.' + (last ? ' That is the round: ' + S.solved + ' of ' + ROUND + ' solved, ' + S.firstTry + ' on the first try.' : ''),
         btn: last ? 'Play another round' : 'Next puzzle',
-        onBtn: last ? () => { S.n = 0; S.firstTry = 0; nextPuzzle(); } : nextPuzzle,
+        onBtn: last ? again : nextPuzzle,
         btn2: last ? 'Back to setup' : null,
         onBtn2: exit,
       });
-    } else {
-      S.missed = true;
-      Sfx.play('wrong');
-      Store.record(prof, 'balance', false);
-      ctx.onSave();
-      UI.toast(res.msg, false);
+      return;
     }
+    S.missed = true;
+    S.tries--;
+    Store.record(prof, 'balance', false);
+    ctx.onSave();
+    if (S.tries > 0) {
+      Sfx.play('wrong');
+      const heavy = res.diff > 0 ? 'left' : 'right';
+      $('balSums').textContent = 'The ' + heavy + ' side is heavier. ' + S.tries + (S.tries === 1 ? ' try left.' : ' tries left.') + ' Think it through before you guess again.';
+      return;
+    }
+    Sfx.play('lose');
+    UI.panel({
+      title: 'Out of tries',
+      text: MGP.balanceSteps(S.p).join(' ') + (last ? ' That is the round: ' + S.solved + ' of ' + ROUND + ' solved.' : ''),
+      btn: last ? 'Play another round' : 'Next puzzle',
+      onBtn: last ? again : nextPuzzle,
+      btn2: last ? 'Back to setup' : null,
+      onBtn2: exit,
+      bad: true,
+    });
   }
 
   root.Balance = { start };

@@ -87,6 +87,18 @@
           <span class="g-desc">Chain operations to turn the start number into the target.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
+        <button class="game-card" data-game="sort" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/medals/m2.png" alt=""></span>
+          <span class="g-name">Sort &amp; Rule</span>
+          <span class="g-desc">Test numbers on the gate, then work out its secret rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <button class="game-card" data-game="share" type="button">
+          <span class="g-ico">&#127829;</span>
+          <span class="g-name">Cut &amp; Share</span>
+          <span class="g-desc">Cut the pizza so every friend gets a fair share.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
         <button class="game-card" data-game="lemonade" type="button">
           <span class="g-ico"><img class="g-img" src="assets/kenney/lemonade/pitcher.png" alt=""></span>
           <span class="g-name">Lemonade Stand</span>
@@ -155,7 +167,7 @@
         <span id="balNo" class="pill"></span>
       </div>
       <h2 class="rule-title">Make the scale level</h2>
-      <p class="rule-hint">Every <b>yellow block</b> is a mystery weight (<b>?</b>) and they all weigh the same. What does one weigh?</p>
+      <p class="rule-hint">Every <b>yellow block</b> is a mystery weight (<b>?</b>) and they all weigh the same. Work out what one weighs. The scale only tips when you lock in!</p>
       <div id="scale" class="scale" aria-hidden="true">
         <div class="beam"><div id="panL" class="pan"></div><div id="panR" class="pan"></div></div>
         <div class="post"></div>
@@ -170,7 +182,7 @@
       </div>
       <div class="controls">
         <button id="balCheck" class="btn big" type="button">Lock it in</button>
-        <p class="note">Change the number and watch the scale tip. Arrow keys work too; press Enter to lock in.</p>
+        <p class="note">Work it out, set the number, then lock it in. You only get 3 tries. Arrow keys work too; Enter locks in.</p>
       </div>
     </section>
 
@@ -354,6 +366,63 @@
       </div>
     </section>
 
+    <!-- GAME: Sort & Rule -->
+    <section id="sort" class="screen" hidden>
+      <div class="hud">
+        <button id="sortBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="sortNo" class="pill"></span>
+        <span id="sortTests" class="pill"></span>
+      </div>
+      <h2 class="rule-title">What does the gate let through?</h2>
+      <p class="rule-hint">Send numbers through the gate and watch. When you think you know its secret rule, say so. Fewer tests earn more stars.</p>
+      <div class="sort-lanes">
+        <div class="lane"><span class="s-label">✅ Let through</span><div id="sortPass" class="lane-box"></div></div>
+        <div id="sortGate" class="gate" aria-hidden="true">🚪</div>
+        <div class="lane"><span class="s-label">🚫 Stopped</span><div id="sortStop" class="lane-box"></div></div>
+      </div>
+      <p id="sortMsg" class="sums" role="status" aria-live="polite"></p>
+      <div id="sortTray" class="num-tray"></div>
+      <div id="sortChoices" hidden>
+        <h2 class="rule-title">The gate lets through&hellip;</h2>
+        <div id="sortOpts" class="opts"></div>
+      </div>
+      <div class="controls">
+        <button id="sortKnow" class="btn big" type="button">I know the rule!</button>
+        <button id="sortKeep" class="btn ghost" type="button" hidden>Keep testing</button>
+      </div>
+    </section>
+
+    <!-- GAME: Cut & Share -->
+    <section id="share" class="screen" hidden>
+      <div class="hud">
+        <button id="shBack" class="btn ghost small" type="button">&larr; Setup</button>
+        <span id="shNo" class="pill"></span>
+        <span id="shTries" class="pill"></span>
+      </div>
+      <h2 id="shTitle" class="rule-title"></h2>
+      <p class="rule-hint">Cut every pizza into equal slices, then decide how many slices each friend gets. Every slice must be used and everyone must get the same. Fewer cuts earn more stars.</p>
+      <div id="shPizzas" class="pizzas"></div>
+      <div id="shFriends" class="friends" aria-hidden="true"></div>
+      <div class="share-set">
+        <span class="s-label">Cut each pizza into</span>
+        <div class="guess">
+          <button id="cutMinus" class="btn ghost big" type="button" aria-label="fewer slices">&minus;</button>
+          <div id="cutVal" class="gval"></div>
+          <button id="cutPlus" class="btn ghost big" type="button" aria-label="more slices">+</button>
+        </div>
+        <span class="s-label">Each friend gets</span>
+        <div class="guess">
+          <button id="eachMinus" class="btn ghost big" type="button" aria-label="fewer slices each">&minus;</button>
+          <div id="eachVal" class="gval"></div>
+          <button id="eachPlus" class="btn ghost big" type="button" aria-label="more slices each">+</button>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="shGo" class="btn big" type="button">Share it!</button>
+        <p class="note">Work it out first. The totals only show after you share, and you get 3 tries.</p>
+      </div>
+    </section>
+
     <!-- GAME: Munchers -->
     <section id="game" class="screen" hidden>
       <div class="hud">
@@ -458,6 +527,10 @@
   <script src="js/td.js"></script>
   <script src="js/art.js"></script>
   <script src="js/worldmap.js"></script>
+  <script src="js/sortrule.js"></script>
+  <script src="js/sort.js"></script>
+  <script src="js/cutshare.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/quest.js"></script>
   <script src="js/app.js"></script>
 </body>
