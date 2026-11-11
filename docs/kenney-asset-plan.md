@@ -1,7 +1,7 @@
 # Kenney assets for the other games (Munchers, Balance, Machine Builder) and sound
 
 > **Status: built.** The picks below were implemented (see "What was built" at the end) and the open questions were settled: smooth-vector art for the three
-> puzzle games, sound on by default with a mute button, voice numbers in use. The "Where the games are today" section describes the state *before* this work and is out of date (sound now exists in `js/sfx.js`).
+> puzzle games, sound on by default with a mute button, a spoken "correct" on perfect results (spoken numbers were removed from Balance). The "Where the games are today" section describes the state *before* this work and is out of date (sound now exists in `js/sfx.js`).
 > For new games use `docs/new-game-checklist.md` and `docs/art-shortlist.md`; re-run `tools/make_kenney_assets.sh` to regenerate assets.
 
 Scope: everything except Creature Quest art (another chat owns that, see `docs/art-shortlist.md`).
@@ -89,7 +89,7 @@ Fantasy skin with Tiny Dungeon). That keeps one art setting per player, consiste
 - `js/sfx.js` (`Sfx.play('correct')`, `Sfx.say(7)`), a mute button in the top-right corner (saved on the device, separate from the game save),
   and a soft click on every button. Sounds are wired into Munchers, Balance and Machine Builder. Music exists in the module but has no UI yet.
 - Munchers: wooden/blue/marble/yellow tiles per skin, animal player and alien glitch sprites, star pop on a correct munch, "!" on a wrong one.
-- Balance: alien face blocks as the mystery weight, metal tiles as known weights, hop when level; says the number aloud for 1-10.
+- Balance: alien face blocks as the mystery weight, metal tiles as known weights, hop when level. (It used to say the number aloud for 1-10; removed at the owner's request, it was annoying.)
 - Machine Builder: tile cards and numbers; medal for 1-3 stars in the result panel (same medals as Balance and Munchers).
 - Portal: Kenney Future headings, sprite icons on the game cards, `assets/CREDITS.md`.
 - Deviations from the plan above: Tiny Dungeon (pixel) was not used, so the three games are all the smooth style; no Particle/Generic Items beyond one star.
