@@ -12,6 +12,8 @@ All progress lives in `localStorage` (key `mathQuest.v1`) in one browser on one 
 - **Access: one generated FAMILY CODE, no accounts** (changed from the earlier "code + passphrase" idea: one thing to write down). 16 random
   characters like `K7PQ-3M9X-B2RD-VW4H` (80 bits, Crockford base32 so no I/L/O/U look-alikes; typing is forgiving about case, spaces and dashes).
   Set up once on a device, typed once on each other device.
+  **Update:** a family can instead choose its own FAMILY PASSWORD (minimum 10 characters; spaces allowed, so a phrase works). The generated code
+  stays as the one-tap option and existing codes keep working unchanged. Both are the same kind of secret to the rest of the system.
 - **Backend: Firebase, in the owner's existing Google account** (a new *project*, not a new account). The owner already uses Firebase,
   does not want a new account, and does not want to depend on the Mac mini (it restarts).
   - **Firebase Hosting** serves the static site at one stable https address (needed for the iPad anyway; `file://` will not work there).
@@ -24,6 +26,14 @@ All progress lives in `localStorage` (key `mathQuest.v1`) in one browser on one 
 - The family code is stretched with PBKDF2-SHA256 (600,000 iterations, about 0.1 to 0.5 s) and split with HKDF into two independent values: a **lookup id**
   (the Firestore document id) and an **AES-GCM key**. Each upload uses a fresh random IV and the ciphertext is bound to its document id. Knowing the id is the capability to read or write that document, so the passphrase must be long.
   Generate it for the user (for example four random words) instead of letting people choose weak ones.
+- **Family password rules** (`checkPassword` in `js/sync.js`): at least 10 characters, then refused if repetitive (3 or fewer different characters, or a repeated
+  chunk), or too common (straight runs like `abcdefghij`, keyboard walks either direction, a common word or phrase after removing leading/trailing digits and
+  symbols and undoing look-alike swaps such as `@` for `a`, or all digits). The screen shows a live hint and keeps the button off until it passes.
+  A password is normalised before use (Unicode NFKC, trimmed, spaces collapsed, lower-cased), so `Purple  Giraffes` and `purple giraffes` are the same family.
+  A password uses its own PBKDF2 salt (`mathquest-family-password-v1`); codes keep `mathquest-family-v1`, so existing families derive identical keys
+  (pinned in `tests/sync.test.js`). Input shaped like a valid code is read as a code. Honest limit: a chosen password is weaker than a random code.
+  Without a leaked copy of the ciphertext an attacker can only guess through online lookups of the id; the 10-character floor plus the common-password
+  check is a deliberate trade for a family-friendly secret. The generated code remains available for anyone who wants the strongest option.
 - Firestore rules: allow `get`, `create`, `update` on `families/{lookupId}` only; **no `list`**, so ids cannot be enumerated;
   limit document size and require the expected fields. Optional: Anonymous Auth and App Check to cut abuse.
 - Data is only first names or nicknames, avatars and game progress. No emails, no ages, no analytics, no third-party scripts.

@@ -177,9 +177,12 @@
     const cell = cellEls[r * COLS + c];
     if (!cell) return;
     if (snap) a.classList.add('snap');
-    a.style.width = cell.offsetWidth + 'px';
-    a.style.height = cell.offsetHeight + 'px';
-    a.style.transform = 'translate(' + cell.offsetLeft + 'px,' + cell.offsetTop + 'px)';
+    const w = cell.offsetWidth + 'px';
+    const h = cell.offsetHeight + 'px';
+    const t = 'translate(' + cell.offsetLeft + 'px,' + cell.offsetTop + 'px)';
+    if (a.style.width !== w) a.style.width = w;
+    if (a.style.height !== h) a.style.height = h;
+    if (a.style.transform !== t) a.style.transform = t;
     if (snap) {
       void a.offsetWidth; // commit the jump with no transition, then let later moves glide
       a.classList.remove('snap');
@@ -356,8 +359,9 @@
       const iv = MONSTER_INTERVAL[st.stars - 1];
       const tell = TELL_MS[st.stars - 1] + (st.band === 'K-1' ? 100 : 0);
       const since = now - S.lastMonster;
-      if (!S.plan && since >= iv - tell && since < iv) {
+      if (!S.plan && since >= iv - tell) {
         S.plan = planMonsters();
+        S.tellAt = now;
         S.monsters.forEach((m, k) => {
           if (!m.el) return;
           m.el.badge.style.setProperty('--tell', tell + 'ms');
@@ -366,7 +370,7 @@
           m.el.badge.classList.add('tell');
         });
       }
-      if (since >= iv) {
+      if (S.plan && since >= iv && now - S.tellAt >= tell) {
         S.lastMonster = now;
         moveMonsters(S.plan);
         S.plan = null;
@@ -451,7 +455,8 @@
       S.paused = true; // block input while the cell wobbles, then explain
       S.target = null;
       flash(cellEls[i], 'wobble', 300);
-      setTimeout(() => S && showPanel({
+      const game = S;
+      setTimeout(() => S === game && showPanel({
         icon: 'ui/emote_question',
         title: 'Not quite!',
         text: S.rule.why(cell) + (out ? " You're out of hearts. Let's try this rule again with a new board." : ''),

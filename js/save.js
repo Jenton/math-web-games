@@ -15,7 +15,7 @@
   'use strict';
 
   const SCHEMA_VERSION = 2;
-  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on' };
+  const DEFAULT_SETTINGS = { band: '2-3', stars: 1, theme: 'block', monsters: 'on', motion: 'full' };
 
   const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
   const clone = (v) => JSON.parse(JSON.stringify(v));

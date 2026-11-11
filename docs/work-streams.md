@@ -1,27 +1,29 @@
 # Work streams: who owns what, and the merge order
 
 Several chats work on this repo at once. This page is the single map. **Update it when a stream starts, finishes, or changes owner.**
-Last updated: 11 Nov 2026.
+Last updated: 11 Nov 2026 (evening).
 
 ## The streams
 
 | Stream | Branch / PR | Status | Owns | Waits for |
 |---|---|---|---|---|
-| Save format, cloud sync core and screens, Firebase config, **Creature Quest v2 rules** (groups of monsters, ally effects, rescues) | `claude/dreamy-pasteur-xues94` / PR #11 | Ready: clean against `main`, all tests pass | `js/save.js`, `js/storage.js`, `js/sync*.js`, `js/rpg.js`, `js/quest.js` (v2), `firebase.json`, `firestore.rules`, `docs/sync-design.md` | nothing |
-| Firebase adapter (sets `window.MathQuestBackend`) and Hosting deploy script | `claude/firebase-adapter` | Built and tested, clean against `main`; ready for its PR. Firebase project `math-quest-family` is live | `js/firebase-backend.js`, `tests/firebase-backend*.js`, `tests/helpers/fake-firebase.js`, `tools/deploy-hosting.sh`, two script tags in `index.html` | nothing (PR #11 is merged). Publish with `tools/deploy-hosting.sh`, never by deploying from the repo folder |
-| Creature Quest sprite battles, classic/cute art themes, world map | `quest-art-stage1` (Stage 1), then the map (Stage 3); replaces closed PR #10 | In progress, ported onto the v2 rules in three stages: 1) sprites and themes on the v2 ids, 2) sprite ally picker and animated retaliation, 3) world map launching `RPG.makeEncounter` fights | `js/art.js`, `js/worldmap.js`, `tools/make_quest_assets.py`, `assets/quest/`, **`js/quest.js` until the port is merged (nobody else edits it)** | Stage 3 waits for PR #13 (`RPG.makeEncounter`) |
+| Save format, cloud sync core and screens, Firebase config, **Creature Quest v2 rules** (groups of monsters, ally effects, rescues) | `claude/dreamy-pasteur-xues94` / PR #11 | **Merged.** Follow-ups on the same branch (`RPG.makeEncounter`, fewer right cards at 2-3 stars, the animation chat's Munchers fixes and "Reduce motion" setting) are in the next PR from this branch | `js/save.js`, `js/storage.js`, `js/sync*.js`, `js/rpg.js`, `js/quest.js` (v2), `firebase.json`, `firestore.rules`, `docs/sync-design.md` | nothing |
+| Firebase adapter (sets `window.MathQuestBackend`) and Hosting deploy script | `claude/firebase-adapter` | **Merged (PR #12).** Firebase project `math-quest-family` is live | `js/firebase-backend.js`, `tests/firebase-backend*.js`, `tests/helpers/fake-firebase.js`, `tools/deploy-hosting.sh`, two script tags in `index.html` | nothing (PR #11 is merged). Publish with `tools/deploy-hosting.sh`, never by deploying from the repo folder |
+| Creature Quest sprite battles, classic/cute art themes, world map | `quest-art-stage1` (Stage 1), then the map (Stage 3); replaces closed PR #10 | **Stage 1 is in PR #14** (verified green by the v2 chat). Stage 2 and 3 follow once it is merged. The port is in three stages: onto the v2 rules in three stages: 1) sprites and themes on the v2 ids, 2) sprite ally picker and animated retaliation, 3) world map launching `RPG.makeEncounter` fights | `js/art.js`, `js/worldmap.js`, `tools/make_quest_assets.py`, `assets/quest/`, **`js/quest.js` until the port is merged (nobody else edits it)** | Stage 3 waits for PR #13 (`RPG.makeEncounter`) |
 | Sort & Rule, Cut & Share, Balance rework | `feature/sort-share-balance-rework` (no PR yet) | In progress | `js/sort*.js`, `js/cutshare.js`, `js/share.js`, `js/balance.js` | PR #11 merged, then merge `main` (registry-file conflicts) |
 | Munch sound reliability | `fix-sfx-reliability` / PR #9 | Ready | `js/sfx.js` | nothing |
-| Kenney art shortlist | `art-shortlist` | Docs only. The 17 MB of candidate samples stay on this branch; `docs/art-shortlist.md` is also on the Quest art branch | `docs/art-shortlist.md` | nothing |
+| Kenney art shortlist | `art-shortlist` | Docs only (already inside `creature-quest-art`) | `docs/art-shortlist.md` | nothing |
+| Animation pass (guide, then each game) | `claude/dreamy-pasteur-xues94` | Munchers done and merged; "Reduce motion" setting in review. Next: Machine Builder, then others. **Balance waits for the rework stream**, so the two do not both edit `js/balance.js` | `docs/animation-guide.md`, the motion blocks at the end of `css/style.css` | Balance rework merged (for Balance only) |
 | Done and merged | PR #6 Kenney art and sound, #7 Number Defense, #8 Lemonade Stand | Merged | | |
 
 ## Merge order
 
-1. **#9** (sound fix): tiny and independent.
-2. **#11** (sync, Firebase config, Quest v2 rules): unblocks the adapter and everyone who touches Quest or saving.
-3. **Firebase adapter** PR: once #11 is in `main`.
-4. **Quest integration**: port the sprite scene and world map (#10) onto the v2 rules. Exactly one chat does this, and nobody else edits `js/quest.js` meanwhile.
-5. **Sort & Rule / Cut & Share**: merge `main` first and resolve the registry files.
+Done: #6, #7, #8, **#11** (sync, Quest v2 rules), **#12** (Firebase adapter).
+Next:
+1. **#9** (sound fix) and the next PR from `claude/dreamy-pasteur-xues94` (`RPG.makeEncounter`, Munchers animation fixes, "Reduce motion"): both small and independent.
+2. **Quest art port** (the `creature-quest-art` stream): staged PRs, each green before the next.
+3. **Sort & Rule / Cut & Share / Balance rework**: merge `main` first and resolve the registry files.
+4. **Animation pass for Balance** only after the Balance rework is merged.
 
 ## Rules that keep the conflicts small
 
