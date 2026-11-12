@@ -25,9 +25,16 @@ async function open(browser, vp, band, name) {
   return { ctx, page };
 }
 const toQuest = async (page, stars = 2) => {
+  // difficulty now comes from the player's grade: pick the grade whose ladder cell is (the player's band, `stars`), and make every fight on-grade (no random bonus fights)
+  await page.evaluate((s) => {
+    const p = Store.profiles[0];
+    const idx = ['K-1', '2-3', '4-5', '6'].indexOf(p.settings.band) * 3 + s - 1;
+    Store.setGrade(p, { 0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7 }[idx]);
+    Grades.config.stretchShare = 0;
+    Store.save();
+  }, stars);
   await page.click('[data-game=quest]');
   await page.waitForSelector('#setup:not([hidden])');
-  await page.locator('#setStars .opt-card').nth(stars - 1).click();
   await page.click('#playNow');
   await page.waitForSelector('#qHome:not([hidden])');
 };
