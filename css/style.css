@@ -645,3 +645,8 @@ button.crumb:hover { background: rgba(255,255,255,.7); border-color: var(--accen
 button.crumb:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
 .crumb.cur { color: var(--ink); cursor: default; }
 .crumb-sep { color: var(--muted); font-weight: 700; }
+
+/* ---- Keyboard hints (js/keys.js): visible only when a keyboard is likely in use (laptop, or a tablet after its first key press) ---- */
+.keyhint { display: none; margin: 6px auto 0; max-width: 480px; text-align: center; font-size: .82rem; color: var(--muted); }
+html.kbd .keyhint { display: block; }
+html.kbd .guess.kb-row { border-radius: 14px; box-shadow: 0 0 0 3px var(--accent); background: rgba(255,255,255,.55); }

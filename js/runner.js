@@ -55,7 +55,7 @@
 
   function newRun() {
     clearTimers();
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'runner');
     S.n++;
     S.run = RUN.makeRun(st.band, st.stars);
     S.cp = 0;

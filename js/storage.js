@@ -116,6 +116,19 @@
     gameObj[key] = value;
     gameObj[key + 'At'] = Date.now();
   }
+  /** The grade and challenge to PLAY a game at. A game's own choice wins; otherwise it follows the player's default grade
+   *  (profile.settings.band). Other settings (look, glitches, motion) come from the profile as before. Returns a copy: change it with setLevel. */
+  function level(profile, gameId) {
+    const g = (profile.games && profile.games[gameId]) || {};
+    return Object.assign({}, profile.settings, { band: g.band || profile.settings.band, stars: g.stars || profile.settings.stars });
+  }
+  /** Set the grade and/or challenge for ONE game. Pass null to go back to following the player's default. */
+  function setLevel(profile, gameId, patch) {
+    const g = game(profile, gameId);
+    if ('band' in patch) setField(g, 'band', patch.band);
+    if ('stars' in patch) setField(g, 'stars', patch.stars);
+  }
+  const hasOwnLevel = (profile, gameId, field) => !!(profile.games && profile.games[gameId] && profile.games[gameId][field || 'band']);
   function setSettings(profile, patch) {
     Object.assign(profile.settings, patch);
     profile.settingsAt = Date.now();
@@ -157,7 +170,7 @@
 
   root.Store = {
     load, save, newProfile, remove, snapshot, onSave,
-    record, stat, statSkills, game, bump, total, setField, setSettings,
+    record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel,
     exportJSON, importJSON, mergeIn,
     get profiles() { return data.profiles; },
     get lastSaved() { return data.lastSaved; },

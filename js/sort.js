@@ -40,7 +40,7 @@
   }
 
   function nextPuzzle() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'sort');
     S.n++;
     S.p = MGR.makeSort(st.band, st.stars);
     S.tested = [];
