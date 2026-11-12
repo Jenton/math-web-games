@@ -26,6 +26,7 @@ Five lines, no more:
 - **Sound on every action**, through `js/sfx.js` only. Right and wrong sounds are fixed (never random between variants), and a
   result sound must never be masked by another one.
 - **Phone first:** design at 375 px wide, thumb-sized targets, no horizontal scroll, key buttons visible without hunting.
+- **Keyboard:** the game must be playable with a keyboard alone (laptops, and iPads with a keyboard). Register keys with `Keys.on('<screenId>', fn)` in `js/keys.js`: digits type numbers, Backspace deletes, Enter confirms, arrows move between choices (up/down between rows or entries), number keys pick the Nth card, H is Hint. Add a `Keys.hint(...)` line (it shows only on keyboard devices, never on a touch-only iPad) and a keyboard-only case in `tests/browser/keyboard.browser.js`.
 - **Respect Reduce motion** (`css/motion.css`).
 
 ## 3. Review before the PR
