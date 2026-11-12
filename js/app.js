@@ -46,6 +46,14 @@
       stars: [['★ Easier', 'Fewer ticks and every spot is a plain landing.'], ['★★ Medium', 'A finer line, some labels left out.'], ['★★★ Harder', 'Hops, expressions, and several ways to write the same number.']],
       sample: (s) => { const r = RUN.makeRun(s.band, s.stars); return r.checkpoints[0].text + ' (the line has ' + r.ticks + ' ticks, each worth ' + RUN.writeValue(r.line, r.line.step, r.line.modes[0]) + ')'; },
     },
+    // Arrow Range (archery): one commented block, see docs/game-ideas.md "Arrow Range: design plan"
+    archery: {
+      name: 'Arrow Range', ico: 'archery/target_colored', extras: false, mod: () => Archery,
+      how: ['A scout\'s note says where the <b>hidden target</b> is: "Shoot to 3/4", "Shoot 1/2 further than your last arrow", or "Across 6, up 3". Work out the number.', '<b>Tap or slide</b> on the field (or use the arrows) to aim on the distance ruler, and the height ruler when the shot has height. A <b>wind flag</b> pushes the arrow, so aim to the target minus the wind. Press <b>Loose!</b>', 'A hit parts the mist. A miss sticks the arrow where it landed, and we count how many ticks you were off. Finish with the <b>scoring board</b>: pick rings that add to the exact total.'],
+      band: { 'K-1': 'Counting ticks to 10, then 20; heights to 10; small sums on the board.', '2-3': 'A ruler to 100 by tens and fives, heights, wind, and times-table notes like 6 × 7.', '4-5': 'Fractions and decimals on the rulers, height differences, wind, and ring sums with halves and tenths.', '6': 'Percents of the field, negative heights below ground, wind either way, and a penalty ring.' },
+      stars: [['★ Easier', 'Distance shots, and a few with height.'], ['★★ Medium', 'Wind and height shots join in.'], ['★★★ Harder', 'Coordinates, wind, height differences and bigger sums.']],
+      sample: (s) => { const r = ARCH.makeRound(s.band, s.stars); return r.shots[0].text + ' (the ruler has ' + r.ticksX + ' ticks, each worth ' + RUN.writeValue(r.xLine, r.xLine.step, r.xLine.modes[0]) + ')'; },
+    },
     escape: {
       name: 'Escape Room', ico: 'escape/t89', extras: false, mod: () => Escape,
       how: ['You are locked in a dungeon room with <b>three chests</b>, each with a lock. Tap a chest and your hero walks over.', 'Crack the <b>pattern, code, scale or machine</b> lock. A wrong try shows you the arithmetic; hints are always there.', 'Open all three and the <b>exit door</b> opens. Fewer wrong tries and hints means more stars.'],
@@ -89,7 +97,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'runner', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'runner', 'archery', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -220,11 +228,11 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
-      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || RUN.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || RUN.SKILLS[k] || ARCH.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
-    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('runner', 'runs') + ' Number Line runs, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
+    $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('runner', 'runs') + ' Number Line runs, ' + count('archery', 'rounds') + ' Arrow Range rounds, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
     show('menu');
   }
 
@@ -267,7 +275,7 @@
     show('setup');
   }
 
-  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', runner: 'runner', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
+  const SCREEN_OF = { munchers: 'game', balance: 'balance', escape: 'escape', runner: 'runner', archery: 'archery', defense: 'td', machine: 'machine', lemonade: 'lemonade', sort: 'sort', share: 'share', quest: 'quest' };
   function playGame() {
     applyTheme(current);
     show(SCREEN_OF[currentGame]);
