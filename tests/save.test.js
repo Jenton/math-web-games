@@ -91,6 +91,7 @@ function makeOps(dev) {
       o.teamAt = clock();
     } else if (roll < 0.78) { p.settings.stars = 1 + Math.floor(r() * 3); p.settingsAt = clock(); }
     else if (roll < 0.84) { const o = g('munchers'); o.streak = Math.floor(r() * 5); o.streakAt = clock(); }
+    else if (roll < 0.86) { const o = g(['balance', 'runner', 'rpg'][Math.floor(r() * 3)]); o.band = r() < 0.2 ? null : ['K-1', '2-3', '4-5', '6'][Math.floor(r() * 4)]; o.bandAt = clock(); o.stars = 1 + Math.floor(r() * 3); o.starsAt = clock(); }
     else if (roll < 0.9) {
       const np = Save.newProfile({ id: dev + '-' + n++, name: 'K' + n, avatar: 'x', band: 'K-1', now: clock() });
       d.profiles.push(np);

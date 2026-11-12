@@ -63,7 +63,8 @@
   const SCHEMAS = {};
   /** fields: { fieldName: 'counter' | 'set' | 'max' | 'lww' }. post(game) may repair invariants after a merge (must be idempotent). */
   function registerGame(id, fields, post, opts) {
-    SCHEMAS[id] = { fields, post, epoch: (opts || {}).epoch || null };
+    // every game can carry its own grade (band) and challenge (stars): last write wins; empty means "follow the player's default grade"
+    SCHEMAS[id] = { fields: Object.assign({ band: 'lww', stars: 'lww' }, fields), post, epoch: (opts || {}).epoch || null };
   }
 
   registerGame('munchers', { levels: 'counter', streak: 'lww' });

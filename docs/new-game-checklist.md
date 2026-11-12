@@ -36,6 +36,8 @@ Five lines, no more:
 - In the PR text, list: what moves, what the Kenney art is, and what is still placeholder.
 
 ## 4. Wiring (unchanged)
+**Grade and challenge are per game.** Read them with `Store.level(profile, '<dataId>')` (a game's own choice, else the player's default grade), never from `profile.settings.band/stars` directly. The setup screen saves with `Store.setLevel(profile, '<dataId>', { band | stars })`. The default grade lives on the player menu and is the only thing that writes `profile.settings.band`. The merge rule gets `band` and `stars` as last-write-wins automatically (`Save.registerGame`).
+
 Breadcrumbs: the screen's top row is `<nav class="crumbs" data-level="play" data-back="<yourBackId>" data-game="<gameKey>"></nav>` (inside the `.hud`), built by `buildCrumbs()` in `js/app.js` as Players > Games > your game. Your module's own exit code runs on the crumb that carries `data-back`, and the other crumbs run it first. No separate back button.
 Card + `GAMES` entry in `js/app.js`, one `<section>` in `index.html`, `Save.registerGame` rule and a `tests/save.test.js` case,
 README and `docs/game-ideas.md` updates, credits, `docs/work-streams.md` row.

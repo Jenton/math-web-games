@@ -34,7 +34,7 @@
   }
 
   function nextPuzzle() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'share');
     S.n++;
     S.p = MGC.makeShare(st.band, st.stars);
     S.c = 1;

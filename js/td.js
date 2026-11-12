@@ -45,7 +45,7 @@
 
   function nextWave(fresh) {
     stopTimer();
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'td');
     if (fresh) {
       S.n++;
       S.wave = TDL.makeWave(st.band, st.stars);
