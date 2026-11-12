@@ -141,7 +141,7 @@
       </div>
       <div class="setting">
         <span class="s-label">Grade</span>
-        <div id="setDefaultBand" class="chips"></div>
+        <div id="setDefaultBand" class="grade-grid" role="group" aria-label="Grade"></div>
         <p class="help">Every game plays at this grade, with a few harder "bonus challenge" problems from the grade above now and then. You can change it any time.</p>
       </div>
       <div class="setting">
@@ -604,12 +604,13 @@
   </dialog>
 
   <!-- asked once for a player who has no grade saved yet (a profile made before grades existed) -->
-  <dialog id="gradeAsk">
-    <div>
-      <h2>What grade is <span id="gaName"></span> in?</h2>
-      <p class="help">Games play at this grade, with a few harder problems from the grade above now and then. You can change it later in the player's settings.</p>
-      <div id="gaChips" class="chips"></div>
-      <div class="row"><button id="gaLater" class="btn ghost" type="button">Not now</button></div>
+  <dialog id="gradeAsk" class="grade-ask" aria-labelledby="gaTitle">
+    <div class="ga-body">
+      <span id="gaAv" class="ga-av" aria-hidden="true"></span>
+      <h2 id="gaTitle">What grade is <span id="gaName"></span> in?</h2>
+      <p class="help">We'll pick problems to fit. You can change it any time in Settings.</p>
+      <div id="gaChips" class="grade-grid" role="group" aria-label="Grade"></div>
+      <button id="gaLater" class="ga-later" type="button">Not now</button>
     </div>
   </dialog>
 

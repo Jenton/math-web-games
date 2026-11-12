@@ -170,6 +170,26 @@
 
   /* ---------- menu ---------- */
 
+  /** A 3 x 3 grid of big grade buttons (K to 8) used by the "What grade?" dialog and the settings page. currentValue null = nothing picked yet. */
+  function gradeGrid(container, currentValue, onPick) {
+    container.innerHTML = '';
+    Grades.options().forEach(([g, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'grade-btn' + (g === currentValue ? ' on' : '');
+      b.setAttribute('aria-label', label);
+      b.setAttribute('aria-pressed', g === currentValue);
+      b.innerHTML = '<span class="n"></span><span class="l"></span>';
+      b.querySelector('.n').textContent = Grades.short(g);
+      b.querySelector('.l').textContent = g === 0 ? 'Kindergarten' : 'grade';
+      b.addEventListener('click', () => {
+        onPick(g);
+        [...container.children].forEach((x) => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
+      });
+      container.appendChild(b);
+    });
+  }
+
   function chips(container, options, currentValue, onPick) {
     container.innerHTML = '';
     options.forEach(([value, label]) => {
@@ -231,7 +251,7 @@
     const paintWho = () => { $('#settingsAv').textContent = current.avatar; };
     nameIn.onchange = () => { Store.setMeta(current, { name: nameIn.value }); nameIn.value = current.name; Store.save(); paintWho(); };
     chips($('#setAvatar'), AVATARS.map((a) => [a, a]), current.avatar, (v) => { Store.setMeta(current, { avatar: v }); Store.save(); paintWho(); });
-    chips($('#setDefaultBand'), Grades.options(), Store.gradeKnown(current) ? Store.grade(current) : null, (v) => { Store.setGrade(current, v); Store.save(); });
+    gradeGrid($('#setDefaultBand'), Store.gradeKnown(current) ? Store.grade(current) : null, (v) => { Store.setGrade(current, v); Store.save(); });
     chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');
     stats.innerHTML = '';
@@ -254,7 +274,8 @@
     const p = current;
     askedGrade.add(p.id);
     $('#gaName').textContent = p.name;
-    chips($('#gaChips'), Grades.options(), null, (v) => {
+    $('#gaAv').textContent = p.avatar;
+    gradeGrid($('#gaChips'), null, (v) => {
       Store.setGrade(p, v);
       Store.save();
       $('#gradeAsk').close();

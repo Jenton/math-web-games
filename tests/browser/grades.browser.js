@@ -40,14 +40,14 @@ const { serve } = require('../helpers/static-server.js');
   await page.reload();
   await page.click('.player-card:has-text("Old")');
   await page.waitForSelector('#gradeAsk[open]');
-  await page.click('#gaChips .chip:has-text("4th grade")');
+  await page.click('#gaChips [aria-label="4th grade"]');
   await page.waitForSelector('#menu:not([hidden])');
   s = await page.evaluate(() => { const p = Store.profiles.find((x) => x.name === 'Old'); return { g: p.settings.grade, b: p.settings.band }; });
   assert.deepStrictEqual(s, { g: 4, b: '4-5' });
 
   // 3. the settings page (behind the gear in the menu header) changes the grade (and the old band that the other games read)
   await page.click('#openSettings'); await page.waitForSelector('#settings:not([hidden])');
-  await page.click('#setDefaultBand .chip:has-text("6th grade")');
+  await page.click('#setDefaultBand [aria-label="6th grade"]');
   s = await page.evaluate(() => { const p = Store.profiles.find((x) => x.name === 'Old'); return { g: p.settings.grade, b: p.settings.band }; });
   assert.deepStrictEqual(s, { g: 6, b: '6' }, 'settings change the grade and the band follows');
   await page.click('#settings .crumb:has-text("Players")'); // the crumbs on the settings page lead back out

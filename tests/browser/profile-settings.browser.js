@@ -26,14 +26,14 @@ const { serve } = require('../helpers/static-server.js');
   await page.waitForSelector('#settings:not([hidden])');
   assert.strictEqual(await page.isVisible('#menu'), false, 'the settings are a separate page');
   assert.strictEqual(await page.isVisible('#setName'), true);
-  assert.strictEqual(await page.evaluate(() => document.querySelector('#settings nav.crumbs').textContent.replace(/\s+/g, ' ').trim()), 'Players › Games › Settings', 'the crumbs show where you are');
+  assert.strictEqual(await page.evaluate(() => document.querySelector('#settings nav.crumbs').textContent.replace(/\s+/g, '')), 'Players›Games›Settings', 'the crumbs show where you are');
 
   await page.fill('#setName', '  Ada  ');
   await page.press('#setName', 'Tab');
   await page.click('#setAvatar .chip:nth-child(3)');
   const av = await page.$eval('#setAvatar .chip:nth-child(3)', (e) => e.textContent);
   assert.strictEqual(await page.textContent('#settingsAv'), av, 'the settings header shows the new buddy');
-  await page.click('#setDefaultBand .chip:nth-child(6)');
+  await page.click('#setDefaultBand .grade-btn:nth-child(6)');
   const grade = await page.evaluate(() => Store.grade(Store.profiles[0]));
   await page.fill('#setName', '   ');
   await page.press('#setName', 'Tab');

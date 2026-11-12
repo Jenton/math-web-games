@@ -29,9 +29,9 @@ const { serve } = require('../helpers/static-server.js');
 
   // 3. the settings page changes the grade, and every game follows
   await page.click('#openSettings'); await page.waitForSelector('#settings:not([hidden])');
-  await page.click('#setDefaultBand .chip:has-text("Kindergarten")');
+  await page.click('#setDefaultBand [aria-label="Kindergarten"]');
   for (const g of GAMES) assert.deepStrictEqual(await cell(g), ['K-1', 1], g + ' at kindergarten');
-  await page.click('#setDefaultBand .chip:has-text("6th grade")');
+  await page.click('#setDefaultBand [aria-label="6th grade"]');
   for (const g of GAMES) assert.deepStrictEqual(await cell(g), ['6', 2], g + ' at 6th grade');
   await page.click('#settings .crumb:has-text("Games")'); await page.waitForSelector('#menu:not([hidden])');
 
