@@ -20,7 +20,7 @@ const { serve } = require('../helpers/static-server.js');
   await page.waitForSelector('#menu:not([hidden])');
   await page.click('[data-game=runner]');
   await page.waitForSelector('#setup:not([hidden])');
-  await page.evaluate(() => { const orig = RUN.makeRun; RUN.makeRun = (b, s) => (window.__run = orig(b, s)); });
+  await page.evaluate(() => { const orig = RUN.makeGradeRun; RUN.makeGradeRun = (g, o) => (window.__run = orig(g, o)); });
   await page.click('#playNow');
   await page.waitForSelector('#runner:not([hidden])');
   await page.waitForSelector('.run-tick');

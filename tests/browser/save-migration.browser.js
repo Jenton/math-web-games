@@ -53,11 +53,12 @@ async function newPage(browser, seed) {
   await page.click('.player-card'); // open Max
   await page.waitForSelector('#gradeAsk[open]'); // a profile saved before grades existed is asked its grade once
   await page.click('#gaLater');
-  await page.click('#menu summary');
+  await page.click('#openSettings'); await page.click('#settings summary'); // the grown-ups panel is on the settings page
   console.log('   grown-ups panel:', (await page.textContent('#levelsCleared')).trim());
   assert.match(await page.textContent('#levelsCleared'), /6 Munchers levels, 3 Balance puzzles, 2 Machine puzzles solved, 0 Lemonade days run, 0 Defense waves held, 0 Escape Rooms cleared, 0 Number Line runs, 0 Arrow Range rounds, 7 Quest battles won/);
   const stats = await page.textContent('#statsList');
   assert.match(stats, /12 right, 4 oops/);
+  await page.click('#settings .crumb:has-text("Games")'); await page.waitForSelector('#menu:not([hidden])');
 
   /* ===== 2. Creature Quest shows the migrated progress and saves new progress ===== */
   await page.click('[data-game=quest]'); await page.click('#playNow');

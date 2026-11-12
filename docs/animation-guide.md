@@ -225,7 +225,7 @@ stretch, age-scaled glitch wind-up (crouch + lean 220-500 ms before each step), 
 explanation on a wrong munch, 70 ms hit pause with blink and light board shake when a glitch touches you, and a confetti burst on clear.
 All motion is gated by `prefers-reduced-motion: no-preference`. Shared tokens live at the end of `css/style.css`.
 
-**"Reduce motion" profile setting (done):** player menu, Settings, Motion. Saved per player as `settings.motion` (`full` | `reduced`).
+**"Reduce motion" profile setting (done):** settings page (the gear in the menu header), Motion. Saved per player as `settings.motion` (`full` | `reduced`).
 `applyTheme()` sets `<html data-motion>`, and one CSS block makes every animation and transition finish instantly at its end state
 (damage numbers keep a gentle fade). The device's own reduce-motion setting is still handled by each component's media query.
 New animations need nothing extra: they are covered automatically. Do not wait on `animationend` (it still fires, but do not depend on it).

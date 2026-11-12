@@ -55,10 +55,11 @@
 
   function newRun() {
     clearTimers();
-    const st = Store.cell(ctx.profile, 'runner', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) run from the next grade
+    // grade-specific content (js/runlogic.js): the player's grade, or sometimes a whole bonus (stretch) run from the next grade up
+    const it = Grades.pickItem(Store.grade(ctx.profile), { first: S.n === 0, top: RUN.TOP_GRADE });
     S.n++;
-    S.bonus = st.stretch;
-    S.run = RUN.makeRun(st.band, st.stars);
+    S.bonus = it.stretch;
+    S.run = RUN.makeGradeRun(it.grade, { hard: it.stretch });
     S.cp = 0;
     S.slips = 0;
     S.free = 0; // misses and hints that did not count because this is a bonus run

@@ -9,7 +9,7 @@ Status: **Phase 1a in progress** (12 Nov 2026): plan, adversarial review and dec
 
 ## Decisions (owner, 12 Nov 2026)
 - **State:** California, so CCSS-M is the reference.
-- **Who picks the grade:** set when a player profile is created; changeable later in the player's settings.
+- **Who picks the grade:** set when a player profile is created; changeable later on the settings page (a gear in the menu header).
 - **Range:** support grades **K to 8 now**. Grades 9 to 12 are not promised: the games cannot generate that content yet (see the review). The picker stops at 8; each game states the highest grade it really has content for and clamps there.
 - **Stretch misses:** a miss (or hint) on a stretch item costs no star.
 
@@ -67,7 +67,7 @@ Added after a second read (K, 1, 7 and 8 pages; short quotes, same unofficial so
 
 **One choke point makes this cheap.** Every game reads its difficulty through `Store.level(profile, gameId)` (`js/storage.js`), which returns `{ band, stars, ... }`. Phase 1 changes that function, so games migrate one at a time, and an unmigrated game keeps working.
 
-- **The setting:** `profile.settings.grade` in `K, 1, 2, 3, 4, 5, 6`, set by the player or a grown-up (one place: the player menu and "For grown-ups"). The per-game grade and challenge pickers (PR #46) go away once every game is migrated; the setup screen then only shows the how-to and a Play button.
+- **The setting:** `profile.settings.grade` in `K, 1, 2, 3, 4, 5, 6`, set by the player or a grown-up (one place: the settings page, behind the gear in the menu header). The per-game grade and challenge pickers (PR #46) go away once every game is migrated; the setup screen then only shows the how-to and a Play button.
 - **The skew:** each puzzle is drawn from the player's grade with about 70% probability and from the next grade up with about 30%. The first item of a round is always on-grade (a warm-up). Open: grade 6 players have no grade 7 content (see questions).
 - **Stars stop being a difficulty choice.** They stay as the medal you earn (fewer slips = more stars), which already is what they are on the result screen. Today stars are both an input and an output, which is the confusing part.
 - **Fairness of the stretch:** a miss on a stretch (grade + 1) item should not cost a star, only a miss on an on-grade item. Open question, see below.
@@ -90,7 +90,7 @@ Then plain "shoot to N" drops out of grade 3 and up, where it is a grade 2 skill
 ### What Phase 1a built (12 Nov 2026)
 - `js/grades.js` + `tests/grades.test.js`: grade list K to 8 (stored 0 to 12), labels, the old-band mapping both ways, and `pickItem` (first item on-grade, 30% stretch, no stretch at a game's top grade).
 - `Store.grade(profile)`, `Store.gradeKnown(profile)`, `Store.setGrade(profile, g)` (also rewrites `settings.band`), and `Store.level` now also returns `grade`. `Save.newProfile` accepts a chosen grade and never defaults one; `tests/save.test.js` covers store, drop-invalid, last-write-wins merge and the old-device fallback.
-- The new-player form asks for a grade; the player menu's "Grade" chips change it; a profile with no saved grade is asked once ("What grade is <name> in?"; "Not now" saves nothing).
+- The new-player form asks for a grade; the "Grade" chips on the settings page (a gear in the menu header opens it) change it; a profile with no saved grade is asked once ("What grade is <name> in?"; "Not now" saves nothing).
 - **Arrow Range is the first graded game** (`graded: true` in `js/app.js`): its setup screen has no grade or "how tricky" pickers. `ARCH.makeRound(grade, { stretchShare })` builds a round from a per-grade spec; grade 3 rotates through fractions (denominators 2, 3, 4, 6, 8), products, tens-times, and rounding to ten and hundred. Items are tagged with standards codes (`shot.tags`).
 - Stretch items show "Bonus challenge" and never cost a slip or a hint's slip; `tests/browser/archery.browser.js` checks that a round of all bonus challenges can still end "Perfect round".
 - Grades 7 and 8 in Arrow Range are signed fractions, percent-of ("75% of 80") and uncapped height differences. The grade 8 mechanics (slope, 8.EE.B.5; distance by the Pythagorean theorem, 8.G.B.8) are not built yet.
@@ -139,7 +139,7 @@ Result screens say so when a bonus item made a miss free (they never claim "no s
 | Game | Fit for grade 3 | Gap to close later |
 |---|---|---|
 | Arrow Range | built per grade (see above) | none for grades K to 6; grades 7 and 8 need slope and distance shots |
-| Number Line Runner | **weak** | fractions on a number line (3.NF.A.2) appear only in the 4-5/1 stretch; no rounding (3.NBT.A.1), no tens-times (3.NBT.A.3), no products as notes. Next candidate: give it grade-specific rulers like Arrow Range (it shares the tables) |
+| Number Line Runner | **fixed (grade-specific content built)** | was the weakest fit: fractions only appeared as the 4-5/1 stretch, with no rounding, tens-times or products. Now see "Number Line Runner on grades" below |
 | Cut & Share | fits | caps at 8 friends, which matches grade 3's fraction limit (denominators 2, 3, 4, 6, 8) |
 | Creature Quest | fits | skip counting, rounding and simple-fraction armor are already in its 2-3 band |
 | Number Defense, Sort & Rule | fits for multiples | multiples of 2, 3, 4, 5, 10; no explicit "products from memory" (3.OA.C.7) |
@@ -148,6 +148,22 @@ Result screens say so when a bonus item made a miss free (they never claim "no s
 | Lemonade Stand | partly | change and pitcher counts; no multiplication word problems framed as 3.OA.A.3 |
 | Escape Room | fits | skip-counting and doubling patterns |
 K, 1 and 2 were not audited for any game; Munchers and Quest have the most content to check there.
+
+### Number Line Runner on grades (built 12 Nov 2026)
+The Runner no longer goes through the difficulty ladder: `RUN.makeGradeRun(grade, { hard })` builds each run from a per-grade spec, like Arrow Range. The grade rulers and note styles (fractions with denominators 2, 3, 4, 6, 8; products; tens-times; rounding to ten and hundred; tenths and hundredths; percent-of) now live once, in `js/runlogic.js`, and Arrow Range imports them, so a fix to one reaches both.
+
+| Grade | The line | Landings and hops | Standards tagged |
+|---|---|---|---|
+| K | 0 to 10, every tick labeled | landings only | K.CC.C.7 |
+| 1 | 0 to 20 | landings, hops within 20 | 1.OA.C.6 |
+| 2 | 0 to 100 by tens, or by fives | landings, hops | 2.MD.B.6 |
+| 3 | one of: fractions 0 to 3 by halves or thirds, 0 to 2 by fourths or sixths, 0 to 1 by eighths; 0 to 80 by 4; 0 to 1000 by 50; 0 to 100 by 10; 0 to 1000 by 100 | "Land on 5/8"; "Land on 6 × 7" (ticks are multiples of 4); "Land on 5 × 70"; "Land on 47, rounded to the nearest ten" (or hundred); hops within 1000 | 3.NF.A.2, 3.OA.C.7, 3.NBT.A.3, 3.NBT.A.1, 3.NBT.A.2 |
+| 4 | tenths, 0 to 1 or 0 to 2 | decimals, tenths as fractions, and hundredths ("Land on 70/100") | 4.NF.C.5, 4.NF.C.6 |
+| 5 | fourths 0 to 3 | mixed numbers and decimals | 5.G.A.1 line |
+| 6 | through zero: integers, or halves | negatives, hops across zero | 6.NS.C.6 |
+| 7, 8 | through zero by quarters, with percents | signed fractions and percents, hops across zero | 7.NS.A.1 |
+
+A bonus (stretch) run is a whole run from the next grade's spec with more hops. Kindergarten has no hops. Grade 8 is grade 7 (no new mechanic yet). Tested in `tests/runner.test.js` (2,700 grade runs: notes equal their ticks, every wrong tick is refused with its distance, tags present, grade 3 denominators and the share of plain whole-number notes).
 
 ### Order of work
 1. **Phase 1a (pilot): built, see above.**
