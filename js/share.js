@@ -62,15 +62,16 @@
   }
 
   function nextPuzzle() {
-    const st = Store.level(ctx.profile, 'share');
+    const st = Store.cell(ctx.profile, 'share', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) puzzle
     S.n++;
+    S.bonus = st.stretch;
     S.p = MGC.makeShare(st.band, st.stars);
     S.c = 1;
     S.s = 1;
     S.row = 0;
     S.typed = '';
     S.misses = 0;
-    $('shNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
+    $('shNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND + (S.bonus ? ' · Bonus challenge' : '');
     $('shTitle').textContent = S.p.text;
     buildFriends();
     render();
@@ -166,7 +167,8 @@
     const last = S.n >= ROUND;
     const again = () => { S.n = 0; S.stars = 0; nextPuzzle(); };
     if (res.ok) {
-      const stars = MGC.starsFor(S.p, S.c, S.misses);
+      const raw = MGC.starsFor(S.p, S.c, S.misses);
+      const stars = S.bonus ? Math.max(2, raw) : raw; // a bonus (stretch) puzzle always earns at least two stars
       const e = MGC.eachGets(S.p);
       S.stars += stars;
       Store.record(prof, 'share', true);

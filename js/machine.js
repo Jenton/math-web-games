@@ -31,13 +31,14 @@
   }
 
   function nextPuzzle() {
-    const st = Store.level(ctx.profile, 'machine');
+    const st = Store.cell(ctx.profile, 'machine', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) puzzle
     S.n++;
+    S.bonus = st.stretch;
     S.p = MGP.makeMachine(st.band, st.stars);
     S.path = [];
     S.counted = false;
     S.locked = false;
-    $('macNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
+    $('macNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND + (S.bonus ? ' · Bonus challenge' : '');
     $('macPar').textContent = '🎯 Best: ' + S.p.par + (S.p.par === 1 ? ' step' : ' steps');
     $('macTitle').textContent = 'Turn ' + MGP.fmt(S.p.start) + ' into ' + MGP.fmt(S.p.target);
     $('macTarget').textContent = MGP.fmt(S.p.target);
@@ -111,7 +112,8 @@
       return;
     }
     const steps = S.path.length;
-    const stars = steps <= S.p.par ? 3 : steps <= S.p.par + 1 ? 2 : 1;
+    const raw = steps <= S.p.par ? 3 : steps <= S.p.par + 1 ? 2 : 1;
+    const stars = S.bonus ? Math.max(2, raw) : raw; // a bonus (stretch) puzzle always earns at least two stars
     const prof = ctx.profile;
     Store.record(prof, 'machine', true);
     if (!S.counted) {
@@ -133,7 +135,7 @@
     setTimeout(() => S === game && UI.panel({
       icon: 'medals/m' + stars,
       title: 'Target reached! ' + '⭐'.repeat(stars),
-      text: steps + (steps === 1 ? ' step' : ' steps') + (steps <= S.p.par ? ': that is the best possible!' : '. The best is ' + S.p.par + '. Want to try for fewer next time?') + (last ? ' Round done: ' + S.stars + ' of ' + ROUND * 3 + ' stars.' : ''),
+      text: steps + (steps === 1 ? ' step' : ' steps') + (steps <= S.p.par ? ': that is the best possible!' : '. The best is ' + S.p.par + '. Want to try for fewer next time?') + (S.bonus && raw < 2 ? ' (A bonus challenge from the next grade earns at least two stars.)' : '') + (last ? ' Round done: ' + S.stars + ' of ' + ROUND * 3 + ' stars.' : ''),
       btn: last ? 'Play another round' : 'Next puzzle',
       onBtn: last ? () => { S.n = 0; S.stars = 0; nextPuzzle(); } : nextPuzzle,
       btn2: 'Try this one again',

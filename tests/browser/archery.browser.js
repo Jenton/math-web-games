@@ -102,7 +102,7 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
     const title = await page.textContent('#panelTitle');
     assert(/⭐/.test(title), 'result shows stars');
     // the test misses once on shot 2 and once on the board: those cost a slip on regular items, and NOTHING on bonus (stretch) items
-    if (share === 1) assert(/Perfect round/.test(title), 'misses on bonus challenges cost no star: ' + title);
+    if (share === 1) assert(/⭐⭐⭐/.test(title) && /Great round/.test(title), 'misses on bonus challenges cost no star (still three stars), but the round is not called perfect: ' + title);
     else assert(!/Perfect round/.test(title), 'misses on regular shots do cost slips: ' + title);
     const saved = await page.evaluate(() => Store.total(Store.game(Store.profiles[0], 'archery'), 'rounds'));
     assert.strictEqual(saved, 1, 'the round is saved once');

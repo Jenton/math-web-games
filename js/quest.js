@@ -22,7 +22,9 @@
   }
 
   const rpg = () => ctx.profile.games.rpg;
-  const sel = () => Store.level(ctx.profile, 'rpg'); // grade and challenge for Creature Quest (its own choice, else the player's default)
+  // the player's grade on the difficulty ladder, never a stretch: it decides the Quick adventure plan, which friends are findable and whether a saved run still fits.
+  // Map fights and puzzle spots ask for their own cell below, so a fight is sometimes a bonus (stretch) one. A lost fight already costs nothing in Creature Quest.
+  const sel = () => Store.cell(ctx.profile, 'rpg', { stretchShare: 0 });
   const theme = () => Art.themeId(ctx.profile);
   // every enemy has art by its skill; armored enemies and bosses have their own
   const enemyArt = (e) => (e.kind === 'boss' ? 'boss' : e.kind === 'armor' ? 'armor' : e.rule.id);
@@ -309,9 +311,13 @@
   /** A map node is a v2 encounter: a group of monsters with their own weaknesses, built by the same rpg.js code as Quick adventure. */
   function beginNodeFight(n, kinds) {
     Q.run = null;
-    Q.encounter = RPG.makeEncounter(sel().band, sel().stars, kinds, { prefer: [Q.lastSkill].filter(Boolean), rescue: n.ally || null });
+    const cell = Store.cell(ctx.profile, 'rpg', { first: !Q.fought });
+    Q.fought = true;
+    Q.bonus = cell.stretch;
+    Q.encounter = RPG.makeEncounter(cell.band, cell.stars, kinds, { prefer: [Q.lastSkill].filter(Boolean), rescue: n.ally || null });
     Q.lastSkill = Q.encounter.skills[Q.encounter.skills.length - 1] || Q.lastSkill;
     openPrep('fight');
+    if (Q.bonus) UI.toast('Bonus challenge: a tougher fight from the next grade. Losing costs nothing.', true);
   }
 
   /** Mark a node cleared (it never un-clears). Returns to the map and announces a newly opened region. */
@@ -334,7 +340,7 @@
   const MAX_STEPS = 8;
 
   function openPuzzle(n) {
-    const g = sel();
+    const g = Store.cell(ctx.profile, 'rpg', {}); // puzzle spots can be a bonus puzzle too
     Q.pz = { n, kind: n.puzzle, p: n.puzzle === 'machine' ? MGP.makeMachine(g.band, g.stars) : MGP.makeBalance(g.band, g.stars), guess: 0, path: [], missed: false, done: false };
     const t = theme();
     const T = Art.THEMES[t];

@@ -55,14 +55,16 @@
 
   function newRun() {
     clearTimers();
-    const st = Store.level(ctx.profile, 'runner');
+    const st = Store.cell(ctx.profile, 'runner', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) run from the next grade
     S.n++;
+    S.bonus = st.stretch;
     S.run = RUN.makeRun(st.band, st.stars);
     S.cp = 0;
     S.slips = 0;
+    S.free = 0; // misses and hints that did not count because this is a bonus run
     S.busy = false;
     S.counted = false;
-    $('runNo').textContent = 'Run ' + S.n;
+    $('runNo').textContent = 'Run ' + S.n + (S.bonus ? ' · Bonus challenge' : '');
     buildScene();
     startCheckpoint();
   }
@@ -269,7 +271,7 @@
   function splash(k, res, from) {
     const cp = S.run.checkpoints[S.cp];
     Store.record(ctx.profile, cp.kind === 'hop' ? 'numberline-hop' : 'numberline', false);
-    S.slips++;
+    if (!S.bonus) S.slips++; else S.free++; // a bonus (stretch) run never costs a star
     S.misses++;
     Sfx.play('wrong');
     S.tickEls[k].classList.add('miss');
@@ -298,7 +300,7 @@
     if (S.busy && !auto) return;
     const text = RUN.hint(S.run, S.cp, S.hints > 0 ? 1 : 0);
     S.hints++;
-    S.slips++;
+    if (!S.bonus) S.slips++; else S.free++;
     Sfx.play('flip');
     $('runMsg').className = 'run-msg hint';
     $('runMsg').textContent = '';
@@ -324,8 +326,8 @@
     if (stars === 3) later(() => Sfx.say('correct'), 800);
     later(() => UI.panel({
       icon: 'medals/m' + stars,
-      title: stars === 3 ? (S.slips === 0 ? 'Perfect run! ⭐⭐⭐' : 'Great run! ⭐⭐⭐') : stars === 2 ? 'You made it! ⭐⭐' : 'You made it across! ⭐',
-      text: S.slips === 0 ? 'Every landing exact, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (splashes and hints count). Fewer slips means more stars.',
+      title: stars === 3 ? (S.slips === 0 && !S.free ? 'Perfect run! ⭐⭐⭐' : 'Great run! ⭐⭐⭐') : stars === 2 ? 'You made it! ⭐⭐' : 'You made it across! ⭐',
+      text: S.slips === 0 && S.free ? 'A bonus challenge from the next grade: its splashes and hints did not count.' : S.slips === 0 ? 'Every landing exact, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (splashes and hints count' + (S.bonus ? ', but not on a bonus challenge' : '') + '). Fewer slips means more stars.',
       btn: 'Next run',
       onBtn: newRun,
       btn2: 'Back to setup',
