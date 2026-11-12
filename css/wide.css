@@ -62,3 +62,17 @@ main { max-width: 1160px; }
 .board .cell { min-width: 0; overflow: visible; }
 .board .cell .lbl { max-width: 100%; }
 .board .cell:not(.long) .lbl { white-space: nowrap; }
+
+/* Laptop-height windows: trim the space around the game so even a wider fallback font (some Linux/Android systems) still fits without scrolling */
+@media (min-width: 720px) and (max-height: 900px) {
+  main { padding-top: 8px; padding-bottom: 16px; }
+  .screen.has-split > .hud { margin-bottom: 6px; }
+  .screen.has-split nav.crumbs .crumb { min-height: 32px; padding-top: 2px; padding-bottom: 2px; }
+  .split .esc-title { font-size: .95rem; }
+  .split .esc-prompt { margin-bottom: 4px; font-size: .95rem; }
+  .split .esc-eq-line { margin: 2px 0; }
+  .split .esc-scale { margin-top: 14px; }
+  .split .esc-scale .beam { min-height: 84px; }
+  .split .esc-plaque .esc-actions { margin-top: 0; }
+  .split .esc-story { margin-bottom: 0; }
+}
