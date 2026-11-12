@@ -22,7 +22,7 @@ One brief per game, in the five-line shape `docs/new-game-checklist.md` asks for
 5. **Math is the mechanic.** Could a kid play well without the math? No: the plates show the fraction one friend gets, and fairness depends on the numbers.
 
 ## Arrow Range: the misty archery field (planned, not built; logic is in `js/archerylogic.js`)
-Side view, per the owner (12 Nov 2026). Art is not chosen yet: the Kenney bundle search is open (see "Art" in `docs/game-ideas.md`, "Arrow Range: design plan"). Fill in item 5 after it.
+Side view, per the owner (12 Nov 2026). Art chosen: smooth vector (item 5; the search results are under "Art" in `docs/game-ideas.md`).
 1. **The place.** A side-on field at phone width (375 px): sky and hills behind; the archer at the left on a ground strip or a wooden platform; a **distance ruler** along the
    bottom of the field (tick marks, sparse labels, the tapped tick lights up); a **height ruler** down the left edge (only for rounds that have height); a wind flag on a pole;
    a tower or tree a fixed distance away for height shots; and a **mist bank** over the target area. The target stands somewhere in the mist and is never drawn at its real spot before the shot.
@@ -35,7 +35,7 @@ Side view, per the owner (12 Nov 2026). Art is not chosen yet: the Kenney bundle
 4. **The feedback moments.** Right: the arrow thunks into the target, a ring flash, the Bullseye line with the arithmetic ("6 × 7 = 42"). Wrong: the arrow sticks where it landed, the target is revealed
    with a dotted gap between them and the message counts the ticks ("1 tick short", "Right distance, but 2 ticks too low"; wind shots show target minus wind). Win: medals as in the other games, stars from wasted arrows.
    Sound only through `js/sfx.js`: fixed bow twang, a hit and a miss, and the result sound must not be masked by the flight sound. Reduce motion: the arc becomes a quick fade to the landing spot.
-5. **The Kenney assets.** To be filled in after the art search (backdrop, tower or wall, platform, flag, an archer in the same style family; the bow, arrow and ringed target may be small original SVG).
+5. **The Kenney assets.** Smooth vector family only, all in `assets/kenney/archery/`: backdrop `sky`, `hills`, `hillsLarge`, `cloudLayer1`, `cloud1-3`, `tree`, `treeSmall_green1`, `bush1` (Background Elements Remastered); height rounds use `tower`, `towerSmall` or `castleWall` as the wall and `wood` (tiled) with `post` as the platform; the wind flag is `flagRed1`/`flagRed2` alternating for the wave and `flagRed_down` for a calm day; the scoring board and the hidden target use `target_colored`, `target_red1`, `target_red3`, `target_white` (Shooting Gallery); the archer is the Toon Characters `male_*` or `female_*` poses (idle, side, hold, attack0 to draw, attack1 to loose, cheer0 on a hit, hurt on a miss). **Draw as small original SVG:** the bow, the arrow, the quiver, the mist bank and the rulers (none exist in the bundle). No pixel-art tile in this scene.
 
 **Could a kid play well without the math?** No. The target is hidden, the ruler labels are sparse (the tests check that most targets sit on unlabeled ticks), the note is in a different form from the ruler
 (fractions on a decimal ruler, expressions, percents), a miss costs a star, and the scoring board has a single exact total that most ring combinations miss.

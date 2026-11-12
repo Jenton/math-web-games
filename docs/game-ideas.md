@@ -409,7 +409,7 @@ The v2 decisions above are implemented except for art and the world map. What ex
 Status: **plan agreed in outline (owner answers, 12 Nov 2026), nothing built.** The older child liked Number Line Runner and asked for an archery version: shoot an arrow a certain
 distance, tied to the math already in the game, and maybe add height.
 
-**Decisions so far:** side view; the arrow flies in a visual arc (math unchanged, the arc always ends exactly on the chosen spot); the first release is Stages 1 and 2 together (flat range plus height); scoring rings are in the first release too (so Stage 3's rings move into it; the grade 6 slope shot stays later). Art search is still open (see "Art").
+**Decisions so far:** side view; the arrow flies in a visual arc (math unchanged, the arc always ends exactly on the chosen spot); the first release is Stages 1 and 2 together (flat range plus height); scoring rings are in the first release too (so Stage 3's rings move into it; the grade 6 slope shot stays later). Art search done: smooth vector family (see "Art").
 
 ### Pitch
 You are an archer at a misty range. A scout's note says where the target is ("It is 3/4 of the way down the field", "7 × 8 m away",
@@ -499,22 +499,31 @@ Motion: follow `docs/animation-guide.md`; the arrow flight is skipped to a quick
 **Look:** side view. Sky and hills behind, a ground strip with the distance ruler along the bottom, a vertical height ruler on the left, the archer on the left
 (on a platform for height-difference rounds), a mist layer over the target area, a wind flag. The arc is drawn with CSS/SVG along a path whose end point is the chosen spot.
 
-**Not yet checked:** the full Kenney bundle (`AI Projects/Kenney Game Assets All-in-1 3.8.0`) is on the owner's Mac and was not reachable from the cloud chat that wrote this plan
-(kenney.nl is blocked there too). `docs/art-shortlist.md` has no archery-specific items, but it only covers the packs shortlisted for Quest, so it does not settle the question.
-A session that has the bundle should do this, then record the result here and in `docs/art-shortlist.md`:
-1. Search the bundle's `2D assets/` folder names and file names for: `arrow`, `bow`, `archer`, `target`, `bullseye`, `quiver`, `crossbow`, `flag`, `shooting`, `range`, `ring`.
-   Packs worth opening by name first (guesses from memory, unverified): Shooting Gallery, Tower Defense (arrow or bullet sprites, already used for Number Defense tiles),
-   Roguelike Characters (weapon layers), Tiny Battle, Tiny Dungeon, Medieval RTS, Platformer Pack, Sports Pack, Particle Pack, Emote Pack.
-2. For the scene: sky/hill/tree backdrops (Background Elements Remastered is already shortlisted), a tower or castle wall for height rounds, a wooden platform, and a flag for wind.
-3. For the archer: a hero sprite in the same style family as the backdrop (smooth vector family: Toon Characters, Animal Pack Remastered, Shape Characters; pixel family: Tiny Dungeon,
-   Roguelike Characters). Do not mix the two families in one scene (see the shortlist's key finding).
-4. Pick one style family, copy only the chosen files into `assets/kenney/archery/` through `tools/make_kenney_assets.sh`, and add the packs to `assets/CREDITS.md`.
-5. Anything missing (bow, arrow, target with rings) is drawn as small original SVG; keep them simple so they match the family. Original characters only.
+**Art search done (bundle at `AI Projects/Kenney Game Assets All-in-1 3.8.0`, 2D assets/).** Decision: **smooth vector family** (the pixel packs have no sky, hills or trees, and the vector packs cover everything but the weapon).
+Do not mix the two families in one scene. Files are built into `assets/kenney/archery/` by `tools/make_kenney_assets.sh` (37 files, 388 KB).
+
+| Need | Pack and file | Style | In the game folder as |
+|---|---|---|---|
+| Sky | Background Elements Remastered `Backgrounds/backgroundColorGrass.png` (1024 x 1024) | smooth vector | `sky.png` (768 wide) |
+| Hills, cloud band | same pack, `Backgrounds/Elements/hills`, `hillsLarge`, `cloudLayer1` (1024 x 400 each) | smooth vector | same names |
+| Trees, bush, clouds | same pack, `PNG/Retina/tree` (188 x 408), `treeSmall_green1` (40 x 86), `bush1` (240 x 120), `cloud1-3` | smooth vector | same names |
+| Tower or castle wall | same pack, `tower` (146 x 490), `towerSmall` (76 x 180), `castleWall`, `castleWallAlt` (120 x 120) | smooth vector | same names |
+| Wooden platform | Shooting Gallery `Stall/bg_wood.png` (256 x 256 plank tile, repeat it) and `Objects/stick_wood.png` (30 x 123 post) | smooth vector | `wood`, `post` |
+| Wind flag | Platformer Pack Remastered `Items/flagRed1`, `flagRed2` (two wave frames), `flagRed_down` (calm), 128 x 128 | smooth vector | same names |
+| Target with rings | Shooting Gallery `Objects/target_colored`, `target_red1`, `target_red3`, `target_white`, 128 x 128 (more exist: outline, back, duck targets) | smooth vector | same names |
+| Archer | Toon Characters male and female adventurer, 45 poses at 96 x 128 (front-facing, plus a `side` pose; used: side, idle, hold, attack0, attack1, cheer0, hurt) | smooth vector | `male_*`, `female_*` |
+| Bow, arrow, quiver | **Missing from the whole bundle.** The name search found only UI arrows (Racing Pack, Yellow Paint Pack, Puzzle Pack 2) and no bow, archer or quiver anywhere. Shooting Gallery has a rifle and shots only. | | **draw as small original SVG** |
+
+Also checked and not chosen: Tiny Dungeon (16 px; hero, sword, axe and staff tiles but no bow or arrow), Tiny Battle (units and flags, no archer), Roguelike Characters (one spritesheet, no archery layers),
+RTS Medieval and Platformer Pack Medieval (castle tiles, no archer), Tower Defense (top-down, already used by Number Defense), Sports Pack (golf-style flags, no bow),
+Animal Pack Remastered (an animal archer would still need a hand-drawn bow), Flag Pack (country flags). Caveat: Toon Characters face the viewer, so the side-on look is a three-quarter pose;
+if it looks wrong at 375 px, flip it with `scaleX(-1)` or draw a small original SVG archer in this style. Shooting Gallery art has a thin orange outline that Background Elements does not,
+so compare them side by side before the PR.
 Check the network tab for 404s when it is wired in (a missing image silently falls back to emoji).
 
 ### Open questions for the owner
 Answered 12 Nov 2026: side view, visual arc, Stages 1 and 2 together, scoring rings included. Still open:
-- Which art family: smooth vector (cute, matches Map Pack and Animal Pack) or 16 px pixel (matches Escape Room and Number Defense)? Decide after the art search above.
+- Art family: **smooth vector chosen** after the art search (see "Art"); the owner can still overrule it.
 - Does the older child want to pick the archer's look (cosmetic only), or is one archer enough for the first release?
 
 ## Later
