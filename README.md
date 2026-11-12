@@ -67,6 +67,7 @@ node tests/rpg.test.js       # verifies Quest: every ally effect, the round-base
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
 node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
 node tests/archery.test.js    # verifies every Arrow Range note equals its target, wind and height arithmetic, the scoring board is solvable and the arc ends on target
+node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
@@ -81,7 +82,7 @@ node tests/browser/spacing.browser.js        # optional, needs Playwright: every
 node tests/browser/newgames.browser.js    # optional, needs Playwright: plays Sort & Rule and Cut & Share (win and lose); art loads, sound button covers nothing, win text is honest
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens), `js/firebase-backend.js` (the Firebase REST adapter, no SDK), `js/storage.js`, `js/game.js`
-(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/sortrule.js` + `js/sort.js` (Sort & Rule), `js/cutshare.js` + `js/share.js` (Cut & Share), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/keys.js` (keyboard controls and hints), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/sortrule.js` + `js/sort.js` (Sort & Rule), `js/cutshare.js` + `js/share.js` (Cut & Share), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/layout.js` and `css/wide.css` (side-by-side layouts on wide screens), `js/keys.js` (keyboard controls and hints), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
 
 **Working on this repo (people or Claude):** start with `CLAUDE.md` (rules and which doc to read for which task), then `docs/work-streams.md` (who owns what).
 
