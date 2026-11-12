@@ -38,7 +38,22 @@
     return rng() < share ? { grade: g + 1, stretch: true } : { grade: g, stretch: false };
   }
 
-  const api = { PICK_MAX, STORE_MAX, STRETCH_SHARE, clean, label, short, bandOf, legacyGrade, options, pickItem };
+  /* The difficulty ladder for games that still build puzzles from (band, stars): the 12 cells every one of them already handles, in order of difficulty. */
+  const LADDER = [['K-1', 1], ['K-1', 2], ['K-1', 3], ['2-3', 1], ['2-3', 2], ['2-3', 3], ['4-5', 1], ['4-5', 2], ['4-5', 3], ['6', 1], ['6', 2], ['6', 3]];
+  const RUNG = [0, 2, 4, 5, 6, 8, 10, 11, 11]; // grade K..8 -> rung on the ladder
+  const LADDER_TOP = 7; // the highest grade with a rung of its own (the top cell, 6 star 3); above it a player plays that cell with no stretch
+
+  /**
+   * The cell to build the next puzzle from, for a player in `grade`: { band, stars, grade, stretch, rung }.
+   * Same pick as pickItem (first item on-grade, about 30% stretch from the next grade up); opts as pickItem, minus `top`.
+   */
+  function cell(grade, opts) {
+    const it = pickItem(grade, Object.assign({}, opts, { top: LADDER_TOP }));
+    const rung = RUNG[it.grade];
+    return { band: LADDER[rung][0], stars: LADDER[rung][1], grade: it.grade, stretch: it.stretch, rung };
+  }
+
+  const api = { PICK_MAX, STORE_MAX, STRETCH_SHARE, LADDER, RUNG, LADDER_TOP, clean, label, short, bandOf, legacyGrade, options, pickItem, cell };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Grades = api;
 })(typeof window !== 'undefined' ? window : globalThis);

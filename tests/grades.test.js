@@ -38,4 +38,21 @@ assert(stretched > 5400 && stretched < 6600, 'about 30% stretch, got ' + stretch
 assert.strictEqual(G.pickItem(3, { rng: () => 0.1 }).stretch, true);
 assert.strictEqual(G.pickItem(3, { rng: () => 0.9 }).stretch, false);
 
+// the difficulty ladder: every grade has a valid cell, rungs never go down with grade, a stretch item is always on a HIGHER rung, the first item never stretches
+assert.strictEqual(G.LADDER.length, 12);
+let prev = -1;
+for (let g = 0; g <= 8; g++) {
+  const c = G.cell(g, { stretchShare: 0 });
+  assert(['K-1', '2-3', '4-5', '6'].includes(c.band) && [1, 2, 3].includes(c.stars), 'a valid cell for grade ' + g);
+  assert(c.rung >= prev, 'rungs do not go down with grade');
+  prev = c.rung;
+  assert.strictEqual(c.stretch, false);
+  assert.strictEqual(G.cell(g, { first: true, stretchShare: 1 }).stretch, false, 'the first item never stretches');
+  const up = G.cell(g, { stretchShare: 1 });
+  if (g >= 7) assert.deepStrictEqual([up.stretch, up.rung], [false, 11], 'the top has no stretch'); else { assert.strictEqual(up.stretch, true); assert(up.rung > c.rung, 'a stretch item is on a higher rung: grade ' + g); }
+}
+const g3 = G.cell(3, { stretchShare: 0 }); const g3s = G.cell(3, { stretchShare: 1 });
+assert.deepStrictEqual([g3.band, g3.stars, g3s.band, g3s.stars], ['2-3', 3, '4-5', 1], 'a 3rd grader plays 2-3/3 with 4-5/1 (the fractions) as the stretch');
+assert.deepStrictEqual([G.cell(0, { stretchShare: 0 }).band, G.cell(8, { stretchShare: 1 }).band], ['K-1', '6']);
+
 console.log('grades.test.js ok');
