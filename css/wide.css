@@ -43,3 +43,22 @@ main { max-width: 1160px; }
   .td-board .td-lane { flex: 0 1 auto; width: 100%; max-width: max(320px, calc((100vh - 350px) * 7 / 9)); }
   .td-shop { flex: 0 0 300px; display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
 }
+
+/* Escape Room on a laptop-height window: tighten the lock panel so every lock kind (the scale lock is the tallest) fits without scrolling */
+@media (min-width: 720px) and (max-height: 900px) {
+  .split .esc-plaque { padding: 10px 12px 8px; }
+  .split .esc-pad { gap: 4px; max-width: 230px; margin: 4px auto 6px; }
+  .split .esc-key { padding: 6px 0; font-size: 1.2rem; }
+  .split .esc-scale { margin: 20px auto 2px; }
+  .split .esc-scale .beam { min-height: 96px; padding-bottom: 8px; }
+  .split .esc-msg { min-height: 1.4em; margin: 4px 0 2px; }
+  .split .esc-seq { margin: 4px 0 6px; }
+  .split .esc-term { padding: 4px 8px; font-size: 1.15rem; }
+  .split .esc-plaque .op-card { min-height: 52px; }
+  .split .esc-try { padding: 8px 20px; }
+}
+
+/* Munchers: a cell with a long label (an expression or a fraction) must not stretch its column past the screen; the label shrinks instead */
+.board .cell { min-width: 0; overflow: visible; }
+.board .cell .lbl { max-width: 100%; }
+.board .cell:not(.long) .lbl { white-space: nowrap; }

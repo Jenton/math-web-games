@@ -25,6 +25,7 @@ Five lines, no more:
 - **Success sounds must rise and end high; error sounds fall.** Check candidates with `tools/sound_pitch.py` and by ear (see "Sound choices" in `docs/kenney-asset-plan.md`).
 - **Sound on every action**, through `js/sfx.js` only. Right and wrong sounds are fixed (never random between variants), and a
   result sound must never be masked by another one.
+- **Wide screens too:** on iPad and laptop (720 px and up) a game puts its picture on the left and its controls on the right so it fits without scrolling. Add one entry to `js/layout.js` (`a` = left elements, `b` = right elements, in DOM order with nothing between them); `css/wide.css` and `tests/browser/layout.browser.js` do the rest. Keep the phone stacked layout working.
 - **Phone first:** design at 375 px wide, thumb-sized targets, no horizontal scroll, key buttons visible without hunting.
 - **Respect Reduce motion** (`css/motion.css`).
 

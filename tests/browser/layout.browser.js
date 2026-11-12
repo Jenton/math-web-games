@@ -42,6 +42,13 @@ const SKIP_FIT = new Set(['defense']); // the tower board is taller than a lapto
         const r = split ? [split.children[0].getBoundingClientRect(), split.children[1].getBoundingClientRect()] : null;
         return { id: sec.id, hasSplit: !!split, sideBySide: r ? r[1].left >= r[0].right - 2 && Math.abs(r[0].top - r[1].top) < 6 : false, scrollH: de.scrollHeight, hOverflow: de.scrollWidth > de.clientWidth + 1 };
       });
+      if (g === 'escape') { // the lock panels differ in height: check all three chests of this room
+        for (let i = 0; i < 3; i++) {
+          await page.click('.esc-chest:nth-of-type(' + (i + 1) + ')').catch(() => {});
+          await page.waitForTimeout(250);
+          m.scrollH = Math.max(m.scrollH, await page.evaluate(() => document.documentElement.scrollHeight));
+        }
+      }
       rows.push({ size: sz.name, game: g, ...m });
       assert.strictEqual(m.hOverflow, false, g + ' overflows sideways on ' + sz.name);
       if (sz.side && m.hasSplit) assert.strictEqual(m.sideBySide, true, g + ' should be side by side on ' + sz.name);
