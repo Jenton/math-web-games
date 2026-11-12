@@ -9,7 +9,7 @@ const fs = require('fs'), path = require('path'), { spawn } = require('child_pro
 
 const args = process.argv.slice(2);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
-const BUNDLE = opt('--bundle') || '/Volumes/JentMini Drive/AI Projects/Kenney Game Assets All-in-1 3.8.0';
+const BUNDLE = opt('--bundle') || process.env.KENNEY_BUNDLE || '/Volumes/JentMini Drive/AI Projects/Kenney Game Assets All-in-1 3.8.0';
 const OUT = path.join(__dirname, 'out');
 const CATS = ['2D assets', 'UI assets', 'Icons'].concat(args.includes('--all') ? ['3D assets'] : []);
 const EXT = new Set(['.png', '.svg', '.jpg', '.jpeg']);
