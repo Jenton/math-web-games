@@ -51,6 +51,12 @@ main { max-width: 1160px; }
   .split .esc-key { padding: 6px 0; font-size: 1.2rem; }
   .split .esc-scale { margin: 20px auto 2px; }
   .split .esc-scale .beam { min-height: 96px; padding-bottom: 8px; }
+  /* the balance lock at harder levels stacks many mystery blocks in each pan (grade 5 and up now meets them by default): smaller blocks keep it inside the iPad window */
+  .split .esc-scale .beam { min-height: 70px; }
+  .split .esc-scale .pan { gap: 2px; }
+  .split .esc-scale .blk { min-width: 38px; height: 38px; margin: 0 1px 8px; }
+  .split .esc-scale .blk.sm { min-width: 30px; height: 30px; }
+  .split .esc-scale .blk .n { font-size: .7rem; bottom: -8px; }
   .split .esc-msg { min-height: 1.4em; margin: 4px 0 2px; }
   .split .esc-seq { margin: 4px 0 6px; }
   .split .esc-term { padding: 4px 8px; font-size: 1.15rem; }
