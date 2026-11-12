@@ -79,7 +79,7 @@
     if (!hasY) { g.GY = 70; return g; }
     const yl = round.yLine;
     const NY = round.ticksY;
-    g.YTOP = 8;
+    g.YTOP = 10;
     g.YBOT = yl.lo >= 0 ? 74 : 90;
     g.yOf = (k) => g.YTOP + (1 - k / (NY - 1)) * (g.YBOT - g.YTOP);
     g.ground = yl.lo >= 0 ? 0 : (0 - yl.lo) / yl.step; // the tick that is ground level (height 0)
@@ -299,12 +299,12 @@
   }
 
   const msgFor = (s) => ({
-    dist: 'Work out the number, then tap or slide on the field to aim. The target is hidden in the mist.',
-    hop: 'A hop is a distance. Count it off from your last arrow.',
-    wind: 'The wind will push your arrow. Aim so the wind carries it onto the target.',
-    height: 'The target is up on the wall. Aim on the height ruler.',
-    lift: 'Work out the target height first, then aim on the height ruler.',
-    coord: 'Two numbers: across, and up. Aim at both.',
+    dist: 'The target is hidden in the mist. Work out the number, then tap that spot on the ruler along the ground and press Loose!',
+    hop: 'A hop is a distance. Count it off from your last arrow, tap that spot on the ruler along the ground, then press Loose!',
+    wind: 'The wind will push your arrow. Tap the spot on the ground ruler where you must aim so the wind carries it onto the target, then press Loose!',
+    height: 'The target is somewhere up the wall. Work out its height, tap that number on the height ruler (the strip on the left), then press Loose!',
+    lift: 'Work out the target\'s height from where you stand, tap that number on the height ruler (the strip on the left), then press Loose!',
+    coord: 'Two numbers: across and up. Tap the spot on the field where they meet (or tap each ruler), then press Loose!',
   }[s.kind]);
 
   function pose(name) { if (S && S.E) S.E.archer.src = IMG + S.who + '_' + name + '.png'; }
@@ -375,6 +375,10 @@
     ['arLeft', 'arRight', 'arUp', 'arDown', 'arHint'].forEach((id) => { $(id).disabled = S.busy; });
     const aimEl = $('arAim');
     if (!s) { aimEl.textContent = ''; return; }
+    if (S.aimX == null && S.aimY == null) {
+      aimEl.textContent = needsX(s) && needsY(s) ? 'Tap the field to aim' : needsY(s) ? 'Tap the height ruler on the left to aim' : 'Tap the ruler along the ground to aim';
+      return;
+    }
     const parts = [];
     if (needsX(s)) parts.push('across ' + (S.aimX == null ? '?' : wrX(S.aimX)));
     if (needsY(s)) parts.push('height ' + (S.aimY == null ? '?' : wrY(S.aimY)));
@@ -500,7 +504,7 @@
     if (S.busy && !auto) return;
     const text = S.phase === 'board' ? ARCH.hintBoard(S.board, S.hints > 0 ? 1 : 0) : ARCH.hint(S.round, S.i, S.hints > 0 ? 1 : 0);
     S.hints++;
-    S.slips++;
+    if (!auto) S.slips++; // a hint you ask for costs a slip; the one that appears after two misses does not (the misses already counted)
     Sfx.play('flip');
     $('arMsg').className = 'ar-msg hint';
     $('arMsg').textContent = '';

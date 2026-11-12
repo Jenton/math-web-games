@@ -25,7 +25,7 @@
 .ar-yt.ground { background: #1a9a5e; }
 .ar-yt.aimed { background: #ff7a00; height: 6px; width: 20px; margin-top: -3px; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
 .ar-yl { transform: translate(-100%, -50%); padding: 0 4px; font-weight: 800; font-size: clamp(.6rem, 2.8vw, .8rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.78); border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 6; }
-.ar-wall { width: 15%; transform: translateX(-50%); background: url("../assets/kenney/archery/castleWall.png") center top / 100% auto no-repeat, repeating-linear-gradient(#aacdd1 0 18px, #9ec3c8 18px 20px); border-radius: 4px 4px 0 0; pointer-events: none; z-index: 2; }
+.ar-wall { width: 15%; transform: translateX(-50%); background: url("../assets/kenney/archery/castleWall.png") center top / 100% auto no-repeat, repeating-linear-gradient(#aacdd1 0 18px, #9ec3c8 18px 20px); border-radius: 4px 4px 0 0; pointer-events: none; z-index: 5; } /* in front of the mist: only the target's height is secret, not the wall */
 .ar-wall[hidden] { display: none; }
 .ar-platform { width: 11%; transform: translateX(-50%); background: url("../assets/kenney/archery/post.png") center top / 14px 100% repeat-y; pointer-events: none; z-index: 3; }
 .ar-platform::before { content: ""; position: absolute; top: -3px; left: 0; right: 0; height: 10px; border-radius: 3px; background: url("../assets/kenney/archery/wood.png") center / 48px auto; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
@@ -50,7 +50,7 @@
 .ar-mark { width: 24px; height: 24px; margin: -12px 0 0 -12px; border: 3px solid #ff7a00; border-radius: 50%; box-shadow: 0 0 0 2px #fff, inset 0 0 0 2px #fff; pointer-events: none; z-index: 8; }
 .ar-mark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #ff7a00; }
 .ar-mark[hidden] { display: none; }
-.ar-arrow { left: 0; top: 0; width: 46px; height: 8px; transform-origin: 100% 50%; pointer-events: none; z-index: 8; will-change: transform; }
+.ar-arrow { position: absolute; left: 0; top: 0; width: 46px; height: 8px; transform-origin: 100% 50%; pointer-events: none; z-index: 8; will-change: transform; }
 .ar-arrow svg { display: block; }
 .ar-arrow.miss { opacity: .9; }
 .ar-target { transform: translateX(-50%); pointer-events: none; z-index: 3; }
