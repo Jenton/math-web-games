@@ -169,7 +169,8 @@
     }
     // wind flag, archer, platform, bow
     const flag = el('div', 'ar-flag');
-    flag.style.cssText = 'left:' + (G.X0 + 9) + '%;bottom:' + (100 - G.GY) + '%';
+    // stands in the foreground grass below the ruler (never on the number line), and only shows on wind shots
+    flag.style.cssText = 'left:48%;bottom:2%';
     flag.append(img('flagRed1', 'a'), img('flagRed2', 'b'), img('flagRed_down', 'c'));
     const wlab = el('span', 'ar-wind');
     flag.appendChild(wlab);

@@ -24,7 +24,7 @@ One brief per game, in the five-line shape `docs/new-game-checklist.md` asks for
 ## Arrow Range: the misty archery field (planned, not built; logic is in `js/archerylogic.js`)
 Side view, per the owner (12 Nov 2026). Art chosen: smooth vector (item 5; the search results are under "Art" in `docs/game-ideas.md`).
 1. **The place.** A side-on field at phone width (375 px): sky and hills behind; the archer at the left on a ground strip or a wooden platform; a **distance ruler** along the
-   bottom of the field (tick marks, sparse labels, the tapped tick lights up); a **height ruler** down the left edge (only for rounds that have height); a wind flag on a pole;
+   bottom of the field (tick marks, sparse labels, the tapped tick lights up); a **height ruler** down the left edge (only for rounds that have height); a wind flag on a pole (in the foreground grass below the ruler, only on wind shots, so it never reads as part of the number line);
    a tower or tree a fixed distance away for height shots; and a **mist bank** over the target area. The target stands somewhere in the mist and is never drawn at its real spot before the shot.
    The scout's note sits in a sign or scroll above the field. After the four aimed shots the scene changes to the **scoring board**: a big target with rings, each ring a tappable value, and three or four arrow slots.
 2. **The things that move.** The archer (an idle breath and a bow draw when a tick is chosen), the wind flag (waves faster in stronger wind, still on a calm day), drifting mist,
