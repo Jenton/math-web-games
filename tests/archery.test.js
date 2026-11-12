@@ -64,6 +64,8 @@ for (const band of BANDS) {
           if (s.kind === 'height') assert(eq(parse(s.text.replace('The target is at height ', '')), a, yLine.D), s.text);
           if (s.kind === 'lift') {
             assert(s.platform !== s.ty && Math.abs(s.platform - s.ty) >= 2, 'lift needs a real difference');
+            assert(s.platform >= 1 && s.platform <= Math.floor(0.7 * (round.ticksY - 1)), 'the platform leaves headroom for the archer: ' + s.platform + ' of ' + round.ticksY);
+            if (st < 3) assert(Math.abs(s.platform - s.ty) <= 4, 'gentle height differences below 3 stars');
             const m = s.text.match(/^You stand at height (.+?)\. The target is (.+?) (above|below) you\.$/);
             assert(m, s.text);
             const p = R.valueAt(yLine, s.platform);

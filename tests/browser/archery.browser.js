@@ -34,7 +34,7 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
     const hasY = !!round.yLine;
     const X0 = hasY ? 22 : 12;
     const xOf = (k) => X0 + (k / (round.ticksX - 1)) * (94 - X0);
-    const YTOP = 8;
+    const YTOP = 10;
     const YBOT = hasY && round.yLine.lo >= 0 ? 74 : 90;
     const yOf = (k) => YTOP + (1 - k / (round.ticksY - 1)) * (YBOT - YTOP);
     const tap = async (shot, x, y) => {
@@ -92,6 +92,10 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
     }
     for (const ri of board.solution) await page.locator('.ar-ring', { hasText: new RegExp('^' + (await label(ri)).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).first().click();
     await page.click('#arLoose');
+    // the arrows must be SEEN landing on the target (a missing position rule once left them below it, clipped and invisible)
+    await page.waitForFunction((n) => document.querySelectorAll('.ar-bt .ar-arrow.stuck').length >= n, board.arrows, { timeout: 12000 });
+    const inside = await page.evaluate(() => { const b = document.querySelector('.ar-bt').getBoundingClientRect(); return [...document.querySelectorAll('.ar-bt .ar-arrow')].map((e) => { const r = e.getBoundingClientRect(); const cx = r.x + r.width / 2; const cy = r.y + r.height / 2; return cx > b.left && cx < b.right && cy > b.top && cy < b.bottom; }); });
+    assert(inside.length >= board.arrows && inside.every(Boolean), 'every board arrow lands inside the target: ' + JSON.stringify(inside));
     await page.waitForSelector('#panel:not([hidden])', { timeout: 12000 });
     assert(/⭐/.test(await page.textContent('#panelTitle')), 'result shows stars');
     const saved = await page.evaluate(() => Store.total(Store.game(Store.profiles[0], 'archery'), 'rounds'));
