@@ -32,12 +32,12 @@
 .ar-platform[hidden] { display: none; }
 .ar-archer { width: var(--as); height: auto; transform: translateX(-50%); pointer-events: none; z-index: 5; }
 .ar-bow { width: 26px; height: 60px; pointer-events: none; z-index: 5; transform: translate(-30%, -50%); }
-.ar-flag { width: 11%; aspect-ratio: 1; transform: translateX(-30%); pointer-events: none; z-index: 6; }
+.ar-flag { width: 9%; aspect-ratio: 1; transform: translateX(-30%); pointer-events: none; z-index: 6; }
 .ar-flag img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .ar-flag .b { opacity: 0; } .ar-flag .c { opacity: 0; }
-.ar-flag.calm .a, .ar-flag.calm .b { opacity: 0; } .ar-flag.calm .c { opacity: 1; }
+.ar-flag.calm { display: none; } /* no wind this shot: no flag */
 .ar-flag.left img { transform: scaleX(-1); }
-.ar-wind { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); padding: 0 5px; font-weight: 800; font-size: .72rem; white-space: nowrap; color: #fff; background: rgba(20,60,70,.8); border-radius: 6px; }
+.ar-wind { position: absolute; left: 100%; bottom: 45%; margin-left: 4px; padding: 0 5px; font-weight: 800; font-size: .72rem; white-space: nowrap; color: #fff; background: rgba(20,60,70,.8); border-radius: 6px; }
 .ar-wind:empty { display: none; }
 .ar-mist { right: 0; z-index: 4; pointer-events: none; background: linear-gradient(rgba(240,248,252,.0), rgba(240,248,252,.9) 22%, rgba(240,248,252,.93)); transition: opacity .5s; }
 .ar-mist img { position: absolute; pointer-events: none; }
