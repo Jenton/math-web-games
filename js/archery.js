@@ -99,6 +99,7 @@
     S.G = geometry(S.round);
     S.i = 0;
     S.slips = 0;
+    S.free = 0; // misses and hints that did not count (bonus challenges)
     S.counted = false;
     S.busy = false;
     S.phase = 'shots';
@@ -460,7 +461,7 @@
       else later(startShot, 2000);
     } else {
       later(() => Sfx.play('wrong'), 150);
-      if (!s.stretch) S.slips++; // a miss on a bonus (stretch) shot never costs a star
+      if (!s.stretch) S.slips++; else S.free++; // a miss on a bonus (stretch) shot never costs a star
       S.misses++;
       pose('hurt');
       if (needsX(s) && res.landX >= 0 && res.landX < S.round.ticksX) S.E.xt[res.landX].classList.add('miss');
@@ -505,6 +506,7 @@
     const text = S.phase === 'board' ? ARCH.hintBoard(S.board, S.hints > 0 ? 1 : 0) : ARCH.hint(S.round, S.i, S.hints > 0 ? 1 : 0);
     S.hints++;
     const bonus = S.phase === 'board' ? S.board.stretch : shot().stretch;
+    if (!auto && bonus) S.free++;
     if (!auto && !bonus) S.slips++; // a hint you ask for costs a slip (not on a bonus shot); the one that appears after two misses does not (the misses already counted)
     Sfx.play('flip');
     $('arMsg').className = 'ar-msg hint';
@@ -659,7 +661,7 @@
       later(finishRound, 1500);
     } else {
       later(() => Sfx.play('wrong'), 150);
-      if (!S.board.stretch) S.slips++;
+      if (!S.board.stretch) S.slips++; else S.free++;
       S.misses++;
       later(() => {
         clearArrows(false);
@@ -686,8 +688,8 @@
     if (stars === 3) later(() => Sfx.say('correct'), 800);
     later(() => UI.panel({
       icon: 'medals/m' + stars,
-      title: stars === 3 ? (S.slips === 0 ? 'Perfect round! ⭐⭐⭐' : 'Great round! ⭐⭐⭐') : stars === 2 ? 'Nice shooting! ⭐⭐' : 'You finished the round! ⭐',
-      text: S.slips === 0 ? 'Every arrow hit, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (misses and hints count, except on bonus challenges). Fewer slips means more stars.',
+      title: stars === 3 ? (S.slips === 0 && !S.free ? 'Perfect round! ⭐⭐⭐' : 'Great round! ⭐⭐⭐') : stars === 2 ? 'Nice shooting! ⭐⭐' : 'You finished the round! ⭐',
+      text: S.slips === 0 && S.free ? 'Every regular shot was clean. Misses and hints on the bonus challenges did not count.' : S.slips === 0 ? 'Every arrow hit, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (misses and hints count, except on bonus challenges). Fewer slips means more stars.',
       btn: 'Next round',
       onBtn: newRound,
       btn2: 'Back to setup',

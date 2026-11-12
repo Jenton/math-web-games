@@ -91,15 +91,17 @@
 
   function newRoom() {
     clearTimers();
-    const st = Store.level(ctx.profile, 'escape');
+    const st = Store.cell(ctx.profile, 'escape', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) room
     S.n++;
+    S.bonus = st.stretch;
     S.room = ESC.makeRoom(st.band, st.stars, S.n);
     S.solved = S.room.locks.map(() => false);
     S.slips = 0;
+    S.free = 0; // wrong tries and hints that did not count (bonus room)
     S.active = -1;
     S.busy = false;
     S.fails = 0;
-    $('escNo').textContent = 'Room ' + S.n;
+    $('escNo').textContent = 'Room ' + S.n + (S.bonus ? ' · Bonus challenge' : '');
     $('escStory').textContent = S.room.theme.name + ': ' + S.room.theme.story;
     buildScene();
     paintLocks();
@@ -351,7 +353,7 @@
     S.msg.className = 'esc-msg ' + (good ? 'good' : 'bad');
   }
   function slip() {
-    S.slips++;
+    if (!S.bonus) S.slips++; else S.free++; // a bonus (stretch) room never costs a star
     Sfx.play('wrong');
     ctxRecord(false);
     const p = $('escPlaque');
@@ -380,7 +382,7 @@
     if (S.busy) return;
     const h = ESC.hint(lock(), S.hints > 0 ? 1 : 0);
     S.hints++;
-    S.slips++;
+    if (!S.bonus) S.slips++; else S.free++;
     Sfx.play('flip');
     S.msg.className = 'esc-msg hint';
     S.msg.textContent = '';
@@ -440,8 +442,8 @@
       if (stars === 3) Sfx.say('correct');
       UI.panel({
         icon: 'medals/m' + stars,
-        title: stars === 3 ? (S.slips === 0 ? 'Escaped with no slips! ⭐⭐⭐' : 'You escaped! ⭐⭐⭐') : stars === 2 ? 'You escaped! ⭐⭐' : 'You escaped, barely! ⭐',
-        text: S.slips === 0 ? 'Not one wrong try or hint. Wow.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (wrong tries and hints count). Fewer slips means more stars.',
+        title: stars === 3 ? (S.slips === 0 && !S.free ? 'Escaped with no slips! ⭐⭐⭐' : 'You escaped! ⭐⭐⭐') : stars === 2 ? 'You escaped! ⭐⭐' : 'You escaped, barely! ⭐',
+        text: S.slips === 0 && S.free ? 'A bonus challenge from the next grade: its wrong tries and hints did not count.' : S.slips === 0 ? 'Not one wrong try or hint. Wow.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (wrong tries and hints count' + (S.bonus ? ', but not on a bonus challenge' : '') + '). Fewer slips means more stars.',
         btn: 'Next room',
         onBtn: newRoom,
         btn2: 'Back to setup',

@@ -42,8 +42,9 @@
   }
 
   function newDay() {
-    const st = Store.level(ctx.profile, 'lemonade');
+    const st = Store.cell(ctx.profile, 'lemonade', { first: !S.day }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) day
     S.day++;
+    S.bonus = st.stretch;
     S.day_ = M().makeDay(st.band, st.stars);
     S.jobs = S.day_.jobs;
     S.queue = [];
@@ -114,7 +115,7 @@
     const p = (S.p = S.jobs[S.i]);
     S.missed = false;
     S.done = false;
-    $('lemNo').textContent = 'Day ' + S.day + ' · job ' + (S.i + 1) + ' of ' + S.jobs.length;
+    $('lemNo').textContent = 'Day ' + S.day + (S.bonus ? ' (bonus challenge)' : '') + ' · job ' + (S.i + 1) + ' of ' + S.jobs.length;
     $('lemText').textContent = p.text;
     arrive(p);
     $('lemMsg').textContent = '';
@@ -272,7 +273,7 @@
   function endDay() {
     const g = Store.game(ctx.profile, 'lemonade');
     Store.bump(g, 'days');
-    const perfect = S.firstTry === S.jobs.length;
+    const perfect = S.firstTry >= S.jobs.length - (S.bonus ? 1 : 0); // a bonus (stretch) day can still be perfect with one slip
     if (perfect) Store.bump(g, 'perfect');
     ctx.onSave();
     Sfx.play('win');

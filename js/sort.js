@@ -40,13 +40,14 @@
   }
 
   function nextPuzzle() {
-    const st = Store.level(ctx.profile, 'sort');
+    const st = Store.cell(ctx.profile, 'sort', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) puzzle
     S.n++;
+    S.bonus = st.stretch;
     S.p = MGR.makeSort(st.band, st.stars);
     S.tested = [];
     S.wrong = 0;
     S.out = new Set();
-    $('sortNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
+    $('sortNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND + (S.bonus ? ' · Bonus challenge' : '');
     $('sortPass').innerHTML = '';
     $('sortStop').innerHTML = '';
     setGate('idle');
@@ -112,7 +113,8 @@
     if (!S) return;
     const prof = ctx.profile;
     if (i === S.p.correct) {
-      const stars = MGR.starsFor(S.tested.length, S.wrong, S.p.tray.length);
+      const raw = MGR.starsFor(S.tested.length, S.wrong, S.p.tray.length);
+      const stars = S.bonus ? Math.max(2, raw) : raw; // a bonus (stretch) puzzle always earns at least two stars
       S.stars += stars;
       Store.record(prof, 'sort', true);
       Store.bump(Store.game(prof, 'sort'), 'levels');

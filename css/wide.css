@@ -58,6 +58,16 @@ main { max-width: 1160px; }
   .split .esc-try { padding: 8px 20px; }
 }
 
+/* Escape Room balance lock, at ANY window height: harder levels stack many mystery blocks in each pan (up to 13 in one pan at 4th to 5th grade level, and grade 5 and up meet them by default).
+   Without smaller blocks the page is up to 1335 px tall in an iPad portrait window of 1100. (The laptop block above only applies up to 900 px tall.) */
+@media (min-width: 720px) {
+  .split .esc-scale .beam { min-height: 70px; }
+  .split .esc-scale .pan { gap: 2px; }
+  .split .esc-scale .blk { min-width: 38px; height: 38px; margin: 0 1px 8px; }
+  .split .esc-scale .blk.sm { min-width: 30px; height: 30px; }
+  .split .esc-scale .blk .n { font-size: .7rem; bottom: -8px; }
+}
+
 /* Munchers: a cell with a long label (an expression or a fraction) must not stretch its column past the screen; the label shrinks instead */
 .board .cell { min-width: 0; overflow: visible; }
 .board .cell .lbl { max-width: 100%; }

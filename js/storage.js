@@ -127,6 +127,12 @@
     const g = Grades.clean((profile.settings || {}).grade);
     return g != null ? g : Grades.legacyGrade((profile.settings || {}).band);
   }
+  /** The (band, stars) cell to build the next puzzle from, for a game that plays by grade: the player's grade mapped onto the difficulty ladder, with a
+   *  chance of a stretch item (stretch: true). Per-game overrides are ignored. opts: { first, stretchShare, rng } as Grades.pickItem. Everything else in level() is kept. */
+  function cell(profile, gameId, opts) {
+    const c = Grades.cell(grade(profile), opts);
+    return Object.assign(level(profile, gameId), { band: c.band, stars: c.stars, grade: c.grade, stretch: c.stretch });
+  }
   const gradeKnown = (profile) => Grades.clean((profile.settings || {}).grade) != null;
   /** Choose the grade. Also rewrites the old band from it, so games that have not moved to grades yet, and older devices, keep working. */
   function setGrade(profile, g) {
@@ -191,7 +197,7 @@
 
   root.Store = {
     load, save, newProfile, remove, snapshot, onSave, setMeta,
-    record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel, grade, gradeKnown, setGrade,
+    record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel, grade, gradeKnown, setGrade, cell,
     exportJSON, importJSON, mergeIn,
     get profiles() { return data.profiles; },
     get lastSaved() { return data.lastSaved; },

@@ -25,8 +25,6 @@ const sum = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
 async function newPage(browser, seed) {
   const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
-  // old profiles are asked for a grade once per visit; "Not now" saves nothing, so dismiss it whenever it appears
-  await page.addLocatorHandler(page.locator('#gaLater'), (l) => l.click());
   await ctx.addInitScript(() => { window.__questFast = true; }); // skip battle animation delays
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
@@ -53,6 +51,8 @@ async function newPage(browser, seed) {
   console.log('1. migrated v1 -> v2; v1 backup untouched; players:', d.profiles.length, '| Max total XP:', sum(p.games.rpg.xpEarned));
 
   await page.click('.player-card'); // open Max
+  await page.waitForSelector('#gradeAsk[open]'); // a profile saved before grades existed is asked its grade once
+  await page.click('#gaLater');
   await page.click('#menu summary');
   console.log('   grown-ups panel:', (await page.textContent('#levelsCleared')).trim());
   assert.match(await page.textContent('#levelsCleared'), /6 Munchers levels, 3 Balance puzzles, 2 Machine puzzles solved, 0 Lemonade days run, 0 Defense waves held, 0 Escape Rooms cleared, 0 Number Line runs, 0 Arrow Range rounds, 7 Quest battles won/);
@@ -85,7 +85,9 @@ async function newPage(browser, seed) {
   await page.click('#panelBtn'); // next battle prep
   await page.click('#qPrepBack'); // back to home
   await page.reload();
-  await page.click('.player-card'); await page.click('[data-game=quest]'); await page.click('#playNow');
+  await page.click('.player-card');
+  await page.waitForSelector('#gradeAsk[open]'); await page.click('#gaLater'); // "Not now" saved nothing, so it asks again after a reload
+  await page.click('[data-game=quest]'); await page.click('#playNow');
   console.log('   after reload:', await page.textContent('#qLevel'), '|', await page.textContent('#qStats'));
   assert.match(await page.textContent('#qStats'), /8 battles won/);
 
