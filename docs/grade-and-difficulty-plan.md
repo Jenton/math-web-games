@@ -95,6 +95,25 @@ Then plain "shoot to N" drops out of grade 3 and up, where it is a grade 2 skill
 - Stretch items show "Bonus challenge" and never cost a slip or a hint's slip; `tests/browser/archery.browser.js` checks that a round of all bonus challenges can still end "Perfect round".
 - Grades 7 and 8 in Arrow Range are signed fractions, percent-of ("75% of 80") and uncapped height differences. The grade 8 mechanics (slope, 8.EE.B.5; distance by the Pythagorean theorem, 8.G.B.8) are not built yet.
 
+### Phase 1b: migrating every other game (plan, 12 Nov 2026)
+Goal: every game picks its difficulty from the player's grade alone, with stretch items, and no band or "how tricky" pickers. The owner asked for all of them now.
+
+**Approach: an adapter, not ten rewrites.** Each game's generator already works for every band and star level and has tests tuned on those 12 cells. So `Grades.cell(grade, opts)` maps a grade onto a *difficulty ladder* of those 12 cells (K-1 star 1 up to 6 star 3) and picks a stretch item from the next rung with the same 30% rule; `Store.cell(profile, gameId, opts)` returns `{ band, stars, grade, stretch }` and ignores per-game overrides. A game migrates by swapping its `Store.level(...)` call for `Store.cell(...)`, marking `graded: true`, and applying its own bonus rule below.
+
+Ladder (index to cell): 0 K-1/1, 1 K-1/2, 2 K-1/3, 3 2-3/1, 4 2-3/2, 5 2-3/3, 6 4-5/1, 7 4-5/2, 8 4-5/3, 9 6/1, 10 6/2, 11 6/3. Grade to rung: K 0, 1 2, 2 4, 3 5, 4 6, 5 8, 6 10, 7 11, 8 11 (the games' top; no stretch above it). So a 3rd grader plays 2-3/3 with 4-5/1 (fractions, the grade 3 content) as the stretch.
+
+**The bonus rule per game** (a bonus challenge = a stretch item; never punishes): where the game counts slips (Escape Room, Number Line Runner) slips on a bonus item do not count; where stars come from efficiency or a result (Machine Builder steps vs par, Sort & Rule, Cut & Share, Number Defense, Lemonade, Munchers, Creature Quest) a finished bonus item earns at least two stars (or the game's equivalent), and can still earn three. Balance has no stars, so a bonus puzzle is just a harder puzzle.
+
+**Adversarial review of this plan (before building):**
+1. *The ladder is coarse* (9 grades on 12 rungs): neighbouring grades can share a rung (6th and 7th grade are 6/2 and 6/3; 7th and 8th grade are the same). *Accepted, stated:* the games top out at 6/3; the grade picker says K to 8 and Arrow Range is the only game with grade-specific content.
+2. *The adapter does not add grade-specific content.* A 3rd grader gets the existing 2-3/3 problems plus 4-5/1 stretch, which is better than the old default (2-3/1) but is not a standards audit. *Fix:* the audit table below records, per game, where the content differs from the grade 3 standards, as follow-up work. Do not pretend otherwise in the release notes.
+3. *Star meanings differ per game*, so one uniform rule would be wrong somewhere. *Fix:* the per-game bonus rule above, each tested.
+4. *Saved state keyed to band and stars.* Creature Quest saves the in-progress Quick adventure with its band and stars. *Fix:* resume uses what the saved run stored; check on migration that changing the grade mid-run cannot corrupt it.
+5. *Games with hearts or HP* (Munchers, Quest) have no "miss costs a star" to waive. *Fix:* decided per game from the code (see each game's section in the migration notes), always erring toward not punishing a bonus item.
+6. *Per-game overrides saved by PR #46* are ignored once a game is graded, never deleted: nothing is lost, and reverting is safe.
+7. *Tests that loop over (band, stars)* stay valid because the generators are unchanged; new tests cover the adapter and each game's bonus rule.
+8. *Risk of shipping a half-migrated state* is gone only when all ten are done; each game is migrated and tested on its own commit, so the branch is never in a worse state than main.
+
 ### Order of work
 1. **Phase 1a (pilot): built, see above.**
 2. **Phase 1b:** audit each game against the standards table, then migrate one at a time (Runner shares Arrow Range's number-line tables, so it goes next). Each migration is its own PR, so nothing breaks at once.
