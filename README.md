@@ -34,7 +34,7 @@ creatures already earned are kept.
   ("multiples of 3", "primes") and only stops numbers that fit. Read the whole wave, spend limited gold to cover it, then watch it play out.
 - **Lemonade Stand**: run a stand day by day. Each day has four linked jobs: set the price, buy stock for the crowd it brings, and make change for
   two customers (coins or a number picker). Wrong answers show the arithmetic.
-- **Number Line Runner**: the number line is a rope over a river. The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
+- **Number Line Runner**: the number line is a rope over a river (built per grade, K to 8: counting, tens, then for 3rd grade fractions, products, rounding and tens-times, then decimals, negatives and percents). The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
   Jump, and the hero leaps and lands exactly there. The spot is never marked, so you read the ticks (whole numbers, fractions, mixed numbers,
   decimals, percents, negatives). A miss splashes and the message counts how many ticks you were off.
 - **Grades:** a player picks one setting, their grade (K to 8), when the profile is created, and can change it in the player menu. Every game plays at that grade, with about a third of the items drawn from the grade above as "bonus challenges" that go easy on stars (Arrow Range has grade-specific content for K to 8; the other games map the grade onto their existing difficulty levels). Plan and the standards behind it: `docs/grade-and-difficulty-plan.md`.

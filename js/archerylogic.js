@@ -45,29 +45,7 @@
 
   /* ---------- the rulers and content: one spec per GRADE (docs/grade-and-difficulty-plan.md) ---------- */
   const TOP_GRADE = 8; // the highest grade this game has content for; a player above it gets the grade 8 content
-  const L = (D, lo, hi, step, labelEvery, modes, note) => ({ D, lo, hi, step, labelEvery, modes, note });
-  const X = (line, style) => ({ line, style: style || 'plain' });
-
-  /** Distance rulers for a grade, as GROUPS: a round picks one group, then one ruler in it (so grade 3 rotates through fractions, facts, tens and rounding). */
-  function xGroups(g) {
-    if (g <= 0) return [[X(L(1, 0, 10, 1, 1, ['int'], '1'))]];
-    if (g === 1) return [[X(L(1, 0, 20, 1, 5, ['int'], '1'))]];
-    if (g === 2) return [[X(L(1, 0, 100, 10, 1, ['int'], '10')), X(L(1, 0, 100, 5, 2, ['int'], '5'))]];
-    if (g === 3) {
-      return [
-        // 3.NF.A.2: fractions on a number line, denominators 2, 3, 4, 6, 8 only (grade 3 limit)
-        [X(L(2, 0, 6, 1, 2, ['frac'], '1/2'), 'frac'), X(L(3, 0, 9, 1, 3, ['frac'], '1/3'), 'frac'), X(L(4, 0, 8, 1, 4, ['frac'], '1/4'), 'frac'), X(L(6, 0, 12, 1, 6, ['frac'], '1/6'), 'frac'), X(L(8, 0, 8, 1, 8, ['frac'], '1/8'), 'frac')],
-        [X(L(1, 0, 80, 4, 5, ['int'], '4'), 'facts')], // 3.OA.C.7: products as notes (6 × 7); ticks are multiples of 4
-        [X(L(1, 0, 1000, 50, 2, ['int'], '50'), 'big')], // 3.NBT.A.3 and A.2: 9 × 50 style notes, hops within 1000
-        [X(L(1, 0, 100, 10, 2, ['int'], '10'), 'round')], // 3.NBT.A.1: round to the nearest ten
-        [X(L(1, 0, 1000, 100, 2, ['int'], '100'), 'round100')], // 3.NBT.A.1: round to the nearest hundred
-      ];
-    }
-    if (g === 4) return [[X(L(10, 0, 10, 1, 10, ['dec', 'frac'], '0.1'), 'tenths'), X(L(10, 0, 20, 1, 10, ['dec', 'frac'], '0.1'), 'tenths')]]; // 4.NF.C.5, C.6
-    if (g === 5) return [[X(L(4, 0, 12, 1, 4, ['frac', 'dec'], '1/4'))]];
-    if (g === 6) return [[X(L(2, 0, 12, 1, 2, ['frac', 'dec'], '1/2')), X(L(4, 0, 12, 1, 4, ['frac', 'dec'], '1/4')), X(L(10, 0, 10, 1, 5, ['pct', 'dec', 'frac'], '10%'))]];
-    return [[X(L(1, 0, 80, 4, 5, ['int'], '4'), 'percentOf')], [X(L(4, 0, 12, 1, 4, ['frac', 'dec'], '1/4'))], [X(L(10, 0, 10, 1, 5, ['pct', 'dec', 'frac'], '10%'))]]; // 7.RP.A.3 percent of
-  }
+  const { L, xGroups, canNote, tagsOf, PLAIN_FORMS } = RUN; // the grade rulers and note styles are shared with Number Line Runner (js/runlogic.js)
 
   /** The height ruler for a grade, or null when the grade has no height shots. Grade 6 and up reach below ground level 0 (a well, a valley). */
   function yLineFor(g) {
@@ -91,29 +69,9 @@
     return ['dist', 'coord', 'wind', 'lift', 'hop'];
   }
 
-  /** Standards each kind of item exercises (traceability, not a claim about school order; see the plan doc). */
-  function tagsOf(kind, style, grade, form) {
-    if (kind === 'dist') {
-      if (style === 'frac') return ['3.NF.A.2'];
-      if (style === 'facts') return ['3.OA.C.7'];
-      if (style === 'big') return ['3.NBT.A.3'];
-      if (style === 'round' || style === 'round100') return ['3.NBT.A.1'];
-      if (style === 'tenths') return form === 'h100' ? ['4.NF.C.5', '4.NF.C.6'] : ['4.NF.C.6'];
-      if (style === 'percentOf') return ['7.RP.A.3'];
-      return grade <= 0 ? ['K.CC.C.7'] : grade === 1 ? ['1.OA.C.6'] : grade === 2 ? ['2.MD.B.6'] : grade === 5 ? ['5.G.A.1'] : grade === 6 ? ['6.NS.C.6'] : ['7.NS.A.1'];
-    }
-    if (kind === 'hop') return grade <= 1 ? ['1.OA.C.6'] : grade === 2 ? ['2.MD.B.6'] : grade === 3 ? ['3.NBT.A.2'] : grade >= 7 ? ['7.NS.A.1'] : ['6.NS.C.6'];
-    if (kind === 'wind') return grade <= 2 ? ['2.MD.B.6'] : grade <= 5 ? ['3.OA.D.8'] : grade === 6 ? ['6.NS.C.6'] : ['7.NS.A.1'];
-    if (kind === 'lift') return grade <= 5 ? ['3.OA.D.8'] : grade === 6 ? ['6.NS.C.5', '6.NS.C.6'] : ['7.NS.A.1'];
-    if (kind === 'height') return grade <= 1 ? ['K.CC.C.7'] : ['2.MD.B.6'];
-    if (kind === 'coord') return grade <= 6 ? ['5.G.A.1', '5.G.A.2'] : ['6.NS.C.6', '7.NS.A.1'];
-    return [];
-  }
-
   const ticksIn = (line) => RUN.ticksOf(line).length;
   const wr = (line, a, form) => RUN.writeValue(line, a, form || line.modes[0]);
   const tickWord = (n) => n + (n === 1 ? ' tick' : ' ticks');
-  const PLAIN_FORMS = ['expr', 'round', 'h100']; // note forms that are not a way of writing the ruler's own numbers
 
   /** Pick a tick that satisfies ok(); prefers an unlabeled one so the ruler cannot be read off the note. */
   function pickTick(line, from, to, ok) {
@@ -126,50 +84,10 @@
 
   const groundTick = (line) => (line.lo <= 0 && line.hi >= 0 && (0 - line.lo) % line.step === 0 ? (0 - line.lo) / line.step : null);
 
-  /** Can a target worth `a` be written in this ruler's note style (a product, tens-times, rounding)? Targets that cannot are not chosen, so a grade 3 ruler never falls back to "Shoot to 44". */
-  function canNote(style, a) {
-    if (style === 'facts') { for (let f = 2; f <= 10; f++) if (a % f === 0 && a / f >= 2 && a / f <= 10) return true; return false; }
-    if (style === 'big') { for (let d = 2; d <= 9; d++) for (let m = 1; m <= 9; m++) if (d * m * 10 === a) return true; return false; }
-    if (style === 'round') return a >= 10;
-    if (style === 'round100') return a >= 100;
-    if (style === 'percentOf') { for (const p of [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90]) for (const W of [20, 40, 60, 80]) if ((p * W) % 100 === 0 && (p * W) / 100 === a) return true; return false; }
-    return true;
-  }
-
-  /** The note for a distance shot, in the style of the round's ruler (facts, rounding, tens-times, tenths, percent of...). Falls back to plain numbers. */
+  /** The note for a distance shot: the shared note style of the round's ruler, prefixed for archery. */
   function distNote(xl, style, a, shot) {
-    const plain = () => {
-      const form = xl.modes.length > 1 ? pick(xl.modes) : xl.modes[0];
-      return { form, text: 'Shoot to ' + wr(xl, a, form) };
-    };
-    if (style === 'facts' && a >= 8) {
-      const facs = [];
-      for (let f = 2; f <= 10; f++) if (a % f === 0 && a / f >= 2 && a / f <= 10) facs.push([f, a / f]);
-      if (facs.length) { const [p, q] = pick(facs); return { form: 'expr', text: 'Shoot to ' + p + ' × ' + q }; }
-    }
-    if (style === 'big' && a >= 100) {
-      const facs = [];
-      for (let d = 2; d <= 9; d++) for (let m = 1; m <= 9; m++) if (d * m * 10 === a) facs.push([d, m * 10]);
-      if (facs.length) { const [p, q] = pick(facs); return { form: 'expr', text: 'Shoot to ' + p + ' × ' + q }; }
-    }
-    if (style === 'round' || style === 'round100') {
-      const unit = style === 'round' ? 10 : 100;
-      const offs = [];
-      for (let o = 1; o < unit / 2; o++) { offs.push(o); offs.push(-o); }
-      const n = a + pick(offs);
-      if (a >= unit && n > 0) { shot.roundFrom = n; shot.roundTo = unit === 10 ? 'ten' : 'hundred'; return { form: 'round', text: 'Shoot to ' + n + ', rounded to the nearest ' + shot.roundTo }; }
-    }
-    if (style === 'percentOf') {
-      const combos = [];
-      for (const p of [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90]) for (const W of [20, 40, 60, 80]) if ((p * W) % 100 === 0 && (p * W) / 100 === a) combos.push([p, W]);
-      if (combos.length) { const [p, W] = pick(combos); return { form: 'expr', text: 'Shoot to ' + p + '% of ' + W }; }
-    }
-    if (style === 'tenths') {
-      const form = pick(['dec', 'h100', 'frac']);
-      if (form === 'h100') return { form, text: 'Shoot to ' + (a * (100 / xl.D)) + '/100' };
-      return { form, text: 'Shoot to ' + wr(xl, a, form) };
-    }
-    return plain();
+    const n = RUN.noteBody(xl, style, a, shot);
+    return { form: n.form, text: 'Shoot to ' + n.body };
   }
 
   /* ---------- making shots ---------- */

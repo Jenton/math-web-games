@@ -44,7 +44,7 @@
       how: ['The <b>number line</b> is a rope over the river. The sign tells you where to go: "Land on 3/4" or "Hop 1/2 to the right".', '<b>Tap a tick</b> to aim (use the arrows to nudge it), then press <b>Jump!</b> The spot is never marked, so read the ticks to find it.', 'Land exactly and a stone and flag appear. Miss and you splash, and we count how many ticks you were off.'],
       band: { 'K-1': 'Whole numbers on a line to 10, then to 20 counting by ones.', '2-3': 'A line to 100: counting by tens, then fives, and hopping by tens and fives.', '4-5': 'Fractions on a line from 0 to 2 by fourths, eighths or tenths, and mixed numbers and decimals.', '6': 'Negative numbers, halves, fourths, decimals and percents on a line through zero.' },
       stars: [['★ Easier', 'Fewer ticks and every spot is a plain landing.'], ['★★ Medium', 'A finer line, some labels left out.'], ['★★★ Harder', 'Hops, expressions, and several ways to write the same number.']],
-      sample: (s) => { const r = RUN.makeRun(s.band, s.stars); return r.checkpoints[0].text + ' (the line has ' + r.ticks + ' ticks, each worth ' + RUN.writeValue(r.line, r.line.step, r.line.modes[0]) + ')'; },
+      sample: (s) => RUN.sampleText(s.grade),
     },
     // Arrow Range (archery): one commented block, see docs/game-ideas.md "Arrow Range: design plan"
     archery: {

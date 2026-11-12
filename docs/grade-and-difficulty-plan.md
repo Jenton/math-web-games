@@ -139,7 +139,7 @@ Result screens say so when a bonus item made a miss free (they never claim "no s
 | Game | Fit for grade 3 | Gap to close later |
 |---|---|---|
 | Arrow Range | built per grade (see above) | none for grades K to 6; grades 7 and 8 need slope and distance shots |
-| Number Line Runner | **weak** | fractions on a number line (3.NF.A.2) appear only in the 4-5/1 stretch; no rounding (3.NBT.A.1), no tens-times (3.NBT.A.3), no products as notes. Next candidate: give it grade-specific rulers like Arrow Range (it shares the tables) |
+| Number Line Runner | **fixed (grade-specific content built)** | was the weakest fit: fractions only appeared as the 4-5/1 stretch, with no rounding, tens-times or products. Now see "Number Line Runner on grades" below |
 | Cut & Share | fits | caps at 8 friends, which matches grade 3's fraction limit (denominators 2, 3, 4, 6, 8) |
 | Creature Quest | fits | skip counting, rounding and simple-fraction armor are already in its 2-3 band |
 | Number Defense, Sort & Rule | fits for multiples | multiples of 2, 3, 4, 5, 10; no explicit "products from memory" (3.OA.C.7) |
@@ -148,6 +148,22 @@ Result screens say so when a bonus item made a miss free (they never claim "no s
 | Lemonade Stand | partly | change and pitcher counts; no multiplication word problems framed as 3.OA.A.3 |
 | Escape Room | fits | skip-counting and doubling patterns |
 K, 1 and 2 were not audited for any game; Munchers and Quest have the most content to check there.
+
+### Number Line Runner on grades (built 12 Nov 2026)
+The Runner no longer goes through the difficulty ladder: `RUN.makeGradeRun(grade, { hard })` builds each run from a per-grade spec, like Arrow Range. The grade rulers and note styles (fractions with denominators 2, 3, 4, 6, 8; products; tens-times; rounding to ten and hundred; tenths and hundredths; percent-of) now live once, in `js/runlogic.js`, and Arrow Range imports them, so a fix to one reaches both.
+
+| Grade | The line | Landings and hops | Standards tagged |
+|---|---|---|---|
+| K | 0 to 10, every tick labeled | landings only | K.CC.C.7 |
+| 1 | 0 to 20 | landings, hops within 20 | 1.OA.C.6 |
+| 2 | 0 to 100 by tens, or by fives | landings, hops | 2.MD.B.6 |
+| 3 | one of: fractions 0 to 3 by halves or thirds, 0 to 2 by fourths or sixths, 0 to 1 by eighths; 0 to 80 by 4; 0 to 1000 by 50; 0 to 100 by 10; 0 to 1000 by 100 | "Land on 5/8"; "Land on 6 × 7" (ticks are multiples of 4); "Land on 5 × 70"; "Land on 47, rounded to the nearest ten" (or hundred); hops within 1000 | 3.NF.A.2, 3.OA.C.7, 3.NBT.A.3, 3.NBT.A.1, 3.NBT.A.2 |
+| 4 | tenths, 0 to 1 or 0 to 2 | decimals, tenths as fractions, and hundredths ("Land on 70/100") | 4.NF.C.5, 4.NF.C.6 |
+| 5 | fourths 0 to 3 | mixed numbers and decimals | 5.G.A.1 line |
+| 6 | through zero: integers, or halves | negatives, hops across zero | 6.NS.C.6 |
+| 7, 8 | through zero by quarters, with percents | signed fractions and percents, hops across zero | 7.NS.A.1 |
+
+A bonus (stretch) run is a whole run from the next grade's spec with more hops. Kindergarten has no hops. Grade 8 is grade 7 (no new mechanic yet). Tested in `tests/runner.test.js` (2,700 grade runs: notes equal their ticks, every wrong tick is refused with its distance, tags present, grade 3 denominators and the share of plain whole-number notes).
 
 ### Order of work
 1. **Phase 1a (pilot): built, see above.**

@@ -24,7 +24,11 @@ const GAMES = [['munchers', '#levelNo'], ['balance', '#balNo'], ['machine', '#ma
       await page.goto(server.url);
       await page.click('.player-card:not(.add)');
       await page.waitForSelector('#menu:not([hidden])');
-      await page.evaluate(() => { const o = Store.cell; Store.cell = (p, g, opts) => o(p, g, Object.assign({}, opts, { first: false, stretchShare: 1 })); });
+      await page.evaluate(() => {
+        const force = (opts) => Object.assign({}, opts, { first: false, stretchShare: 1 });
+        const o = Store.cell; Store.cell = (p, g, opts) => o(p, g, force(opts));
+        const pi = Grades.pickItem; Grades.pickItem = (g, opts) => pi(g, force(opts)); // the Runner picks its own grade items (grade-specific content)
+      });
       await page.click('[data-game=' + game + ']');
       await page.waitForSelector('#setup:not([hidden])');
       await page.click('#playNow');
