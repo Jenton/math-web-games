@@ -1,0 +1,102 @@
+/* Arrow Range: a side-view archery field in the mist. Kenney smooth-vector art (CC0) from assets/kenney/archery/.
+ * Layout first; motion is gated at the bottom (Reduce motion honoured). Scene brief: docs/scene-briefs.md. */
+.ar-sign { display: flex; flex-direction: column; align-items: center; gap: 2px; max-width: 520px; margin: 0 auto 8px; padding: 8px 14px 10px; text-align: center; border-radius: 12px; background: #c98d4e; border: 4px solid #5b3a1e; box-shadow: inset 0 0 0 3px #e3b57a, 0 3px 0 rgba(0,0,0,.2); color: #2a1c1c; }
+.ar-sign-k { font-size: .75rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #5b3a1e; }
+.ar-sign-t { font-family: "Kenney Future", system-ui, sans-serif; font-size: clamp(1.05rem, 5vw, 1.55rem); line-height: 1.2; }
+
+.ar-scene { --as: 48px; position: relative; width: 100%; max-width: 520px; aspect-ratio: 5 / 4; margin: 0 auto; overflow: hidden; border-radius: 14px; border: 4px solid #2a3a3a; background: linear-gradient(#bfe8fb 0%, #e6f6fd 70%); box-shadow: 0 4px 0 rgba(0,0,0,.2); user-select: none; -webkit-user-select: none; touch-action: none; cursor: crosshair; }
+.ar-scene.tall { aspect-ratio: 6 / 5; max-width: 500px; }
+.ar-scene > * { position: absolute; }
+.ar-hills { left: 0; right: 0; top: calc(var(--gy, 70%) - 27%); height: 29%; background: url("../assets/kenney/archery/hillsLarge.png") repeat-x center bottom / auto 100%; pointer-events: none; }
+.ar-hills.h2 { background-image: url("../assets/kenney/archery/hills.png"); top: calc(var(--gy, 70%) - 36%); height: 38%; opacity: .75; background-position: 40% bottom; }
+.ar-hills.h1 { filter: saturate(1.5) brightness(.93); }
+.ar-ground { left: 0; right: 0; bottom: 0; background: linear-gradient(#4fd68f 0 7px, #23bf76 7px); border-top: 2px solid #1a9a5e; pointer-events: none; }
+.ar-scene.dig .ar-ground { background: linear-gradient(#4fd68f 0 7px, #9a6b3d 7px 100%); }
+.ar-deco { transform: translateX(-50%); pointer-events: none; }
+.ar-rail { height: 5px; margin-top: -1px; border-radius: 3px; background: #7a4a1d; box-shadow: 0 2px 0 rgba(0,0,0,.25); pointer-events: none; z-index: 6; }
+.ar-xt { width: 3px; height: 9px; margin: 3px 0 0 -1.5px; border-radius: 2px; background: #4a2e14; pointer-events: none; z-index: 6; }
+.ar-xt.major { width: 4px; height: 15px; margin-left: -2px; }
+.ar-xt.aimed { background: #ff7a00; width: 6px; height: 20px; margin-left: -3px; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
+.ar-xt.miss { background: #d33; }
+.ar-xl { transform: translateX(-50%); margin-top: 17px; padding: 0 4px; font-weight: 800; font-size: clamp(.62rem, 3vw, .85rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.78); border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 6; }
+.ar-axis { width: 4px; margin-left: -2px; border-radius: 2px; background: #7a4a1d; pointer-events: none; z-index: 6; }
+.ar-yt { width: 9px; height: 3px; margin: -1.5px 0 0 0; border-radius: 2px; background: #4a2e14; pointer-events: none; z-index: 6; }
+.ar-yt.major { width: 15px; height: 4px; margin-top: -2px; }
+.ar-yt.ground { background: #1a9a5e; }
+.ar-yt.aimed { background: #ff7a00; height: 6px; width: 20px; margin-top: -3px; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
+.ar-yl { transform: translate(-100%, -50%); padding: 0 4px; font-weight: 800; font-size: clamp(.6rem, 2.8vw, .8rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.78); border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 6; }
+.ar-wall { width: 15%; transform: translateX(-50%); background: url("../assets/kenney/archery/castleWall.png") center top / 100% auto no-repeat, repeating-linear-gradient(#aacdd1 0 18px, #9ec3c8 18px 20px); border-radius: 4px 4px 0 0; pointer-events: none; z-index: 2; }
+.ar-wall[hidden] { display: none; }
+.ar-platform { width: 11%; transform: translateX(-50%); background: url("../assets/kenney/archery/post.png") center top / 14px 100% repeat-y; pointer-events: none; z-index: 3; }
+.ar-platform::before { content: ""; position: absolute; top: -3px; left: 0; right: 0; height: 10px; border-radius: 3px; background: url("../assets/kenney/archery/wood.png") center / 48px auto; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.ar-platform[hidden] { display: none; }
+.ar-archer { width: var(--as); height: auto; transform: translateX(-50%); pointer-events: none; z-index: 5; }
+.ar-bow { width: 26px; height: 60px; pointer-events: none; z-index: 5; transform: translate(-30%, -50%); }
+.ar-flag { width: 11%; aspect-ratio: 1; transform: translateX(-30%); pointer-events: none; z-index: 6; }
+.ar-flag img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ar-flag .b { opacity: 0; } .ar-flag .c { opacity: 0; }
+.ar-flag.calm .a, .ar-flag.calm .b { opacity: 0; } .ar-flag.calm .c { opacity: 1; }
+.ar-flag.left img { transform: scaleX(-1); }
+.ar-wind { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); padding: 0 5px; font-weight: 800; font-size: .72rem; white-space: nowrap; color: #fff; background: rgba(20,60,70,.8); border-radius: 6px; }
+.ar-wind:empty { display: none; }
+.ar-mist { right: 0; z-index: 4; pointer-events: none; background: linear-gradient(rgba(240,248,252,.0), rgba(240,248,252,.9) 22%, rgba(240,248,252,.93)); transition: opacity .5s; }
+.ar-mist img { position: absolute; pointer-events: none; }
+.ar-mist .m1 { left: 0; right: 0; width: 100%; top: -6%; opacity: .95; }
+.ar-mist .m2 { right: 4%; bottom: 10%; width: 30%; opacity: .8; }
+.ar-mist .m3 { left: 6%; bottom: 3%; width: 26%; opacity: .8; }
+.ar-mist.lift { opacity: .18; }
+.ar-arc { left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 7; }
+.ar-arc path { fill: none; stroke: #fff; stroke-dasharray: 8px 7px; vector-effect: non-scaling-stroke; stroke-width: 3px; stroke-linecap: round; opacity: .95; }
+.ar-mark { width: 24px; height: 24px; margin: -12px 0 0 -12px; border: 3px solid #ff7a00; border-radius: 50%; box-shadow: 0 0 0 2px #fff, inset 0 0 0 2px #fff; pointer-events: none; z-index: 8; }
+.ar-mark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #ff7a00; }
+.ar-mark[hidden] { display: none; }
+.ar-arrow { left: 0; top: 0; width: 46px; height: 8px; transform-origin: 100% 50%; pointer-events: none; z-index: 8; will-change: transform; }
+.ar-arrow svg { display: block; }
+.ar-arrow.miss { opacity: .9; }
+.ar-target { transform: translateX(-50%); pointer-events: none; z-index: 3; }
+.ar-target .face { display: block; width: 100%; position: relative; z-index: 2; }
+.ar-target .pole { position: absolute; left: 50%; top: 50%; width: 7px; margin-left: -3.5px; z-index: 1; object-fit: fill; }
+.ar-msg { max-width: 520px; min-height: 3.2em; margin: 6px auto 2px; text-align: center; font-weight: 600; line-height: 1.3; }
+.ar-msg.good { color: #1d6b32; } .ar-msg.bad { color: #a22; } .ar-msg.hint { color: #1c3f8a; }
+.ar-bulb { width: 22px; height: 22px; vertical-align: -5px; }
+.ar-aim { max-width: 520px; margin: 0 auto 4px; text-align: center; font-weight: 800; color: #5b3a1e; min-height: 1.4em; }
+.ar-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin: 4px 0; }
+.ar-controls .btn.big { min-width: 60px; }
+.ar-controls #arLoose { min-width: 150px; }
+.ar-controls [hidden] { display: none !important; }
+.ar-vert { display: flex; justify-content: center; gap: 10px; flex-basis: 100%; }
+/* the scoring board */
+.ar-board { max-width: 520px; margin: 0 auto; }
+.ar-bt { position: relative; width: min(62vw, 236px); aspect-ratio: 1; margin: 4px auto 6px; overflow: hidden; }
+.ar-bt-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 3px 0 rgba(0,0,0,.2)); }
+.ar-bt-svg .rtxt { font: 800 15px system-ui, sans-serif; fill: #fff; stroke: rgba(0,0,0,.65); stroke-width: 3px; paint-order: stroke; }
+.ar-bt .ar-arrow { z-index: 3; }
+.ar-slots { display: flex; justify-content: center; gap: 8px; margin: 6px 0; min-height: 50px; }
+.ar-slot { min-width: 54px; height: 46px; padding: 0 8px; border: 3px dashed #9aa5ad; border-radius: 12px; background: #fff; font: 800 1.05rem system-ui, sans-serif; color: #888; cursor: pointer; }
+.ar-slot.on { border-style: solid; color: #222; background: #fffbe9; }
+.ar-slot:disabled { cursor: default; opacity: 1; }
+.ar-rings { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 8px 0; }
+.ar-ring { min-width: 62px; height: 62px; padding: 0 8px; border: 4px solid #fff; border-radius: 50%; font: 800 1.15rem system-ui, sans-serif; box-shadow: 0 3px 0 rgba(0,0,0,.28); cursor: pointer; touch-action: manipulation; }
+.ar-ring:disabled { opacity: .5; cursor: default; }
+.ar-ring:focus-visible, .ar-slot:focus-visible { outline: 3px solid #1c3f8a; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduced"]) .ar-flag .a { animation: ar-wave-a .9s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .ar-flag .b { animation: ar-wave-b .9s steps(1, end) infinite; }
+  html:not([data-motion="reduced"]) .ar-flag.strong .a { animation-duration: .45s; }
+  html:not([data-motion="reduced"]) .ar-flag.strong .b { animation-duration: .45s; }
+  html:not([data-motion="reduced"]) .ar-flag.calm .a, html:not([data-motion="reduced"]) .ar-flag.calm .b { animation: none; }
+  html:not([data-motion="reduced"]) .ar-mist .m2 { animation: ar-drift 9s ease-in-out infinite alternate; }
+  html:not([data-motion="reduced"]) .ar-mist .m3 { animation: ar-drift 11s ease-in-out -4s infinite alternate-reverse; }
+  html:not([data-motion="reduced"]) .ar-archer { animation: ar-breathe 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+  html:not([data-motion="reduced"]) .ar-mark { animation: ar-pulse 1s ease-in-out infinite; }
+  html:not([data-motion="reduced"]) .ar-target { animation: ar-pop .45s ease-out; }
+  html:not([data-motion="reduced"]) .ar-arrow.stuck svg { animation: ar-wobble .45s ease-out; transform-origin: 100% 50%; }
+}
+@keyframes ar-wave-a { 50% { opacity: 0; } }
+@keyframes ar-wave-b { 50% { opacity: 1; } }
+@keyframes ar-drift { to { transform: translateX(14px); } }
+@keyframes ar-breathe { 50% { transform: translateX(-50%) scaleY(1.025); } }
+@keyframes ar-pulse { 50% { transform: scale(1.18); } }
+@keyframes ar-pop { from { transform: translateX(-50%) scale(.3); opacity: 0; } 70% { transform: translateX(-50%) scale(1.12); } }
+@keyframes ar-wobble { 0% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 55% { transform: rotate(3deg); } 100% { transform: rotate(0); } }

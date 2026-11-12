@@ -12,6 +12,7 @@
     click: ['sfx/click'], open: ['sfx/open'],
     close: ['sfx/close'], step: ['sfx/step'], solved: ['sfx/solved'], level: ['sfx/level'], place: ['sfx/place'], card: ['sfx/card'],
     lose: ['sfx/lose'], hurt: ['sfx/hurt'], hit: ['sfx/hit'], pop: ['sfx/pop'], flip: ['sfx/flip'], win: ['sfx/win00', 'sfx/win08'],
+    twang: ['sfx/bow_twang'], fly: ['sfx/arrow_fly'], thunk: ['sfx/arrow_thunk'], // Arrow Range: fixed sounds, never random
   };
   let muted = false;
   let musicOn = false;

@@ -37,6 +37,8 @@ creatures already earned are kept.
 - **Number Line Runner**: the number line is a rope over a river. The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
   Jump, and the hero leaps and lands exactly there. The spot is never marked, so you read the ticks (whole numbers, fractions, mixed numbers,
   decimals, percents, negatives). A miss splashes and the message counts how many ticks you were off.
+- **Arrow Range**: an archery field in the mist. A scout's note says where the hidden target is ("Shoot to 3/4", "Shoot 1/2 further than your last arrow", "Across 6, up 3", or a wind that pushes the arrow); work out the number, aim on the distance ruler (and the height ruler
+  for height shots, including platform-relative heights and heights below ground), and loose. The arrow flies in an arc; a hit parts the mist, a miss counts the ticks you were off. Each round ends on a scoring board: pick rings that add to an exact total.
 - **Escape Room**: locked in a pixel dungeon room with three chests. Tap a chest and your hero walks over; crack its lock (a number
   pattern, a keypad code built from arithmetic clues, a scale, or a machine chain) to open it. Open all three and the exit door opens.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
