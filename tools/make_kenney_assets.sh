@@ -42,7 +42,7 @@ done
 # Not in the bundle (draw as small original SVG): the bow, the arrow, the quiver. Findings: docs/game-ideas.md "Arrow Range: design plan" > "Art".
 BG="$A/Background Elements Remastered"; SG="$A/Shooting Gallery/PNG"; TC="$A/Toon Characters"
 img "$BG/Backgrounds/backgroundColorGrass.png"     "$OUT/archery/sky.png"        768
-for f in hills hillsLarge cloudLayer1; do img "$BG/Backgrounds/Elements/$f.png" "$OUT/archery/$f.png" 768; done
+for f in hills hillsLarge groundLayer1 cloudLayer1; do img "$BG/Backgrounds/Elements/$f.png" "$OUT/archery/$f.png" 768; done
 for f in tree treeSmall_green1 bush1 castleWall castleWallAlt tower towerSmall cloud1 cloud2 cloud3; do img "$BG/PNG/Retina/$f.png" "$OUT/archery/$f.png" 192; done
 img "$SG/Stall/bg_wood.png"            "$OUT/archery/wood.png"    256     # wooden platform / planks
 img "$SG/Objects/stick_wood.png"       "$OUT/archery/post.png"    64      # support post
@@ -74,6 +74,10 @@ snd "$R2/hurt2.ogg"            sfx/hurt
 snd "$RPG/knifeSlice.ogg"      sfx/hit
 snd "$I/drop_002.ogg"          sfx/pop    # soft bubble pop for Number Defense kills (the coin ding was too sharp to hear on every hit)
 snd "$RPG/bookFlip1.ogg"       sfx/flip
+# Arrow Range (fixed sounds, never random variants): string pluck for the bow, cloth swish for the flight, soft thud for the arrow landing. Hit and miss reuse sfx/correct and sfx/wrong.
+snd "$I/pluck_001.ogg"         sfx/bow_twang
+snd "$RPG/cloth3.ogg"          sfx/arrow_fly
+snd "$IM/impactSoft_heavy_000.ogg" sfx/arrow_thunk
 for i in 00 08; do snd "$J/jingles-pizzicato_$i.ogg" sfx/win$i; done   # only rising jingles: 03 and 07 ended lower than they began
 snd "$V/correct.ogg"           voice/correct
 snd "$V/level_up.ogg"          voice/level_up

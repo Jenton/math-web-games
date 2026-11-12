@@ -500,19 +500,31 @@ Motion: follow `docs/animation-guide.md`; the arrow flight is skipped to a quick
 (on a platform for height-difference rounds), a mist layer over the target area, a wind flag. The arc is drawn with CSS/SVG along a path whose end point is the chosen spot.
 
 **Art search done (bundle at `AI Projects/Kenney Game Assets All-in-1 3.8.0`, 2D assets/).** Decision: **smooth vector family** (the pixel packs have no sky, hills or trees, and the vector packs cover everything but the weapon).
-Do not mix the two families in one scene. Files are built into `assets/kenney/archery/` by `tools/make_kenney_assets.sh` (37 files, 388 KB).
+Do not mix the two families in one scene. Files are built into `assets/kenney/archery/` by `tools/make_kenney_assets.sh` (38 images, about 400 KB, plus three sounds in `sfx/`).
 
-| Need | Pack and file | Style | In the game folder as |
-|---|---|---|---|
-| Sky | Background Elements Remastered `Backgrounds/backgroundColorGrass.png` (1024 x 1024) | smooth vector | `sky.png` (768 wide) |
-| Hills, cloud band | same pack, `Backgrounds/Elements/hills`, `hillsLarge`, `cloudLayer1` (1024 x 400 each) | smooth vector | same names |
-| Trees, bush, clouds | same pack, `PNG/Retina/tree` (188 x 408), `treeSmall_green1` (40 x 86), `bush1` (240 x 120), `cloud1-3` | smooth vector | same names |
-| Tower or castle wall | same pack, `tower` (146 x 490), `towerSmall` (76 x 180), `castleWall`, `castleWallAlt` (120 x 120) | smooth vector | same names |
-| Wooden platform | Shooting Gallery `Stall/bg_wood.png` (256 x 256 plank tile, repeat it) and `Objects/stick_wood.png` (30 x 123 post) | smooth vector | `wood`, `post` |
-| Wind flag | Platformer Pack Remastered `Items/flagRed1`, `flagRed2` (two wave frames), `flagRed_down` (calm), 128 x 128 | smooth vector | same names |
-| Target with rings | Shooting Gallery `Objects/target_colored`, `target_red1`, `target_red3`, `target_white`, 128 x 128 (more exist: outline, back, duck targets) | smooth vector | same names |
-| Archer | Toon Characters male and female adventurer, 45 poses at 96 x 128 (front-facing, plus a `side` pose; used: side, idle, hold, attack0, attack1, cheer0, hurt) | smooth vector | `male_*`, `female_*` |
-| Bow, arrow, quiver | **Missing from the whole bundle.** The name search found only UI arrows (Racing Pack, Yellow Paint Pack, Puzzle Pack 2) and no bow, archer or quiver anywhere. Shooting Gallery has a rifle and shots only. | | **draw as small original SVG** |
+Style decision: **smooth vector, because the sky, hills, trees, tower, flag, ringed targets and archer all exist in that family and the 16 px pixel packs have no backdrop or archer. No scene mixes the two families** (nothing from `assets/kenney/escape/`, `runner/` or `board/` is used in Arrow Range).
+
+Paths are under `assets/kenney/archery/` unless they start with `sfx/` or `fx/` (those are in `assets/kenney/`). Sizes are the built files (downscaled by the script).
+
+| Piece | Pack | Exact path | Pixel size | Note | Status |
+|---|---|---|---|---|---|
+| Sky | Background Elements Remastered | `sky.png` | 768 x 768 | plain blue and cloud gradient; stretch or crop to the field | have it |
+| Hills | Background Elements Remastered | `hills.png`, `hillsLarge.png` | 768 x 300 each | two parallax layers; repeat horizontally | have it |
+| Far trees, bush | Background Elements Remastered | `tree.png`, `treeSmall_green1.png`, `bush1.png` | 188 x 408, 40 x 86, 192 x 96 | no outline | have it |
+| Ground strip | Background Elements Remastered | `groundLayer1.png` | 768 x 300 | grass band; crop the top, the ruler sits on it | have it |
+| Tower or castle wall (height shots) | Background Elements Remastered | `tower.png`, `towerSmall.png`, `castleWall.png`, `castleWallAlt.png` | 146 x 490, 76 x 180, 120 x 120 | `tower` is tall enough for a 12-unit height ruler; stack `castleWall` for a wall | have it |
+| Wooden platform | Shooting Gallery | `wood.png` (plank tile), `post.png` (support) | 256 x 256, 30 x 123 | tile `wood` as the deck; colors fit, the orange outline is slightly different | have it |
+| Wind flag | Platformer Pack Remastered | `flagRed1.png`, `flagRed2.png`, `flagRed_down.png` | 128 x 128 | alternate 1 and 2 to wave; `_down` is the calm day. Flip with `scaleX(-1)` for a left wind. Needs a small SVG pole | have it (pole: draw as original SVG) |
+| Archer | Toon Characters (male and female adventurer) | `male_idle.png`, `male_side.png`, `male_hold.png`, `male_attack0.png` (draw), `male_attack1.png` (loose), `male_cheer0.png` (hit), `male_hurt.png` (miss); same names with `female_` | 96 x 128 each | front-facing character, not truly side-on; flip or replace if it looks wrong at 375 px. The archer holds nothing, so the bow is drawn over the hands | have it (poses); bow is separate |
+| Bow | none in the bundle | draw `archery-bow` as inline SVG | about 40 x 90 | simple curved limb and string, rotates with the aim | draw as original SVG |
+| Arrow (and quiver) | none in the bundle | draw `archery-arrow` as inline SVG | about 60 x 6 | shaft, head, feathers; it also sticks in the ground | draw as original SVG |
+| Target with rings | Shooting Gallery | `target_colored.png`, `target_red1.png`, `target_red3.png`, `target_white.png` | 128 x 128 | scoring board: scale up (vector, but the PNG is only 128 px, so keep it under about 200 px or draw a bigger SVG with rings); label ring values in SVG | have it |
+| Mist or cloud | Background Elements Remastered | `cloudLayer1.png`, `cloud1.png`, `cloud2.png`, `cloud3.png` | 768 x 300, 192 wide | use as the mist bank with white overlay and opacity; fine, no new art needed | have it (tint with CSS) |
+| Hit / miss effects | Particle Pack (already built for other games) | `fx/star_01.png`, `fx/star_02.png`, `fx/star_05.png`, `fx/spark_01.png`, `fx/spark_02.png` | 128 max | stars for a bullseye, sparks for the thunk. Particle Pack is white-on-transparent, tint it with CSS | have it |
+| Sound: bow twang | Interface Sounds `pluck_001` | `../sfx/bow_twang.m4a` | | fixed, string pluck. Play through `js/sfx.js` only | have it (candidate, listen first) |
+| Sound: arrow in flight | RPG Audio `cloth3` | `../sfx/arrow_fly.m4a` | | short swish. Must not mask the result sound | have it (candidate) |
+| Sound: arrow thunk | Impact Sounds `impactSoft_heavy_000` | `../sfx/arrow_thunk.m4a` | | soft thud when the arrow lands | have it (candidate) |
+| Sound: hit and miss | existing | `../sfx/correct.m4a`, `../sfx/wrong.m4a` | | reuse; fixed, never random variants | have it |
 
 Also checked and not chosen: Tiny Dungeon (16 px; hero, sword, axe and staff tiles but no bow or arrow), Tiny Battle (units and flags, no archer), Roguelike Characters (one spritesheet, no archery layers),
 RTS Medieval and Platformer Pack Medieval (castle tiles, no archer), Tower Defense (top-down, already used by Number Defense), Sports Pack (golf-style flags, no bow),

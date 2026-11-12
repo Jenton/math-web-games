@@ -7,3 +7,11 @@ Packs used: Shooting Gallery, Toon Characters and Platformer Pack Remastered (Ar
 Tiny Dungeon, Tower Defense, Pixel Platformer, Fonts (Kenney Future), and the audio packs Interface Sounds, UI Audio, Digital Audio, Retro Sounds 2, Impact Sounds,
 RPG Audio, Music Jingles, Music Loops and Voiceover Pack. Images were downscaled and audio was converted from Ogg to M4A
 with `tools/make_kenney_assets.sh`.
+
+## Arrow Range (`assets/kenney/archery/` and three `sfx/` files)
+All CC0 1.0 by Kenney (https://kenney.nl); every file was downscaled or converted by `tools/make_kenney_assets.sh`.
+- **Background Elements Remastered:** `sky`, `hills`, `hillsLarge`, `groundLayer1`, `cloudLayer1`, `tree`, `treeSmall_green1`, `bush1`, `castleWall`, `castleWallAlt`, `tower`, `towerSmall`, `cloud1-3`.
+- **Shooting Gallery:** `wood`, `post`, `target_colored`, `target_red1`, `target_red3`, `target_white`.
+- **Platformer Pack Remastered:** `flagRed1`, `flagRed2`, `flagRed_down`.
+- **Toon Characters:** `male_*` and `female_*` poses (`side`, `idle`, `hold`, `attack0`, `attack1`, `cheer0`, `hurt`).
+- **Interface Sounds:** `sfx/bow_twang` (from `pluck_001`). **RPG Audio:** `sfx/arrow_fly` (`cloth3`). **Impact Sounds:** `sfx/arrow_thunk` (`impactSoft_heavy_000`).
