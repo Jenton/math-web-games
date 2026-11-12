@@ -89,8 +89,8 @@
     return ok;
   }
 
-  function newProfile(name, avatar, band) {
-    const p = Save.newProfile({ id: genId('p'), name, avatar, band });
+  function newProfile(name, avatar, band, grade) {
+    const p = Save.newProfile({ id: genId('p'), name, avatar, band, grade });
     data.profiles.push(p);
     save();
     return p;
@@ -120,7 +120,19 @@
    *  (profile.settings.band). Other settings (look, glitches, motion) come from the profile as before. Returns a copy: change it with setLevel. */
   function level(profile, gameId) {
     const g = (profile.games && profile.games[gameId]) || {};
-    return Object.assign({}, profile.settings, { band: g.band || profile.settings.band, stars: g.stars || profile.settings.stars });
+    return Object.assign({}, profile.settings, { band: g.band || profile.settings.band, stars: g.stars || profile.settings.stars, grade: grade(profile) });
+  }
+  /** The player's grade (0 = kindergarten). If they never chose one this is a read-time guess from the old band (the upper grade of it), NOT saved: ask with gradeKnown. */
+  function grade(profile) {
+    const g = Grades.clean((profile.settings || {}).grade);
+    return g != null ? g : Grades.legacyGrade((profile.settings || {}).band);
+  }
+  const gradeKnown = (profile) => Grades.clean((profile.settings || {}).grade) != null;
+  /** Choose the grade. Also rewrites the old band from it, so games that have not moved to grades yet, and older devices, keep working. */
+  function setGrade(profile, g) {
+    const v = Grades.clean(g);
+    if (v == null) return;
+    setSettings(profile, { grade: v, band: Grades.bandOf(v) });
   }
   /** Set the grade and/or challenge for ONE game. Pass null to go back to following the player's default. */
   function setLevel(profile, gameId, patch) {
@@ -179,7 +191,7 @@
 
   root.Store = {
     load, save, newProfile, remove, snapshot, onSave, setMeta,
-    record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel,
+    record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel, grade, gradeKnown, setGrade,
     exportJSON, importJSON, mergeIn,
     get profiles() { return data.profiles; },
     get lastSaved() { return data.lastSaved; },

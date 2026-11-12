@@ -7,7 +7,7 @@ const { serve } = require('../helpers/static-server.js');
 
 async function newPlayer(page, url, band) {
   await page.goto(url);
-  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npBand', band); await page.click('#npForm button[type=submit]');
+  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npGrade', String({ 'K-1': 1, '2-3': 3, '4-5': 5, '6': 6 }[band])); await page.click('#npForm button[type=submit]');
   await page.waitForSelector('#menu:not([hidden])');
 }
 
@@ -120,9 +120,39 @@ async function newPlayer(page, url, band) {
     await ctx.close();
   }
 
+  /* ---- Arrow Range with the keyboard only (arrows aim, Enter shoots, number keys pick rings, Backspace takes one back, H hints) ---- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+    const page = await ctx.newPage(); watch(page);
+    await newPlayer(page, server.url, 'K-1');
+    await page.evaluate(() => { Store.setGrade(Store.profiles[0], 0); const o = ARCH.makeRound; ARCH.makeRound = (g) => (window.__round = o(g, { stretchShare: 0 })); });
+    await page.click('[data-game=archery]'); await page.click('#playNow');
+    await page.waitForSelector('#archery:not([hidden])');
+    assert(await page.isVisible('#archery .keyhint'), 'laptop sees the Arrow Range key hint');
+    for (let i = 0; i < 4; i++) {
+      await page.waitForFunction((n) => new RegExp('Shot ' + (n + 1) + ' of 4').test(document.getElementById('arSign').textContent) && !document.getElementById('arHint').disabled, i, { timeout: 9000 });
+      const aim = await page.evaluate((n) => ARCH.aimFor(window.__round.shots[n]), i);
+      for (let k = 0; k < aim.x; k++) await page.keyboard.press('ArrowRight');
+      assert.strictEqual(await page.evaluate(() => document.getElementById('arLoose').disabled), false, 'a key aim enables Loose');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(() => document.getElementById('arMsg').classList.contains('good'), null, { timeout: 9000 });
+    }
+    await page.waitForSelector('#arBoard:not([hidden])', { timeout: 9000 });
+    const board = await page.evaluate(() => window.__round.board);
+    const shown = board.rings.map((v, i) => i).sort((p, q) => board.rings[q] - board.rings[p]); // chips show the biggest ring first
+    await page.keyboard.press('1');
+    await page.keyboard.press('Backspace'); // takes the last arrow back
+    assert.strictEqual(await page.$$eval('.ar-slot.on', (e) => e.length), 0, 'Backspace took the arrow back');
+    for (const ri of board.solution) await page.keyboard.press(String(shown.indexOf(ri) + 1));
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#panel:not([hidden])', { timeout: 12000 });
+    assert(/⭐/.test(await page.textContent('#panelTitle')), 'finished an Arrow Range round with the keyboard alone');
+    await ctx.close();
+  }
+
   await browser.close();
   server.close();
   assert.deepStrictEqual(errors, []);
-  console.log('OK: keyboard-only Escape Room (digits, Backspace, Enter, arrows, machine cards) and Cut & Share (up/down rows, left/right, typing, Enter); hints on laptops, hidden on touch-only tablets until a key is pressed');
+  console.log('OK: keyboard-only Escape Room (digits, Backspace, Enter, arrows, machine cards), Cut & Share (up/down rows, left/right, typing, Enter) and Arrow Range (arrows aim, Enter shoots, number keys pick rings); hints on laptops, hidden on touch-only tablets until a key is pressed');
   console.log('ERRORS: none');
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

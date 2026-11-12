@@ -19,7 +19,7 @@ async function open(browser, vp, band, name) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(name + ' console: ' + m.text()); });
   await ctx.addInitScript(() => { window.__questFast = true; }); // skips animation waits, including the token walk
   await page.goto(URL);
-  await page.click('.player-card.add'); await page.fill('#npName', 'Kid ' + band); await page.selectOption('#npBand', band);
+  await page.click('.player-card.add'); await page.fill('#npName', 'Kid ' + band); await page.selectOption('#npGrade', String({ 'K-1': 1, '2-3': 3, '4-5': 5, '6': 6 }[band]));
   await page.click('#npForm button[type=submit]');
   await page.waitForSelector('#menu:not([hidden])');
   return { ctx, page };
