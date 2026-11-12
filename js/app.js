@@ -48,11 +48,9 @@
     },
     // Arrow Range (archery): one commented block, see docs/game-ideas.md "Arrow Range: design plan"
     archery: {
-      name: 'Arrow Range', ico: 'archery/target_colored', extras: false, mod: () => Archery,
-      how: ['A scout\'s note says where the <b>hidden target</b> is: "Shoot to 3/4", "Shoot 1/2 further than your last arrow", or "Across 6, up 3". Work out the number.', '<b>Tap or slide</b> on the field (or use the arrows) to aim on the distance ruler, and the height ruler when the shot has height. A <b>wind flag</b> pushes the arrow, so aim to the target minus the wind. Press <b>Loose!</b>', 'A hit parts the mist. A miss sticks the arrow where it landed, and we count how many ticks you were off. Finish with the <b>scoring board</b>: pick rings that add to the exact total.'],
-      band: { 'K-1': 'Counting ticks to 10, then 20; heights to 10; small sums on the board.', '2-3': 'A ruler to 100 by tens and fives, heights, wind, and times-table notes like 6 × 7.', '4-5': 'Fractions and decimals on the rulers, height differences, wind, and ring sums with halves and tenths.', '6': 'Percents of the field, negative heights below ground, wind either way, and a penalty ring.' },
-      stars: [['★ Easier', 'Distance shots, and a few with height.'], ['★★ Medium', 'Wind and height shots join in.'], ['★★★ Harder', 'Coordinates, wind, height differences and bigger sums.']],
-      sample: (s) => { const r = ARCH.makeRound(s.band, s.stars); return r.shots[0].text + ' (the ruler has ' + r.ticksX + ' ticks, each worth ' + RUN.writeValue(r.xLine, r.xLine.step, r.xLine.modes[0]) + ')'; },
+      name: 'Arrow Range', ico: 'archery/target_colored', extras: false, graded: true, mod: () => Archery,
+      how: ['A scout\'s note says where the <b>hidden target</b> is: "Shoot to 3/4", "Shoot 1/2 further than your last arrow", or "Across 6, up 3". Work out the number.', '<b>Tap or slide</b> on the field (or use the arrows) to aim on the distance ruler, and the height ruler when the shot has height. A <b>wind flag</b> pushes the arrow, so aim to the target minus the wind. Press <b>Loose!</b>', 'A hit parts the mist. A miss sticks the arrow where it landed, and we count how many ticks you were off. Finish with the <b>scoring board</b>: pick rings that add to the exact total. A few shots are <b>bonus challenges</b> from the next grade up, and a miss on those never costs a star.'],
+      sample: (s) => ARCH.sampleText(s.grade),
     },
     escape: {
       name: 'Escape Room', ico: 'escape/t89', extras: false, mod: () => Escape,
@@ -118,7 +116,7 @@
       b.innerHTML = '<span class="av"></span><span class="nm"></span><span class="sub"></span>';
       b.querySelector('.av').textContent = p.avatar;
       b.querySelector('.nm').textContent = p.name;
-      b.querySelector('.sub').textContent = BAND_LABELS[p.settings.band];
+      b.querySelector('.sub').textContent = Grades.label(Store.grade(p));
       b.addEventListener('click', () => openMenu(p.id));
       list.appendChild(b);
     });
@@ -157,13 +155,13 @@
       });
       box.appendChild(b);
     });
-    const sel = $('#npBand');
+    const sel = $('#npGrade');
     sel.innerHTML = '';
-    MG.BANDS.forEach((b) => {
+    Grades.options().forEach(([g, label]) => {
       const o = document.createElement('option');
-      o.value = b;
-      o.textContent = BAND_LABELS[b];
-      if (b === '2-3') o.selected = true;
+      o.value = String(g);
+      o.textContent = label;
+      if (g === 3) o.selected = true;
       sel.appendChild(o);
     });
     dlg.showModal();
@@ -219,7 +217,7 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
-    chips($('#setDefaultBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b]]), current.settings.band, (v) => { Store.setSettings(current, { band: v }); Store.save(); });
+    chips($('#setDefaultBand'), Grades.options(), Store.gradeKnown(current) ? Store.grade(current) : null, (v) => { Store.setGrade(current, v); Store.save(); });
     chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');
     stats.innerHTML = '';
@@ -234,18 +232,35 @@
     const count = (id, f) => Store.total(Store.game(current, id), f);
     $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('runner', 'runs') + ' Number Line runs, ' + count('archery', 'rounds') + ' Arrow Range rounds, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
     show('menu');
+    if (!Store.gradeKnown(current) && !askedGrade.has(current.id)) askGrade();
+  }
+
+  /** A profile with no saved grade (made before grades existed) is asked once per visit; "Not now" saves nothing (a guess is never saved as a choice). */
+  const askedGrade = new Set();
+  function askGrade() {
+    const p = current;
+    askedGrade.add(p.id);
+    $('#gaName').textContent = p.name;
+    chips($('#gaChips'), Grades.options(), null, (v) => {
+      Store.setGrade(p, v);
+      Store.save();
+      $('#gradeAsk').close();
+      if (current === p) openMenu(p.id);
+    });
+    $('#gradeAsk').showModal();
   }
 
   /* ---------- game setup (one screen: choose, then Play) ---------- */
 
   function updateSetup() {
     const s = Store.level(current, DATA_ID(currentGame));
-    const own = Store.hasOwnLevel(current, DATA_ID(currentGame), 'band');
-    $('#bandHelp').textContent = own ? 'Set just for ' + GAMES[currentGame].name + '. Your default grade (' + BAND_LABELS[current.settings.band] + ') is unchanged.' : 'Using your default grade. Pick another here to change only this game.';
-    $('#bandReset').hidden = !own;
     const g = GAMES[currentGame];
-    const star = g.stars[s.stars - 1][0];
-    $('#summary').textContent = BAND_LABELS[s.band] + ' · ' + star + (g.extras ? ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name : '');
+    $('#bandBox').hidden = $('#starsBox').hidden = !!g.graded; // a game that plays by grade has no grade or "how tricky" pickers: the player's grade is the only setting
+    const own = Store.hasOwnLevel(current, DATA_ID(currentGame), 'band');
+    $('#bandHelp').textContent = own ? 'Set just for ' + GAMES[currentGame].name + '. Your default grade (' + Grades.label(Store.grade(current)) + ') is unchanged.' : 'Using your default grade. Pick another here to change only this game.';
+    $('#bandReset').hidden = !own;
+    const star = g.graded ? '' : g.stars[s.stars - 1][0];
+    $('#summary').textContent = g.graded ? Grades.label(s.grade) + ' · a few harder problems from the next grade' : BAND_LABELS[s.band] + ' · ' + star + (g.extras ? ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name : '');
     $('#monstersHelp').textContent = s.monsters === 'on'
       ? 'Glitches wander the board. If one touches you, you lose a heart.'
       : 'No glitches: just you and the numbers. Great for learning at your own pace.';
@@ -267,8 +282,10 @@
     $('#questArtBox').hidden = currentGame !== 'quest';
     chips($('#setQuestArt'), Object.keys(Art.THEMES).map((k) => [k, (k === 'cute' ? '🐰 ' : '🗡️ ') + Art.THEMES[k].name]), Art.themeId(current), (v) => { Store.setSettings(current, { questArt: v }); $('#questArtHelp').textContent = Art.THEMES[v].blurb + ' Only changes the pictures. The game stays the same.'; save(); });
     $('#questArtHelp').textContent = Art.THEMES[Art.themeId(current)].blurb + ' Only changes the pictures. The game stays the same.';
-    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setLevel(current, id, { band: v }); save(); });
-    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setLevel(current, id, { stars: v }); save(); });
+    if (!g.graded) {
+      optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setLevel(current, id, { band: v }); save(); });
+      optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setLevel(current, id, { stars: v }); save(); });
+    }
     chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { Store.setSettings(current, { theme: v }); applyTheme(current); save(); });
     chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { Store.setSettings(current, { monsters: v }); save(); });
     updateSetup();
@@ -339,11 +356,13 @@
       e.preventDefault();
       const name = $('#npName').value.trim();
       if (!name) return;
-      const p = Store.newProfile(name, chosenAvatar, $('#npBand').value);
+      const gr = parseInt($('#npGrade').value, 10);
+      const p = Store.newProfile(name, chosenAvatar, Grades.bandOf(gr), gr);
       $('#newPlayer').close();
       openMenu(p.id);
     });
     $('#npCancel').addEventListener('click', () => $('#newPlayer').close());
+    $('#gaLater').addEventListener('click', () => $('#gradeAsk').close()); // "Not now": nothing is saved
     buildCrumbs();
     $('#menuBack').addEventListener('click', renderHome);
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));

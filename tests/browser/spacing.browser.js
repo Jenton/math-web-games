@@ -30,7 +30,7 @@ const measure = () => {
     await ctx.addInitScript(() => { window.__questFast = true; });
     const page = await ctx.newPage();
     await page.goto(server.url);
-    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npBand', '4-5'); await page.click('#npForm button[type=submit]');
+    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npGrade', '5'); await page.click('#npForm button[type=submit]');
     await page.waitForSelector('#menu:not([hidden])');
     const note = async (where) => (await page.evaluate(measure)).forEach((m) => rows.push({ vn, where, ...m }));
     await note('player menu');

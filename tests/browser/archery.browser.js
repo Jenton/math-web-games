@@ -14,18 +14,19 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
   const errors = [];
   const bad = [];
   const kinds = new Set();
-  for (const [band, stars] of [['K-1', 3], ['2-3', 3], ['4-5', 3], ['6', 2], ['6', 3]]) {
+  // [grade, stretchShare]: kindergarten, 3rd (with every item a bonus challenge, to prove misses on those are free), 5th, 6th, 8th
+  for (const [grade, share] of [[0, 0], [3, 0], [3, 1], [5, 0], [6, 0], [8, 0]]) {
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
     page.on('response', (r) => { if (r.status() >= 400) bad.push(r.status() + ' ' + r.url()); });
     await page.goto(server.url);
-    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npBand', band); await page.click('#npForm button[type=submit]');
+    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npGrade', String(grade)); await page.click('#npForm button[type=submit]');
     await page.waitForSelector('#menu:not([hidden])');
     await page.click('[data-game=archery]');
     await page.waitForSelector('#setup:not([hidden])');
-    await page.evaluate(([b, s]) => { Store.setLevel(Store.profiles[0], 'archery', { band: b, stars: s }); const o = ARCH.makeRound; ARCH.makeRound = (x, y) => (window.__round = o(x, y)); }, [band, stars]);
+    await page.evaluate(([g, sh]) => { const o = ARCH.makeRound; ARCH.makeRound = (x) => (window.__round = o(x, { stretchShare: sh })); }, [grade, share]);
     await page.click('#playNow');
     await page.waitForSelector('#archery:not([hidden])');
     const round = await page.evaluate(() => window.__round);
@@ -52,6 +53,7 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
       assert.strictEqual(await page.$$eval('.ar-target', (e) => e.length), 0, 'no target at the start of shot ' + (i + 1));
       assert.strictEqual(await page.evaluate(() => document.getElementById('arSign').textContent.includes(window.__round.shots[0].text) || true), true);
       const aim = await page.evaluate((n) => ARCH.aimFor(window.__round.shots[n]), i);
+      assert.strictEqual(await page.evaluate((n) => window.__round.shots[n].stretch, i), i > 0 && share === 1, 'the stretch flag matches the plan');
       if (i === 1) { // one wrong aim: a miss is explained in ticks, the arrow sticks, and the target is NOT revealed
         const wx = aim.x != null ? (aim.x > 1 ? aim.x - 1 : aim.x + 1) : null;
         const wy = aim.y != null ? (aim.y > 1 ? aim.y - 1 : aim.y + 1) : null;
@@ -97,7 +99,11 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
     const inside = await page.evaluate(() => { const b = document.querySelector('.ar-bt').getBoundingClientRect(); return [...document.querySelectorAll('.ar-bt .ar-arrow')].map((e) => { const r = e.getBoundingClientRect(); const cx = r.x + r.width / 2; const cy = r.y + r.height / 2; return cx > b.left && cx < b.right && cy > b.top && cy < b.bottom; }); });
     assert(inside.length >= board.arrows && inside.every(Boolean), 'every board arrow lands inside the target: ' + JSON.stringify(inside));
     await page.waitForSelector('#panel:not([hidden])', { timeout: 12000 });
-    assert(/⭐/.test(await page.textContent('#panelTitle')), 'result shows stars');
+    const title = await page.textContent('#panelTitle');
+    assert(/⭐/.test(title), 'result shows stars');
+    // the test misses once on shot 2 and once on the board: those cost a slip on regular items, and NOTHING on bonus (stretch) items
+    if (share === 1) assert(/Perfect round/.test(title), 'misses on bonus challenges cost no star: ' + title);
+    else assert(!/Perfect round/.test(title), 'misses on regular shots do cost slips: ' + title);
     const saved = await page.evaluate(() => Store.total(Store.game(Store.profiles[0], 'archery'), 'rounds'));
     assert.strictEqual(saved, 1, 'the round is saved once');
     // the page never scrolls sideways at phone width
@@ -109,6 +115,6 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
   await browser.close();
   server.close();
   assert.deepStrictEqual(errors, []);
-  console.log('OK: full Arrow Range rounds at phone size for four grades (hidden target, misses explained in ticks and not revealed, hits reveal, scoring board, stars, saved once, no 404s)');
+  console.log('OK: full Arrow Range rounds at phone size for grades K, 3, 5, 6 and 8, plus a round of all bonus challenges (hidden target, misses explained in ticks and not revealed, hits reveal, scoring board, stars, saved once, no 404s)');
   console.log('ERRORS: none');
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

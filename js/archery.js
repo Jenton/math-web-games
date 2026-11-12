@@ -94,9 +94,8 @@
   /* ---------- a round ---------- */
   function newRound() {
     clearTimers();
-    const st = Store.level(ctx.profile, 'archery');
     S.n++;
-    S.round = ARCH.makeRound(st.band, st.stars);
+    S.round = ARCH.makeRound(Store.grade(ctx.profile)); // the player's grade, with a few stretch items from the grade above
     S.G = geometry(S.round);
     S.i = 0;
     S.slips = 0;
@@ -261,9 +260,9 @@
     S.phase = 'shots';
     const E = S.E;
     $('arSign').innerHTML = '';
-    $('arSign').append(el('span', 'ar-sign-k', 'Shot ' + (S.i + 1) + ' of ' + S.round.shots.length), el('strong', 'ar-sign-t', s.text));
+    $('arSign').append(el('span', 'ar-sign-k', 'Shot ' + (S.i + 1) + ' of ' + S.round.shots.length + (s.stretch ? ' · Bonus challenge' : '')), el('strong', 'ar-sign-t', s.text));
     $('arMsg').className = 'ar-msg';
-    $('arMsg').textContent = msgFor(s);
+    $('arMsg').textContent = msgFor(s) + (s.stretch ? ' (A bonus from the next grade: a miss costs nothing.)' : '');
     pose('idle');
     const bp = bowPoint(s);
     E.bow.style.left = bp.x + 'px';
@@ -460,7 +459,7 @@
       else later(startShot, 2000);
     } else {
       later(() => Sfx.play('wrong'), 150);
-      S.slips++;
+      if (!s.stretch) S.slips++; // a miss on a bonus (stretch) shot never costs a star
       S.misses++;
       pose('hurt');
       if (needsX(s) && res.landX >= 0 && res.landX < S.round.ticksX) S.E.xt[res.landX].classList.add('miss');
@@ -504,7 +503,8 @@
     if (S.busy && !auto) return;
     const text = S.phase === 'board' ? ARCH.hintBoard(S.board, S.hints > 0 ? 1 : 0) : ARCH.hint(S.round, S.i, S.hints > 0 ? 1 : 0);
     S.hints++;
-    if (!auto) S.slips++; // a hint you ask for costs a slip; the one that appears after two misses does not (the misses already counted)
+    const bonus = S.phase === 'board' ? S.board.stretch : shot().stretch;
+    if (!auto && !bonus) S.slips++; // a hint you ask for costs a slip (not on a bonus shot); the one that appears after two misses does not (the misses already counted)
     Sfx.play('flip');
     $('arMsg').className = 'ar-msg hint';
     $('arMsg').textContent = '';
@@ -525,9 +525,9 @@
     clearArrows(false);
     const b = S.board;
     $('arSign').innerHTML = '';
-    $('arSign').append(el('span', 'ar-sign-k', 'Scoring board'), el('strong', 'ar-sign-t', b.text));
+    $('arSign').append(el('span', 'ar-sign-k', 'Scoring board' + (b.stretch ? ' · Bonus challenge' : '')), el('strong', 'ar-sign-t', b.text));
     $('arMsg').className = 'ar-msg';
-    $('arMsg').textContent = 'Tap a ring to send an arrow into it. Tap an arrow in a slot to take it back.';
+    $('arMsg').textContent = 'Tap a ring to send an arrow into it. Tap an arrow in a slot to take it back.' + (b.stretch ? ' (A bonus from the next grade: a miss costs nothing.)' : '');
     $('arScene').hidden = true;
     const host = $('arBoard');
     host.hidden = false;
@@ -658,7 +658,7 @@
       later(finishRound, 1500);
     } else {
       later(() => Sfx.play('wrong'), 150);
-      S.slips++;
+      if (!S.board.stretch) S.slips++;
       S.misses++;
       later(() => {
         clearArrows(false);
@@ -686,7 +686,7 @@
     later(() => UI.panel({
       icon: 'medals/m' + stars,
       title: stars === 3 ? (S.slips === 0 ? 'Perfect round! ⭐⭐⭐' : 'Great round! ⭐⭐⭐') : stars === 2 ? 'Nice shooting! ⭐⭐' : 'You finished the round! ⭐',
-      text: S.slips === 0 ? 'Every arrow hit, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (misses and hints count). Fewer slips means more stars.',
+      text: S.slips === 0 ? 'Every arrow hit, and no hints.' : S.slips + (S.slips === 1 ? ' slip' : ' slips') + ' (misses and hints count, except on bonus challenges). Fewer slips means more stars.',
       btn: 'Next round',
       onBtn: newRound,
       btn2: 'Back to setup',

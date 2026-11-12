@@ -15,7 +15,7 @@ const { serve } = require('../helpers/static-server.js');
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto(server.url);
-  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npBand', '2-3'); await page.click('#npForm button[type=submit]');
+  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npGrade', '3'); await page.click('#npForm button[type=submit]');
   await page.waitForSelector('#menu:not([hidden])');
 
   const state = () => page.evaluate(() => {
@@ -57,7 +57,7 @@ const { serve } = require('../helpers/static-server.js');
   assert.strictEqual((await state()).def, '2-3', 'playing did not change the default either');
 
   // 4. change the DEFAULT on the player menu: Munchers follows, Balance keeps its own
-  await page.click('#setDefaultBand .chip:has-text("4th – 5th")');
+  await page.click('#setDefaultBand .chip:has-text("5th grade")');
   s = await state();
   assert.strictEqual(s.def, '4-5');
   assert.strictEqual(s.balance, '6');

@@ -16,7 +16,7 @@ const { serve } = require('../helpers/static-server.js');
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   page.on('response', (r) => { if (r.status() >= 400 && /kenney\/runner/.test(r.url())) bad.push(r.status() + ' ' + r.url()); });
   await page.goto(server.url);
-  await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npBand', '4-5'); await page.click('#npForm button[type=submit]');
+  await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npGrade', '5'); await page.click('#npForm button[type=submit]');
   await page.waitForSelector('#menu:not([hidden])');
   await page.click('[data-game=runner]');
   await page.waitForSelector('#setup:not([hidden])');
