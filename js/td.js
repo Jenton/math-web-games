@@ -173,7 +173,8 @@
       const k = +b.dataset.k;
       b.classList.toggle('on', S.sel === k);
       b.disabled = S.running;
-      b.classList.toggle('poor', w.shop[k].cost > gold());
+      b.classList.toggle('poor', w.shop[k].cost > gold() && !TDL.isPlaced(S.place, k));
+      b.classList.toggle('used', TDL.isPlaced(S.place, k));
     });
     [...$('tdLane').querySelectorAll('.td-slot')].forEach((b, i) => {
       const k = S.place[i];
@@ -206,6 +207,11 @@
 
   function onCard(k) {
     if (S.running) return;
+    if (TDL.isPlaced(S.place, k)) {
+      UI.toast('That tower is already on the board. A second one would catch the same numbers, so pick a different one.', false);
+      Sfx.play('wrong');
+      return;
+    }
     S.sel = S.sel === k ? null : k;
     S.lift = null;
     Sfx.play('flip');
@@ -307,7 +313,7 @@
       UI.flash(slots[s.slot], 'recoil', 230);
       if (!calm) shoot(s, tk, fly);
       const run = S.res;
-      setTimeout(() => S && S.res === run && Sfx.play('correct'), fly); // the hit sound lands with the hit, not with the shot
+      setTimeout(() => S && S.res === run && Sfx.play('pop'), fly); // a soft pop, not the coin ding: it plays on every kill, so it must not grate. The hit sound lands with the hit, not with the shot
     });
     tk.leaks.forEach((i) => {
       const { e, chip } = S.enemyEls[i];
