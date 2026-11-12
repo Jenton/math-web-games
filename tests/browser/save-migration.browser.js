@@ -25,6 +25,8 @@ const sum = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
 async function newPage(browser, seed) {
   const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
+  // old profiles are asked for a grade once per visit; "Not now" saves nothing, so dismiss it whenever it appears
+  await page.addLocatorHandler(page.locator('#gaLater'), (l) => l.click());
   await ctx.addInitScript(() => { window.__questFast = true; }); // skip battle animation delays
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
@@ -53,7 +55,7 @@ async function newPage(browser, seed) {
   await page.click('.player-card'); // open Max
   await page.click('#menu summary');
   console.log('   grown-ups panel:', (await page.textContent('#levelsCleared')).trim());
-  assert.match(await page.textContent('#levelsCleared'), /6 Munchers levels, 3 Balance puzzles, 2 Machine puzzles solved, 0 Lemonade days run, 0 Defense waves held, 0 Escape Rooms cleared, 0 Number Line runs, 7 Quest battles won/);
+  assert.match(await page.textContent('#levelsCleared'), /6 Munchers levels, 3 Balance puzzles, 2 Machine puzzles solved, 0 Lemonade days run, 0 Defense waves held, 0 Escape Rooms cleared, 0 Number Line runs, 0 Arrow Range rounds, 7 Quest battles won/);
   const stats = await page.textContent('#statsList');
   assert.match(stats, /12 right, 4 oops/);
 
