@@ -1,6 +1,5 @@
 // Browser test: the grade is the one setting. A new profile picks a grade; a profile with no saved grade is asked once ("Not now" saves nothing,
-// a pick saves the grade AND the old band); the player menu changes it; a graded game (Arrow Range) shows no grade or "how tricky" pickers, while a
-// game not yet moved over (Munchers) still does. Needs Playwright (not a repo dependency): node tests/browser/grades.browser.js
+// a pick saves the grade AND the old band); the player menu changes it; no game's setup screen has a grade or "how tricky" picker. Needs Playwright (not a repo dependency): node tests/browser/grades.browser.js
 const { chromium } = require('playwright');
 const assert = require('assert');
 const { serve } = require('../helpers/static-server.js');
@@ -67,12 +66,12 @@ const { serve } = require('../helpers/static-server.js');
   await page.click('.player-card:has-text("Ada")');
   await page.click('[data-game=munchers]');
   await page.waitForSelector('#setup:not([hidden])');
-  assert.strictEqual(await page.isVisible('#bandBox'), true, 'Munchers (not moved over yet) keeps its grade picker');
-  assert.strictEqual(await page.isVisible('#starsBox'), true, 'and its "how tricky" picker');
+  assert.strictEqual(await page.isVisible('#bandBox'), false, 'Munchers: no grade picker either (every game plays by grade)');
+  assert.strictEqual(await page.isVisible('#starsBox'), false, 'and no "how tricky" picker');
 
   await browser.close();
   server.close();
   assert.deepStrictEqual(errors, []);
-  console.log('OK: grade chosen at creation, asked once for old profiles ("Not now" saves nothing), changed in the player menu, hidden pickers for graded games only');
+  console.log('OK: grade chosen at creation, asked once for old profiles ("Not now" saves nothing), changed in the player menu, no per-game pickers');
   console.log('ERRORS: none');
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

@@ -74,13 +74,16 @@
   /* ---------- level setup ---------- */
 
   function newLevel(sameRule) {
-    const st = Store.level(ctx.profile, 'munchers');
     if (!sameRule || !S.rule) {
-      S.rule = MG.makeLevelRule(st.band, st.stars, S.rule && S.rule.id);
+      // a new level: the player's grade on the difficulty ladder, sometimes a stretch (bonus) level; a retry of the same level keeps its cell
+      S.cur = Store.cell(ctx.profile, 'munchers', { first: !S.level });
+      S.rule = MG.makeLevelRule(S.cur.band, S.cur.stars, S.rule && S.rule.id);
       S.level++;
     }
+    const st = S.cur;
     S.cells = MG.buildBoard(S.rule, ROWS * COLS, TARGET_CORRECT[st.stars - 1]);
-    S.lives = 3;
+    S.maxLives = 3 + (st.stretch ? 1 : 0); // a bonus (stretch) level is harder, so it gives one extra heart
+    S.lives = S.maxLives;
     S.clean = true;
     S.player = { r: 0, c: 0 };
     S.target = null;
@@ -97,8 +100,7 @@
   }
 
   function monsterCount() {
-    const st = Store.level(ctx.profile, 'munchers');
-    return st.monsters === 'off' ? 0 : MONSTER_COUNT[st.stars - 1];
+    return Store.level(ctx.profile, 'munchers').monsters === 'off' ? 0 : MONSTER_COUNT[S.cur.stars - 1];
   }
 
   function placeMonsters() {
@@ -138,7 +140,7 @@
     S.pActor = null;
     el.ruleTitle.textContent = S.rule.title;
     el.ruleHint.textContent = S.rule.hint;
-    el.levelNo.textContent = 'Level ' + S.level;
+    el.levelNo.textContent = 'Level ' + S.level + (S.cur && S.cur.stretch ? ' · Bonus' : '');
   }
 
   /* ---------- rendering (updates in place so taps are never lost) ---------- */
@@ -155,7 +157,7 @@
       b.classList.toggle('target', i === S.target);
     });
     syncActors(false);
-    el.hearts.textContent = '❤️'.repeat(S.lives) + '🤍'.repeat(Math.max(0, 3 - S.lives));
+    el.hearts.textContent = '❤️'.repeat(S.lives) + '🤍'.repeat(Math.max(0, (S.maxLives || 3) - S.lives));
     el.left.textContent = '🎯 ' + remaining() + ' left';
   }
 
@@ -355,7 +357,7 @@
       changed = true;
     }
     if (S && !S.paused && S.monsters.length) {
-      const st = Store.level(ctx.profile, 'munchers');
+      const st = S.cur;
       const iv = MONSTER_INTERVAL[st.stars - 1];
       const tell = TELL_MS[st.stars - 1] + (st.band === 'K-1' ? 100 : 0);
       const since = now - S.lastMonster;
@@ -482,18 +484,8 @@
     setTimeout(() => Sfx.play('win'), 450); // after the last coin ding, so the jingle does not cover it
     if (S.clean) setTimeout(() => Sfx.say('correct'), 1200);
     const opts = { icon: S.clean ? 'medals/m3' : 'medals/m1', title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
-    const lv = Store.level(p, 'munchers');
-    if (S.streak >= 3 && lv.stars < 3) {
-      opts.text += ' That is ' + S.streak + ' clean levels in a row. Ready for a bigger challenge?';
-      opts.btn2 = 'Try harder (★'.concat('★'.repeat(lv.stars), ')');
-      opts.onBtn2 = () => {
-        Store.setLevel(p, 'munchers', { stars: lv.stars + 1 });
-        S.streak = 0;
-        Store.setField(mg, 'streak', 0);
-        ctx.onSave();
-        newLevel(false);
-      };
-    }
+    // (the old "Try harder" button is gone: the grade and the occasional bonus level now do that job)
+    if (S.streak >= 3) opts.text += ' That is ' + S.streak + ' clean levels in a row!';
     ctx.onSave();
     celebrate();
     showPanel(opts);

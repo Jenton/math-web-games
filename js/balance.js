@@ -39,13 +39,14 @@
   }
 
   function nextPuzzle() {
-    const st = Store.level(ctx.profile, 'balance');
+    const st = Store.cell(ctx.profile, 'balance', { first: S.n === 0 }); // the player's grade on the difficulty ladder; sometimes a stretch (bonus) puzzle
     S.n++;
+    S.bonus = st.stretch;
     S.p = MGP.makeBalance(st.band, st.stars);
     S.guess = 0;
     S.tries = MGP.BAL_TRIES;
     S.missed = false;
-    $('balNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
+    $('balNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND + (S.bonus ? ' · Bonus challenge' : '');
     $('gBig-').hidden = $('gBig+').hidden = S.p.max <= 20;
     render();
   }

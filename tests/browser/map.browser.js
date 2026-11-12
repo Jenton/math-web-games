@@ -24,10 +24,27 @@ async function open(browser, vp, band, name) {
   await page.waitForSelector('#menu:not([hidden])');
   return { ctx, page };
 }
+// difficulty now comes from the player's grade. These tests assert star-specific rules (group sizes, wind-up), so "stars" = the grade whose real ladder cell has that many
+// stars and sits nearest the profile's starting band; every fight is on-grade (no random bonus fights)
+const setStars = (page, stars) => page.evaluate((s) => {
+  const p = Store.profiles[0];
+  const bands = ['K-1', '2-3', '4-5', '6'];
+  const base = bands.indexOf(p.name.replace('Kid ', '')); // these tests name the profile 'Kid <starting band>'
+  let best = null;
+  for (let g = 0; g <= 7; g++) {
+    const c = Grades.cell(g, { stretchShare: 0 });
+    if (c.stars !== s) continue;
+    const d = Math.abs(bands.indexOf(c.band) - base);
+    if (!best || d < best.d) best = { g, d };
+  }
+  Store.setGrade(p, best.g);
+  Grades.config.stretchShare = 0;
+  Store.save();
+}, stars);
 const toQuest = async (page, stars = 2) => {
+  await setStars(page, stars);
   await page.click('[data-game=quest]');
   await page.waitForSelector('#setup:not([hidden])');
-  await page.locator('#setStars .opt-card').nth(stars - 1).click();
   await page.click('#playNow');
   await page.waitForSelector('#qHome:not([hidden])');
 };
@@ -352,7 +369,7 @@ const machineBest = (page) => page.evaluate(() => {
   await page.evaluate(() => { const g = Store.profiles[0].games.rpg; g.cleared = ['m1', 'm2', 'm3']; Store.save(); });
   await page.click('#qMapBack'); await page.waitForSelector('#qHome:not([hidden])');
   await page.click('#qBack'); await page.waitForSelector('#setup:not([hidden])');
-  await page.locator('#setStars .opt-card').nth(0).click();
+  await setStars(page, 1);
   await page.click('#playNow'); await page.waitForSelector('#qHome:not([hidden])');
   await toMap(page);
   await goTo(page, 'm4');
@@ -378,11 +395,11 @@ const machineBest = (page) => page.evaluate(() => {
   assert.match(await page.textContent('#qResume'), /battle 2 of 5/);
   // a different grade or star setting is a different adventure, so there is nothing to continue
   await page.click('#qBack'); await page.waitForSelector('#setup:not([hidden])');
-  await page.locator('#setStars .opt-card').nth(1).click();
+  await setStars(page, 2);
   await page.click('#playNow'); await page.waitForSelector('#qHome:not([hidden])');
   assert.ok(await page.locator('#qResume').isHidden(), 'a saved 1-star adventure is not offered at 2 stars');
   await page.click('#qBack'); await page.waitForSelector('#setup:not([hidden])');
-  await page.locator('#setStars .opt-card').nth(0).click();
+  await setStars(page, 1);
   await page.click('#playNow'); await page.waitForSelector('#qHome:not([hidden])');
   assert.ok(await page.locator('#qResume').isVisible(), 'and it is back at 1 star');
   await page.click('#qResume');

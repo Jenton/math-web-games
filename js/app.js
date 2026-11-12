@@ -12,35 +12,35 @@
   };
   const GAMES = {
     quest: {
-      name: 'Creature Quest', ico: 'medals/m3', extras: false, mod: () => Quest,
+      name: 'Creature Quest', ico: 'medals/m3', extras: false, graded: true, mod: () => Quest,
       how: ['Monsters come in <b>groups</b>, and each has its own <b>weakness</b>, like "multiples of 6". <b>Tap a monster</b> to attack it.', '<b>Pick the card</b> that fits its weakness. A right card does damage. A wrong card does nothing, and <b>every monster hits back</b>!', 'Choose which <b>friend</b> acts: each has a special power. <b>Rescue caged friends</b> to grow your team and win the boss fight.'],
       band: { 'K-1': 'Weaknesses like even and odd, bigger or smaller, and adding to a number. Armor made of halves, thirds and quarters.', '2-3': 'Skip counting, rounding, adding and subtracting. Armor made of simple fractions.', '4-5': 'Multiples, factors, prime numbers. Armor made of fractions with different bottoms.', '6': 'Fractions, exponents, negative numbers, primes. Armor in fractions, decimals and percents.' },
       stars: [['★ Easier', 'Smaller numbers, 2 monsters at most, 5 cards.'], ['★★ Medium', 'Bigger numbers, up to 3 monsters.'], ['★★★ Harder', 'The trickiest numbers, up to 3 monsters, 6 cards.']],
       sample: (s) => RPG.sampleText(s.band, s.stars),
     },
     munchers: {
-      name: 'Munchers', ico: 'animals/frog', extras: true, mod: () => Munchers,
+      name: 'Munchers', ico: 'animals/frog', extras: true, graded: true, mod: () => Munchers,
       how: ['<b>Read the rule</b> at the top of the board.', '<b>Walk</b> to a number that fits: tap it, or use the arrow keys.', '<b>Munch</b> it! A wrong munch costs a heart and shows you why.'],
       band: BAND_INFO,
       stars: [['★ Easier', 'Smaller numbers, 8 to munch, 1 glitch.'], ['★★ Medium', 'Bigger numbers, 10 to munch, 2 glitches.'], ['★★★ Harder', 'Trickiest numbers, 12 to munch, 3 fast glitches.']],
       sample: (s) => MG.makeLevelRule(s.band, s.stars, null).title,
     },
     balance: {
-      name: 'Balance', ico: 'balance/blockBlue', extras: false, mod: () => Balance,
+      name: 'Balance', ico: 'balance/blockBlue', extras: false, graded: true, mod: () => Balance,
       how: ['Every <b>yellow block</b> is the same mystery weight (<b>?</b>). White blocks show their weight.', '<b>Change the number</b> for ? with − and +. Watch the scale tip.', '<b>Lock it in</b> when you think both sides are equal.'],
       band: { 'K-1': 'One mystery block and a few small blocks. Totals up to 20.', '2-3': 'Two mystery blocks, or bigger totals up to 50.', '4-5': 'Several mystery blocks plus extra weight, like 4 × ? + 7.', '6': 'Mystery blocks on both sides, like 5 × ? + 3 = 2 × ? + 21.' },
       stars: [['★ Easier', 'Smaller numbers.'], ['★★ Medium', 'Bigger numbers and more blocks.'], ['★★★ Harder', 'The trickiest numbers and more blocks.']],
       sample: (s) => MGP.makeBalance(s.band, s.stars).text,
     },
     lemonade: {
-      name: 'Lemonade Stand', ico: 'lemonade/pitcher', extras: false, mod: () => Lemonade,
+      name: 'Lemonade Stand', ico: 'lemonade/pitcher', extras: false, graded: true, mod: () => Lemonade,
       how: ['Each <b>day</b> has four linked jobs: set the <b>price</b>, buy the right amount for the customers it brings, then make <b>change</b> for two of them.', 'Build change from coins, or pick a number with − and +.', 'Wrong answers show the arithmetic, so you can try again.'],
       band: { 'K-1': 'Change from $1 in coins, and small pitcher counts.', '2-3': 'Change to the cent, and how many pitchers for the crowd.', '4-5': 'Several cups at once, lemons per pitcher, and a sign that costs money.', '6': 'Percent-off sales, recipe ratios, and bigger profits.' },
       stars: [['★ Easier', 'Round numbers and three prices to pick from.'], ['★★ Medium', 'Trickier numbers and four prices.'], ['★★★ Harder', 'Bigger numbers and more prices.']],
       sample: (s) => MGS.makeStock(s.band, s.stars).text,
     },
     runner: {
-      name: 'Number Line Runner', ico: 'runner/c0', extras: false, mod: () => Runner,
+      name: 'Number Line Runner', ico: 'runner/c0', extras: false, graded: true, mod: () => Runner,
       how: ['The <b>number line</b> is a rope over the river. The sign tells you where to go: "Land on 3/4" or "Hop 1/2 to the right".', '<b>Tap a tick</b> to aim (use the arrows to nudge it), then press <b>Jump!</b> The spot is never marked, so read the ticks to find it.', 'Land exactly and a stone and flag appear. Miss and you splash, and we count how many ticks you were off.'],
       band: { 'K-1': 'Whole numbers on a line to 10, then to 20 counting by ones.', '2-3': 'A line to 100: counting by tens, then fives, and hopping by tens and fives.', '4-5': 'Fractions on a line from 0 to 2 by fourths, eighths or tenths, and mixed numbers and decimals.', '6': 'Negative numbers, halves, fourths, decimals and percents on a line through zero.' },
       stars: [['★ Easier', 'Fewer ticks and every spot is a plain landing.'], ['★★ Medium', 'A finer line, some labels left out.'], ['★★★ Harder', 'Hops, expressions, and several ways to write the same number.']],
@@ -49,39 +49,39 @@
     // Arrow Range (archery): one commented block, see docs/game-ideas.md "Arrow Range: design plan"
     archery: {
       name: 'Arrow Range', ico: 'archery/target_colored', extras: false, graded: true, mod: () => Archery,
-      how: ['A scout\'s note says where the <b>hidden target</b> is: "Shoot to 3/4", "Shoot 1/2 further than your last arrow", or "Across 6, up 3". Work out the number.', '<b>Tap or slide</b> on the field (or use the arrows) to aim on the distance ruler, and the height ruler when the shot has height. A <b>wind flag</b> pushes the arrow, so aim to the target minus the wind. Press <b>Loose!</b>', 'A hit parts the mist. A miss sticks the arrow where it landed, and we count how many ticks you were off. Finish with the <b>scoring board</b>: pick rings that add to the exact total. A few shots are <b>bonus challenges</b> from the next grade up, and a miss on those never costs a star.'],
+      how: ['A scout\'s note says where the <b>hidden target</b> is: "Shoot to 3/4", "Shoot 1/2 further than your last arrow", or "Across 6, up 3". Work out the number.', '<b>Tap or slide</b> on the field (or use the arrows) to aim on the distance ruler, and the height ruler when the shot has height. A <b>wind flag</b> pushes the arrow, so aim to the target minus the wind. Press <b>Loose!</b>', 'A hit parts the mist. A miss sticks the arrow where it landed, and we count how many ticks you were off. Finish with the <b>scoring board</b>: pick rings that add to the exact total.'],
       sample: (s) => ARCH.sampleText(s.grade),
     },
     escape: {
-      name: 'Escape Room', ico: 'escape/t89', extras: false, mod: () => Escape,
+      name: 'Escape Room', ico: 'escape/t89', extras: false, graded: true, mod: () => Escape,
       how: ['You are locked in a dungeon room with <b>three chests</b>, each with a lock. Tap a chest and your hero walks over.', 'Crack the <b>pattern, code, scale or machine</b> lock. A wrong try shows you the arithmetic; hints are always there.', 'Open all three and the <b>exit door</b> opens. Fewer wrong tries and hints means more stars.'],
       band: { 'K-1': 'Counting patterns by 1s, 2s, 5s and 10s, and codes made of small sums.', '2-3': 'Skip-counting and doubling patterns, code clues with times and take-away, and bigger scales.', '4-5': 'Growing and times-3 patterns, code clues where order of operations matters, longer machines.', '6': 'Squares, Fibonacci-style and negative patterns, clues with powers and negatives, scales with ? on both sides.' },
       stars: [['★ Easier', 'Shorter patterns, 3-digit codes, simple locks.'], ['★★ Medium', 'Trickier patterns and clues.'], ['★★★ Harder', 'The hardest patterns, 4-digit codes.']],
       sample: (s) => { const q = ESC.makeSequence(s.band, s.stars); return 'Pattern lock: ' + q.terms.map(ESC.fmt).join(', ') + ', ?'; },
     },
     defense: {
-      name: 'Number Defense', ico: 'animals/owl', extras: false, mod: () => Defense,
+      name: 'Number Defense', ico: 'animals/owl', extras: false, graded: true, mod: () => Defense,
       how: ['Numbers march toward your castle. The <b>incoming wave</b> is shown before it starts.', 'Every tower has a <b>rule</b>, like "multiples of 3". It only stops numbers that fit. Gold is limited, so pick towers that cover the whole wave.', '<b>Send the wave</b> and watch. Numbers that slip through are explained.'],
       band: { 'K-1': 'Even, odd, more than and less than, counting by 5s and 10s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, odd numbers, more and less than.', '4-5': 'Multiples up to 9, prime numbers, factors of a number.', '6': 'Primes, squares, powers of 2, bigger multiples, negatives, factors.' },
       stars: [['★ Easier', '7 numbers, a little spare gold.'], ['★★ Medium', '9 numbers, less spare gold.'], ['★★★ Harder', '11 numbers and only just enough gold.']],
       sample: (s) => { const w = TDL.makeWave(s.band, s.stars); return 'Stop ' + w.enemies.slice(0, 5).map(TDL.fmt).join(', ') + '… with ' + w.budget + ' gold. Towers: ' + w.shop.map((r) => r.name).join(', '); },
     },
     machine: {
-      name: 'Machine Builder', ico: 'balance/pipe01', extras: false, mod: () => Machine,
+      name: 'Machine Builder', ico: 'balance/pipe01', extras: false, graded: true, mod: () => Machine,
       how: ['You get a <b>start number</b>, a <b>target</b>, and a few operation cards.', '<b>Tap cards</b> to build a chain. Each one changes the number.', 'Reach the target in as <b>few steps</b> as you can for more stars.'],
       band: { 'K-1': 'Adding and subtracting small numbers.', '2-3': 'Adding, subtracting, and multiplying.', '4-5': 'Multiplying, dividing, adding, subtracting.', '6': 'All four operations plus squaring, and numbers can go negative.' },
       stars: [['★ Easier', '3 cards, short chains.'], ['★★ Medium', '4 cards, medium chains.'], ['★★★ Harder', '4 cards, long chains.']],
       sample: (s) => { const m = MGP.makeMachine(s.band, s.stars); return 'Turn ' + MGP.fmt(m.start) + ' into ' + MGP.fmt(m.target) + ' using ' + m.ops.map((o) => o.label).join(', '); },
     },
     sort: {
-      name: 'Sort & Rule', ico: '🚪', extras: false, mod: () => Sort,
+      name: 'Sort & Rule', ico: '🚪', extras: false, graded: true, mod: () => Sort,
       how: ['The gate has a <b>secret rule</b>. Pick a number to send through and see if it passes or is stopped.', 'Test a few numbers and <b>look for the pattern</b>. Testing fewer numbers earns more stars.', 'Then <b>pick the rule</b> from four choices. A wrong pick shows you a number that proves it wrong.'],
       band: { 'K-1': 'Even or odd, bigger or smaller than a number, counting by 5s.', '2-3': 'Multiples of 2, 3, 4, 5 and 10, and numbers in between.', '4-5': 'Multiples up to 9, prime and square numbers, factors.', '6': 'Rules with "and", "or" and "not", like prime or square.' },
       stars: [['★ Easier', 'Simple one-part rules.'], ['★★ Medium', 'Trickier rules.'], ['★★★ Harder', 'The trickiest rules, some with two parts.']],
       sample: (s) => { const p = MGR.makeSort(s.band, s.stars); return 'The gate lets through… ' + p.rule.text; },
     },
     share: {
-      name: 'Cut & Share', ico: '🍕', extras: false, mod: () => Share,
+      name: 'Cut & Share', ico: '🍕', extras: false, graded: true, mod: () => Share,
       how: ['Some friends want <b>fair shares</b> of pizza.', '<b>Choose how many slices</b> to cut each pizza into, and how many slices <b>each friend</b> gets.', 'Use every slice and keep it fair. <b>Fewer cuts</b> earn more stars. You get <b>3 tries</b>.'],
       band: { 'K-1': 'Halves, thirds and quarters of one or two pizzas.', '2-3': 'A few pizzas shared among up to 8 friends.', '4-5': 'More pizzas and more friends, including more than one pizza each.', '6': 'Share part of a pizza, like 3/4 of a pizza among 3 friends.' },
       stars: [['★ Easier', 'Fewer friends, smaller numbers.'], ['★★ Medium', 'More pizzas and friends.'], ['★★★ Harder', 'The biggest groups and trickiest splits.']],
@@ -258,8 +258,9 @@
   /* ---------- game setup (one screen: choose, then Play) ---------- */
 
   function updateSetup() {
-    const s = Store.level(current, DATA_ID(currentGame));
     const g = GAMES[currentGame];
+    // a game that plays by grade shows an example from the player's own grade (never a stretch one); other games read their own grade and challenge picks
+    const s = g.graded ? Object.assign(Store.cell(current, DATA_ID(currentGame), { first: true, stretchShare: 0 }), { grade: Store.grade(current) }) : Store.level(current, DATA_ID(currentGame));
     $('#bandBox').hidden = $('#starsBox').hidden = !!g.graded; // a game that plays by grade has no grade or "how tricky" pickers: the player's grade is the only setting
     const own = Store.hasOwnLevel(current, DATA_ID(currentGame), 'band');
     $('#bandHelp').textContent = own ? 'Set just for ' + GAMES[currentGame].name + '. Your default grade (' + Grades.label(Store.grade(current)) + ') is unchanged.' : 'Using your default grade. Pick another here to change only this game.';
@@ -282,7 +283,7 @@
     $('#setupIco').innerHTML = g.ico.includes('/') ? '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">' : g.ico;
     $('#setupTitle').textContent = g.name;
     document.querySelectorAll('#setup .crumb.cur').forEach((c) => (c.textContent = g.name));
-    $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('');
+    $('#setupHow').innerHTML = g.how.map((t) => '<li>' + t + '</li>').join('') + (g.graded ? '<li>It plays at your grade. Now and then you get a <b>bonus challenge</b> from the next grade up; those are extra tough, so they go easy on your stars.</li>' : '');
     $('#extras').hidden = !g.extras;
     $('#questArtBox').hidden = currentGame !== 'quest';
     chips($('#setQuestArt'), Object.keys(Art.THEMES).map((k) => [k, (k === 'cute' ? '🐰 ' : '🗡️ ') + Art.THEMES[k].name]), Art.themeId(current), (v) => { Store.setSettings(current, { questArt: v }); $('#questArtHelp').textContent = Art.THEMES[v].blurb + ' Only changes the pictures. The game stays the same.'; save(); });

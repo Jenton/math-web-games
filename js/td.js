@@ -45,9 +45,10 @@
 
   function nextWave(fresh) {
     stopTimer();
-    const st = Store.level(ctx.profile, 'td');
+    const st = fresh ? Store.cell(ctx.profile, 'td', { first: S.n === 0 }) : null; // a new wave: the player's grade on the difficulty ladder, sometimes a stretch (bonus) wave
     if (fresh) {
       S.n++;
+      S.bonus = st.stretch;
       S.wave = TDL.makeWave(st.band, st.stars);
       S.tries = 0;
     }
@@ -55,7 +56,7 @@
     S.sel = null;
     S.lift = null; // a placed tower picked up to move or remove
     S.running = false;
-    $('tdNo').textContent = 'Wave ' + S.n + ' of ' + ROUND;
+    $('tdNo').textContent = 'Wave ' + S.n + ' of ' + ROUND + (S.bonus ? ' · Bonus challenge' : '');
     $('tdSpeed').textContent = S.fast ? '⏩ Fast' : '▶ Normal';
     buildLane();
     buildShop();
@@ -253,6 +254,7 @@
     if (S.running) return;
     S.running = true;
     S.res = TDL.simulate(S.wave, S.place);
+    if (S.bonus && S.res.won) S.res.stars = Math.max(2, S.res.stars); // a bonus (stretch) wave that is held always earns at least two stars
     S.t = 0;
     S.enemyEls.forEach(({ e, chip }) => { e.hidden = true; e.className = 'td-enemy'; chip.className = 'td-chip'; });
     render();
