@@ -158,7 +158,7 @@
 
   function downloadCode() {
     const noun = syncer.getKind() === 'password' ? 'password' : 'code';
-    const text = 'Math Quest family ' + noun + '\n\n' + (syncer.getCode() || '') + '\n\nType this ' + noun + ' on each device to share the same players and progress (Home screen > Sync between devices > Add this device).\nAnyone with this ' + noun + ' can see and change your kids\' progress. Keep it private.\n';
+    const text = 'Puzzle Lab family ' + noun + '\n\n' + (syncer.getCode() || '') + '\n\nType this ' + noun + ' on each device to share the same players and progress (Home screen > Sync between devices > Add this device).\nAnyone with this ' + noun + ' can see and change your kids\' progress. Keep it private.\n';
     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
     const a = document.createElement('a');
     a.href = url;

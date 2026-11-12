@@ -1,4 +1,4 @@
-# Math Quest: instructions for Claude
+# Puzzle Lab: instructions for Claude
 
 Puzzle-first math games for two children (an older one and a younger one who is just learning to read), K-6. Static site, plain HTML/CSS/JS, no build step, no framework.
 The math *is* the gameplay. Live at https://math-quest-family.web.app (Firebase project `math-quest-family`).
