@@ -24,15 +24,23 @@ async function open(browser, vp, band, name) {
   await page.waitForSelector('#menu:not([hidden])');
   return { ctx, page };
 }
-// difficulty now comes from the player's grade. "stars" 1, 2, 3 stand for three DISTINCT ladder rungs around the profile's starting band, and every fight is on-grade (no random bonus fights)
-const GRADES_FOR = { 'K-1': [0, 1, 2], '2-3': [1, 2, 3], '4-5': [3, 4, 5], '6': [5, 6, 7] };
-const setStars = (page, stars) => page.evaluate(([s, table]) => {
+// difficulty now comes from the player's grade. These tests assert star-specific rules (group sizes, wind-up), so "stars" = the grade whose real ladder cell has that many
+// stars and sits nearest the profile's starting band; every fight is on-grade (no random bonus fights)
+const setStars = (page, stars) => page.evaluate((s) => {
   const p = Store.profiles[0];
-  const base = p.name.replace('Kid ', ''); // these tests name the profile 'Kid <starting band>'
-  Store.setGrade(p, table[base][s - 1]);
+  const bands = ['K-1', '2-3', '4-5', '6'];
+  const base = bands.indexOf(p.name.replace('Kid ', '')); // these tests name the profile 'Kid <starting band>'
+  let best = null;
+  for (let g = 0; g <= 7; g++) {
+    const c = Grades.cell(g, { stretchShare: 0 });
+    if (c.stars !== s) continue;
+    const d = Math.abs(bands.indexOf(c.band) - base);
+    if (!best || d < best.d) best = { g, d };
+  }
+  Store.setGrade(p, best.g);
   Grades.config.stretchShare = 0;
   Store.save();
-}, [stars, GRADES_FOR]);
+}, stars);
 const toQuest = async (page, stars = 2) => {
   await setStars(page, stars);
   await page.click('[data-game=quest]');
