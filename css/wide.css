@@ -66,7 +66,7 @@ main { max-width: 1160px; }
 /* Laptop-height windows: trim the space around the game so even a wider fallback font (some Linux/Android systems) still fits without scrolling */
 @media (min-width: 720px) and (max-height: 900px) {
   main { padding-top: 8px; padding-bottom: 16px; }
-  .screen.has-split > .hud { margin-bottom: 6px; }
+  .screen.has-split > .hud { margin-bottom: 12px; } /* spacing.browser.js needs at least 12 px under the back row */
   .screen.has-split nav.crumbs .crumb { min-height: 32px; padding-top: 2px; padding-bottom: 2px; }
   .split .esc-title { font-size: .95rem; }
   .split .esc-prompt { margin-bottom: 4px; font-size: .95rem; }
