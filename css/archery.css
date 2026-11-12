@@ -50,7 +50,7 @@
 .ar-mark { width: 24px; height: 24px; margin: -12px 0 0 -12px; border: 3px solid #ff7a00; border-radius: 50%; box-shadow: 0 0 0 2px #fff, inset 0 0 0 2px #fff; pointer-events: none; z-index: 8; }
 .ar-mark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #ff7a00; }
 .ar-mark[hidden] { display: none; }
-.ar-arrow { left: 0; top: 0; width: 46px; height: 8px; transform-origin: 100% 50%; pointer-events: none; z-index: 8; will-change: transform; }
+.ar-arrow { position: absolute; left: 0; top: 0; width: 46px; height: 8px; transform-origin: 100% 50%; pointer-events: none; z-index: 8; will-change: transform; }
 .ar-arrow svg { display: block; }
 .ar-arrow.miss { opacity: .9; }
 .ar-target { transform: translateX(-50%); pointer-events: none; z-index: 3; }
