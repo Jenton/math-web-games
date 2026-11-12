@@ -114,6 +114,39 @@ Ladder (index to cell): 0 K-1/1, 1 K-1/2, 2 K-1/3, 3 2-3/1, 4 2-3/2, 5 2-3/3, 6 
 7. *Tests that loop over (band, stars)* stay valid because the generators are unchanged; new tests cover the adapter and each game's bonus rule.
 8. *Risk of shipping a half-migrated state* is gone only when all ten are done; each game is migrated and tested on its own commit, so the branch is never in a worse state than main.
 
+### Phase 1b built (12 Nov 2026): all eleven games play by grade
+`Grades.cell` and `Store.cell` (tested in `tests/grades.test.js`) are in; every game's setup screen now has no grade or "how tricky" picker (those per-game overrides are ignored, and the saved values are left alone). Per-game bonus rules as built:
+
+| Game | A bonus (stretch) item is | What it changes |
+|---|---|---|
+| Arrow Range | a shot or the board | misses and hints on it are free (`S.free`) |
+| Number Line Runner | a whole run | splashes and hints free |
+| Escape Room | a whole room | wrong tries and hints free |
+| Machine Builder | a puzzle | at least two stars |
+| Sort & Rule | a puzzle | at least two stars |
+| Cut & Share | a puzzle | at least two stars |
+| Balance | a puzzle | none (Balance has no stars): it is just a harder puzzle, labelled |
+| Number Defense | a wave | a held wave earns at least two stars |
+| Lemonade Stand | a day | a day can still be "perfect" with one slip |
+| Munchers | a level | one extra heart (4 instead of 3). The old "Try harder" button is removed: the grade does that job now |
+| Creature Quest | a map fight (and puzzle spots) | already free to lose (a lost fight costs nothing); the Quick adventure plan and the findable friends use the player's own grade and never a stretch |
+
+Result screens say so when a bonus item made a miss free (they never claim "no slips" when there were free ones).
+
+**Content-gap audit against the grade 3 standards (what a 3rd grader now meets at rung 2-3/3 with 4-5/1 as the stretch).** From each game's own band descriptions in `js/app.js`; not playtested, so treat "fits" as "plausible on paper":
+| Game | Fit for grade 3 | Gap to close later |
+|---|---|---|
+| Arrow Range | built per grade (see above) | none for grades K to 6; grades 7 and 8 need slope and distance shots |
+| Number Line Runner | **weak** | fractions on a number line (3.NF.A.2) appear only in the 4-5/1 stretch; no rounding (3.NBT.A.1), no tens-times (3.NBT.A.3), no products as notes. Next candidate: give it grade-specific rulers like Arrow Range (it shares the tables) |
+| Cut & Share | fits | caps at 8 friends, which matches grade 3's fraction limit (denominators 2, 3, 4, 6, 8) |
+| Creature Quest | fits | skip counting, rounding and simple-fraction armor are already in its 2-3 band |
+| Number Defense, Sort & Rule | fits for multiples | multiples of 2, 3, 4, 5, 10; no explicit "products from memory" (3.OA.C.7) |
+| Machine Builder | fits for add, subtract, times | division only from 4-5 |
+| Munchers | partly | sums to 50 and mystery blocks; no times-table fluency rule |
+| Lemonade Stand | partly | change and pitcher counts; no multiplication word problems framed as 3.OA.A.3 |
+| Escape Room | fits | skip-counting and doubling patterns |
+K, 1 and 2 were not audited for any game; Munchers and Quest have the most content to check there.
+
 ### Order of work
 1. **Phase 1a (pilot): built, see above.**
 2. **Phase 1b:** audit each game against the standards table, then migrate one at a time (Runner shares Arrow Range's number-line tables, so it goes next). Each migration is its own PR, so nothing breaks at once.
