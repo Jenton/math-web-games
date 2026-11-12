@@ -70,6 +70,7 @@ Everything below is open. State of play: v2 rules, sprites in two themes, the wo
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
 - [x] Number Line Runner (`js/runlogic.js` + `tests/runner.test.js`, `js/runner.js`, `css/runner.css`, `tests/browser/runner.browser.js`): rope-over-a-river number line, aim at a tick and jump, four flags per run, hops and landings, all four bands. Not built: collectibles, a scrolling longer world, number-line estimation without ticks, two-player.
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
+- [ ] **Arrow Range** (archery, a sibling of Number Line Runner; an idea from the older child, Nov 2026): aim an arrow at a hidden target a number of units away, then add height (coordinates, height differences, slope) and wind (signed numbers). Design plan is in "Arrow Range: design plan" below; no code yet
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
@@ -401,6 +402,105 @@ The v2 decisions above are implemented except for art and the world map. What ex
   more allies beyond the 22, Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
 ---
+
+## Arrow Range: design plan (archery game, idea from the older child, Nov 2026)
+
+Status: **plan only, nothing built.** The older child liked Number Line Runner and asked for an archery version: shoot an arrow a certain
+distance, tied to the math already in the game, and maybe add height. This section is the proposal for the owner to react to before any code.
+
+### Pitch
+You are an archer at a misty range. A scout's note says where the target is ("It is 3/4 of the way down the field", "7 × 8 m away",
+"4 m further than your last arrow"). The target is hidden in the mist, so you work out the number, set the bow to that spot on a ruler,
+and loose the arrow. The mist then clears: a hit shows the arithmetic that made it right, a miss shows exactly how many ticks short or long.
+
+It is the Runner's number-line skill (read ticks, place fractions, decimals and negatives, hop by a distance) in a theme the kids asked for,
+and then it grows a **second axis for height**, which the Runner does not have.
+
+### Why a new game and not a Runner mode
+Runner is one horizontal line. Archery has a natural second line (up), wind, scoring rings and a bow, so it needs its own screen and scene.
+The **logic** can still borrow from `js/runlogic.js` (`lineFor`, `fmtValue`, `writeValue`, the tick and hop checking) so fractions, decimals,
+percents and negatives are not written twice. Build `js/archerylogic.js` (DOM-free, `tests/archery.test.js`) that calls those helpers, and
+leave the merged Runner alone.
+
+### Could a kid play well without the math? (rule 1)
+Not if these hold. The target is **never drawn at its real spot before the shot** (it sits in mist, like the Runner's unmarked landing
+tick), so you cannot aim by eye. The ruler is labeled sparsely (whole numbers, or every 5th tick), so you must count ticks or place a
+fraction. Arrows are limited (3 stars = at most one wasted arrow, like the Runner's slips), and a miss costs one. The note often gives the
+distance in a different form from the ruler (a fraction note on a decimal ruler, an expression like 6 × 7, a percent). So trial and error
+is expensive, and reading the note correctly is the game.
+
+### The height idea (the owner's son's suggestion), three honest ways to do it
+Real arrow flight needs physics, which is not the math here. These versions keep the math and drop gravity ("magic arrows fly straight").
+Each one maps to a grade band, so the height grows up with the player.
+
+1. **Two rulers: across and up (coordinates).** The target is on a hill, a tree or a tower. You set two numbers: how far across and how high.
+   The field gets a vertical ruler on the left edge, and the target's spot is a point (across, up). K-1 counts squares ("4 across, 3 up");
+   2-3 skip-counts the scale (each square is 5 m); 4-5 uses fractions and decimals on both axes; 6 uses all four quadrants.
+2. **Height differences (subtraction, negatives).** The archer stands on a platform at height 12. The note says the target is at height 5, or
+   "8 m below you". You have to work out how far to aim up or down, so it is "how much lower is 5 than 12?" and later "−3 m is a well below ground
+   level 0". Natural home for negative numbers and comparing, which the Runner only touches on a flat line.
+3. **Sight line = slope (grade 6 and strong 5).** Instead of picking a height, you pick the *steepness* of the shot: "up 2 for every 5 across".
+   The arrow's sight line is a straight line from the bow, so hitting a target at (10, 4) needs the slope 4/10 = 2/5. This is unit rate and
+   proportional reasoning, and a wrong slope is explained on the grid (the arrow passes at height 5 at distance 10, one square too high).
+   Shown as a faint ruler-line from the bow; the player picks the rise and run from steppers, the line previews only after Loose.
+
+Recommendation: ship 1 and 2 first (they reuse the tick-tap input), and treat 3 as the grade 6 headliner after a playtest.
+
+### Archery-only mechanics that add fun and are real math
+- **Wind (signed numbers).** A flag shows the wind ("+3" pushes the arrow 3 right, "−2" pushes it 2 left). You aim to the target *minus* the wind. K-1
+  is only a calm day (no wind); 2-3 whole-number wind; 4-5 fraction or decimal wind; 6 negative wind and "wind then height" chains. The explanation on a miss
+  shows target − wind = where to aim.
+- **Scoring rings (sum to a target).** A target board with rings worth different amounts. The challenge: "score exactly 25 with 3 arrows". You pick the
+  rings, so this is Munchers-style sums with a bow, and it scales up (rings worth 0.5 and 0.25; rings worth 1/2, 1/4; total 25 with negatives for a penalty ring).
+  Each arrow's landing spot is fixed by the ring you choose, so it is a planning puzzle first and a shot second.
+- **Chain shots (hops).** "Shoot 1/2 further than your last arrow." Reuses the Runner's hop kind: from where the last arrow stuck, count the new distance.
+- **Moving target (patterns).** The target slides 2 squares each turn. "Where will it be after 3 turns?" is a pattern and multiplication; aim at where it
+  will be, not where it is. Only at 2 and 3 stars, and with no timer (it moves by turn, not by clock).
+- **Bow upgrades by stars, never by points.** A longer bow or a golden arrow unlocks from perfect rounds and only changes the look (rule 6, cosmetic).
+
+### How a round plays
+1. The scout's note appears (and can be read aloud, for the younger player). Wind flag and ruler(s) are visible; the target is in the mist.
+2. Tap a tick on the distance ruler (and, in height modes, on the height ruler). The bow turns to match, the aim shows as a number label.
+3. Press **Loose**. The arrow flies (a straight line, or a gentle arc that is purely visual and always ends exactly on the chosen spot).
+4. Mist clears. Hit: a short line with the arithmetic ("3/4 of 8 = 6 ✓"). Miss: the arrow sticks where it landed, the target shows where it was,
+   and the message counts ticks off and gives the arithmetic. Try again with the arrows you have left, then the next target.
+5. A round is four targets (matching the Runner's four flags). Stars come from wasted arrows. No timers.
+
+### Scaling (every band, 1-3 stars)
+| Band | 1 star | 2 stars | 3 stars |
+|---|---|---|---|
+| K-1 | Distance only, ruler 0-10, count ticks, calm day | Ruler 0-20, labeled every 5; height by counting squares (up to 5) | Across and up on a 10 x 10 grid; wind of 1 or 2 squares; ring sums to 10 |
+| 2-3 | Ruler 0-100 by tens | By fives; height differences within 100; whole-number wind | Notes as multiplication (6 × 7); coordinates with a scale of 5 or 10; ring sums to 50 or 100 |
+| 4-5 | Fourths of the field (0 to 2) | Eighths or tenths; decimal and fraction heights; wind in tenths | Mixed numbers and decimals; coordinate pairs in quadrant 1 with fraction units; height differences with decimals; ring sums with halves |
+| 6 | Integers −5 to 5 on both rulers | Halves; negative heights (a well, a valley); negative wind | Quarters, percents ("80% of the way"); four-quadrant coordinates; slope as rise over run |
+
+### Wrong answers explain themselves (rule 2)
+Always counted and shown with arithmetic, in the Runner's style: "You aimed at 5. The target was 3/4 of 8 = 6, which is 1 tick (1 m) further."
+Height misses name the axis ("Right distance, 2 squares too low: the target is at 7 up, you aimed at 5"). Wind misses show target − wind.
+A hint button counts from a known tick (as the Runner does), and a second press names the starting tick.
+
+### Build plan (each stage playtestable)
+1. **Stage 1, flat range:** `js/archerylogic.js` + `tests/archery.test.js` (every target equals its tick, every wrong tick is explained, all four bands and
+   three stars), `js/archery.js` screen, `css/archery.css`, scene brief in `docs/scene-briefs.md`, registry entries (`GAMES`, `SCREEN_OF`, `index.html`). Distance and
+   hops only, plus the wind flag. This alone is the "Runner with a bow" the kids asked for.
+2. **Stage 2, height:** vertical ruler, coordinate targets, height differences and negative heights. Phone layout check at 375 px (two rulers have to stay thumb-sized).
+3. **Stage 3, scoring rings and slope:** the sum-to-total board and the grade 6 slope shot.
+4. **Stage 4, extras:** moving targets, bow cosmetics from perfect rounds, a two-player "closest to the note" mode (handicapped by band), and a region on the Quest world map.
+
+Saving follows the usual rules (hard rule 3): `profile.games.archery` holds counters (rounds played, perfect rounds, best stars per band as a max) with a
+`Save.registerGame` merge rule and a `tests/save.test.js` case; nothing defaulted is saved as a choice. Skill ids for the grown-ups stats: `archery-distance`,
+`archery-height`, `archery-wind`, `archery-score`. Sound only through `js/sfx.js`: fixed bow-twang, hit and miss sounds, and the result sound must not be masked by the flight sound.
+Motion: follow `docs/animation-guide.md`; the arrow flight is skipped to a quick fade under Reduce motion.
+
+### Art
+Check `docs/art-shortlist.md` before drawing anything; a quick search of the shortlist docs found no archery-specific Kenney pack (the bundle itself was not searched), so the bow, arrow, target and flag may have to be
+small original SVG or CSS shapes, with Kenney tiles or UI pieces for the ground, trees and tower (CC0, recorded in `assets/CREDITS.md`). Original characters only.
+
+### Open questions for the owner
+- Should the field be a **side view** (clear height, like a castle wall and a tree) or a **top-down view** with height on a separate meter? Side view is recommended: it makes the height ruler obvious.
+- Is a straight "magic arrow" fine, or does the older child want a visible arc? The recommendation is a visual arc with the math unchanged.
+- Start with Stage 1 (flat) as its own game, or hold it until Stage 2 so the first release already has the height idea? Recommendation: Stage 1 and 2 together, since height is the new part.
+- Do you want the scoring-rings puzzle in the first release, or keep it for later?
 
 ## Later
 
