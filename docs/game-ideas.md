@@ -534,6 +534,26 @@ so compare them side by side before the PR.
 Check the network tab for 404s when it is wired in (a missing image silently falls back to emoji).
 **As built:** `sky.png` is not used, because it has a baked-in green ground and trees; the sky is a CSS gradient, the ground is CSS (green, or an earth cutaway for grade 6's below-ground heights), and `hills`, `hillsLarge` and the cloud files make the haze and mist. `groundLayer1.png` is also unused (it is a pale haze layer, not grass). The wall for height shots is `castleWall.png` as a cap on a CSS brick body. The archer faces the viewer in every pose; the bow and arrow are inline SVG in `js/archery.js`. The mist is `cloudLayer1`/`cloud1`/`cloud2` over a white gradient.
 
+### Design review: is it fair, fun and educational? (12 Nov 2026, after the first phone screenshot)
+Written by the same chat that built it, so treat it as a checklist for the playtest, not a verdict. The measured parts came from a simulation (`archerylogic.js`, 2,000 rounds per band and star level).
+
+**Fair.**
+- *Can the math be skipped?* A player who ignores the numbers, aims at random and then follows the miss message ("2 ticks further") reaches the end of every round but earns **one star about 97% of the time and three stars never** (slips counted across the four shots and the board). So stars do reward understanding. It is not a game you can fail, which matches the Runner.
+- *Trade-off we accept for now:* the miss message gives the exact tick gap, so the second try is nearly free. It is the "wrong answers explain themselves" rule working as designed. If playtests show kids chasing the message instead of thinking, the fix is to give direction only after the first miss and the count after the second.
+- *Fixed after the first phone screenshot:* the automatic hint after two misses charged a second slip (it no longer does); height differences were sometimes huge (50 stand, 45 below). At 1-2 stars the target is now at most 4 ticks from the platform; all differences are allowed at 3 stars.
+
+**Educational.** Strongest: **wind** (aim = target minus wind, signs and direction), **platform-relative height** (subtraction and negatives from a reference point, grade 6 below ground), **coordinates**, and the **scoring board** (exact sums, fractions, decimals, a penalty ring). Weakest: plain **distance** shots at K-1 and 2-3 one star are "find 7 on a ruler", the same skill as Number Line Runner. The mist hides the target, but at those levels it adds drama, not math. That is acceptable for the youngest band; if the older child finds those shots dull, drop plain distance from 2-3 two stars and up (it is only in `poolFor`).
+
+**Fun (the honest answer).** The aiming is tapping a tick, so there is no physical archery skill; the fun has to come from the scene, the arc, the reveal and the wind. Risk: it feels like a re-skin of the Runner with a bow. Things that would add fun without breaking the math rules, none built:
+- keep revealed targets as a row of trophies so a finished round looks like a score card;
+- a streak that unlocks bow and arrow looks (cosmetic only, from perfect rounds, never sold as advantage);
+- visible wind streaks that match the flag;
+- a "moving target" shot (the plan's pattern idea) for 3 stars;
+- two-player "closest to the note".
+Ask both kids after one session: "Did it feel like a different game from the Runner?" and "Which shots did you want to skip?"
+
+**Bugs found by looking at a real phone screenshot, now fixed:** the archer was cut off when the platform sat at the top of the ruler (46% of height-difference shots); the mist hid the wall, so arrows seemed to fly at nothing (the wall now stands in front of the mist); nothing said to tap the height ruler (every note now says what to tap and where, and the readout says "Tap the height ruler on the left to aim" before any aim).
+
 ### Open questions for the owner
 Answered 12 Nov 2026: side view, visual arc, Stages 1 and 2 together, scoring rings included. Still open:
 - Art family: **smooth vector chosen** after the art search (see "Art"); the owner can still overrule it.

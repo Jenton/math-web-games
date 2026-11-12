@@ -34,7 +34,7 @@ const NEEDS_X = ['dist', 'hop', 'wind', 'coord'];
     const hasY = !!round.yLine;
     const X0 = hasY ? 22 : 12;
     const xOf = (k) => X0 + (k / (round.ticksX - 1)) * (94 - X0);
-    const YTOP = 8;
+    const YTOP = 10;
     const YBOT = hasY && round.yLine.lo >= 0 ? 74 : 90;
     const yOf = (k) => YTOP + (1 - k / (round.ticksY - 1)) * (YBOT - YTOP);
     const tap = async (shot, x, y) => {

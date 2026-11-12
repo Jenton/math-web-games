@@ -128,8 +128,12 @@
       shot.ty = pickTick(yl, 0, NY - 1, (k) => k !== g && (g !== null || k >= 1));
     }
     if (kind === 'lift') {
-      shot.platform = yl.lo >= 0 ? rnd(Math.ceil(NY / 2), NY - 1) : rnd(1, NY - 2);
-      shot.ty = pickTick(yl, 0, NY - 1, (k) => Math.abs(k - shot.platform) >= 2);
+      // the platform stays in the lower 70% of the ruler so the archer standing on it is never cut off at the top of the scene
+      const top = Math.floor(0.7 * (NY - 1));
+      shot.platform = yl.lo >= 0 ? rnd(Math.ceil(0.4 * (NY - 1)), top) : rnd(Math.max(1, Math.floor(0.3 * (NY - 1))), top);
+      // gentler first height differences: at 1-2 stars the target is at most 4 ticks from the platform
+      const maxGap = st >= 3 ? NY : 4;
+      shot.ty = pickTick(yl, 0, NY - 1, (k) => Math.abs(k - shot.platform) >= 2 && Math.abs(k - shot.platform) <= maxGap);
     }
     if (kind === 'height' || kind === 'lift') shot.tower = rnd(Math.ceil(NX / 3), NX - 1);
     if ((X_KINDS.includes(kind) && shot.tx === null) || (Y_KINDS.includes(kind) && shot.ty === null)) return null;
