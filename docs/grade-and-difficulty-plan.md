@@ -133,6 +133,8 @@ Ladder (index to cell): 0 K-1/1, 1 K-1/2, 2 K-1/3, 3 2-3/1, 4 2-3/2, 5 2-3/3, 6 
 
 Result screens say so when a bonus item made a miss free (they never claim "no slips" when there were free ones).
 
+**Found while migrating, fixed:** the first `layout` run after the migration failed because grade 5 players now meet Escape Room's hardest balance locks by default (the old default was star 1): at 4-5/3 and 6/3 the page was 1335 px tall in an iPad portrait window of 1100. Smaller blocks in the side-by-side layout (`css/wide.css`) fixed it. `tests/browser/bonus.browser.js` forces a bonus item at the start of every graded game at grades 0, 3, 6, 7 and 8, since a normal first item is never a bonus and would hide a broken bonus path. Dead code left for a later cleanup: the per-game grade and "how tricky" pickers in `js/app.js` (`optCards` for `#setBand` and `#setStars`, the `band` and `stars` blurbs in `GAMES`) are no longer reachable.
+
 **Content-gap audit against the grade 3 standards (what a 3rd grader now meets at rung 2-3/3 with 4-5/1 as the stretch).** From each game's own band descriptions in `js/app.js`; not playtested, so treat "fits" as "plausible on paper":
 | Game | Fit for grade 3 | Gap to close later |
 |---|---|---|

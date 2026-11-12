@@ -70,7 +70,10 @@ node tests/runner.test.js     # verifies every Number Line Runner target equals 
 node tests/archery.test.js    # verifies every Arrow Range note equals its target for grades K to 8 (fractions, products, rounding, percent of), wind and height arithmetic, the stretch rules, the scoring board is solvable and the arc ends on target
 node tests/grades.test.js     # verifies the grade labels, the old-band mapping and the on-grade / stretch pick
 node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
-node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
+node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room, Cut & Share and Arrow Range, and the keyboard hints
+node tests/browser/grades.browser.js     # (Playwright) the grade is chosen at creation, asked once for old profiles, changed in the player menu
+node tests/browser/levels.browser.js     # (Playwright) the grade is the only difficulty setting: every game follows it, old per-game overrides are ignored, no pickers
+node tests/browser/bonus.browser.js      # (Playwright) every graded game starts on a forced bonus item without errors, at grades 0, 3, 6, 7 and 8
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
