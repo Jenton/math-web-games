@@ -71,6 +71,7 @@ node tests/archery.test.js    # verifies every Arrow Range note equals its targe
 node tests/grades.test.js     # verifies the grade labels, the old-band mapping and the on-grade / stretch pick
 node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
+node tests/browser/profile-settings.browser.js # (Playwright) rename a player, change their buddy and default grade, delete them
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress

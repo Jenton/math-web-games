@@ -121,7 +121,7 @@
     cellEls = S.cells.map((cell, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'cell' + (cell.label.length > 5 ? ' long' : '');
+      b.className = 'cell' + (cell.label.length > 3 ? ' long' : '');
       b.setAttribute('aria-label', cell.label);
       b.dataset.i = i;
       b.innerHTML = '<span class="lbl"></span>';
