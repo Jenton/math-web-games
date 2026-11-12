@@ -362,6 +362,7 @@
       openMenu(p.id);
     });
     $('#npCancel').addEventListener('click', () => $('#newPlayer').close());
+    $('#gaLater').addEventListener('click', () => $('#gradeAsk').close()); // "Not now": nothing is saved
     buildCrumbs();
     $('#menuBack').addEventListener('click', renderHome);
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
