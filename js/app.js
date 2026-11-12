@@ -95,7 +95,7 @@
   let chosenAvatar = AVATARS[0];
 
   function show(id) {
-    ['home', 'menu', 'setup', 'game', 'balance', 'escape', 'runner', 'archery', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
+    ['home', 'menu', 'settings', 'setup', 'game', 'balance', 'escape', 'runner', 'archery', 'td', 'machine', 'lemonade', 'sort', 'share', 'quest'].forEach((s) => ($('#' + s).hidden = s !== id));
     window.scrollTo(0, 0);
   }
 
@@ -217,9 +217,18 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    show('menu');
+    if (!Store.gradeKnown(current) && !askedGrade.has(current.id)) askGrade();
+  }
+
+  /** The player's settings page: name, buddy, grade, motion and the grown-ups panel. Opened from the gear in the menu header; "Games" in the crumbs goes back. */
+  function openSettings() {
+    if (!current) return renderHome();
+    applyTheme(current);
+    $('#settingsAv').textContent = current.avatar;
     const nameIn = $('#setName');
     nameIn.value = current.name;
-    const paintWho = () => { $('#menuAv').textContent = current.avatar; $('#menuName').textContent = current.name; };
+    const paintWho = () => { $('#settingsAv').textContent = current.avatar; };
     nameIn.onchange = () => { Store.setMeta(current, { name: nameIn.value }); nameIn.value = current.name; Store.save(); paintWho(); };
     chips($('#setAvatar'), AVATARS.map((a) => [a, a]), current.avatar, (v) => { Store.setMeta(current, { avatar: v }); Store.save(); paintWho(); });
     chips($('#setDefaultBand'), Grades.options(), Store.gradeKnown(current) ? Store.grade(current) : null, (v) => { Store.setGrade(current, v); Store.save(); });
@@ -236,8 +245,7 @@
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);
     $('#levelsCleared').textContent = count('munchers', 'levels') + ' Munchers levels, ' + count('balance', 'levels') + ' Balance puzzles, ' + count('machine', 'levels') + ' Machine puzzles solved, ' + count('lemonade', 'days') + ' Lemonade days run, ' + count('td', 'waves') + ' Defense waves held, ' + count('escape', 'rooms') + ' Escape Rooms cleared, ' + count('runner', 'runs') + ' Number Line runs, ' + count('archery', 'rounds') + ' Arrow Range rounds, ' + count('rpg', 'wins') + ' Quest battles won, ' + count('sort', 'levels') + ' Sort & Rule and ' + count('share', 'levels') + ' Cut & Share puzzles solved';
-    show('menu');
-    if (!Store.gradeKnown(current) && !askedGrade.has(current.id)) askGrade();
+    show('settings');
   }
 
   /** A profile with no saved grade (made before grades existed) is asked once per visit; "Not now" saves nothing (a guess is never saved as a choice). */
@@ -325,6 +333,7 @@
         return el;
       };
       if (level === 'menu') { add('Players', { id: back }); add('Games', { cur: true }); }
+      else if (level === 'settings') { add('Players', { go: 'home' }); add('Games', { go: 'menu' }); add('Settings', { cur: true }); }
       else if (level === 'setup') { add('Players', { go: 'home' }); add('Games', { id: back }); nav.curEl = add('', { cur: true }); }
       else { add('Players', { go: 'home' }); add('Games', { go: 'menu' }); add(GAME_NAME(nav.dataset.game), { id: back }); }
     });
@@ -371,6 +380,7 @@
     $('#gaLater').addEventListener('click', () => $('#gradeAsk').close()); // "Not now": nothing is saved
     buildCrumbs();
     $('#menuBack').addEventListener('click', renderHome);
+    $('#openSettings').addEventListener('click', () => openSettings());
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
     $('#playNow').addEventListener('click', playGame);
     $('#bandReset').addEventListener('click', () => { Store.setLevel(current, DATA_ID(currentGame), { band: null }); Store.save(); openSetup(currentGame); });

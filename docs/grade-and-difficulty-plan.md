@@ -9,7 +9,7 @@ Status: **Phase 1a in progress** (12 Nov 2026): plan, adversarial review and dec
 
 ## Decisions (owner, 12 Nov 2026)
 - **State:** California, so CCSS-M is the reference.
-- **Who picks the grade:** set when a player profile is created; changeable later in the player's settings.
+- **Who picks the grade:** set when a player profile is created; changeable later on the settings page (a gear in the menu header).
 - **Range:** support grades **K to 8 now**. Grades 9 to 12 are not promised: the games cannot generate that content yet (see the review). The picker stops at 8; each game states the highest grade it really has content for and clamps there.
 - **Stretch misses:** a miss (or hint) on a stretch item costs no star.
 
@@ -67,7 +67,7 @@ Added after a second read (K, 1, 7 and 8 pages; short quotes, same unofficial so
 
 **One choke point makes this cheap.** Every game reads its difficulty through `Store.level(profile, gameId)` (`js/storage.js`), which returns `{ band, stars, ... }`. Phase 1 changes that function, so games migrate one at a time, and an unmigrated game keeps working.
 
-- **The setting:** `profile.settings.grade` in `K, 1, 2, 3, 4, 5, 6`, set by the player or a grown-up (one place: the player menu and "For grown-ups"). The per-game grade and challenge pickers (PR #46) go away once every game is migrated; the setup screen then only shows the how-to and a Play button.
+- **The setting:** `profile.settings.grade` in `K, 1, 2, 3, 4, 5, 6`, set by the player or a grown-up (one place: the settings page, behind the gear in the menu header). The per-game grade and challenge pickers (PR #46) go away once every game is migrated; the setup screen then only shows the how-to and a Play button.
 - **The skew:** each puzzle is drawn from the player's grade with about 70% probability and from the next grade up with about 30%. The first item of a round is always on-grade (a warm-up). Open: grade 6 players have no grade 7 content (see questions).
 - **Stars stop being a difficulty choice.** They stay as the medal you earn (fewer slips = more stars), which already is what they are on the result screen. Today stars are both an input and an output, which is the confusing part.
 - **Fairness of the stretch:** a miss on a stretch (grade + 1) item should not cost a star, only a miss on an on-grade item. Open question, see below.
@@ -90,7 +90,7 @@ Then plain "shoot to N" drops out of grade 3 and up, where it is a grade 2 skill
 ### What Phase 1a built (12 Nov 2026)
 - `js/grades.js` + `tests/grades.test.js`: grade list K to 8 (stored 0 to 12), labels, the old-band mapping both ways, and `pickItem` (first item on-grade, 30% stretch, no stretch at a game's top grade).
 - `Store.grade(profile)`, `Store.gradeKnown(profile)`, `Store.setGrade(profile, g)` (also rewrites `settings.band`), and `Store.level` now also returns `grade`. `Save.newProfile` accepts a chosen grade and never defaults one; `tests/save.test.js` covers store, drop-invalid, last-write-wins merge and the old-device fallback.
-- The new-player form asks for a grade; the player menu's "Grade" chips change it; a profile with no saved grade is asked once ("What grade is <name> in?"; "Not now" saves nothing).
+- The new-player form asks for a grade; the "Grade" chips on the settings page (a gear in the menu header opens it) change it; a profile with no saved grade is asked once ("What grade is <name> in?"; "Not now" saves nothing).
 - **Arrow Range is the first graded game** (`graded: true` in `js/app.js`): its setup screen has no grade or "how tricky" pickers. `ARCH.makeRound(grade, { stretchShare })` builds a round from a per-grade spec; grade 3 rotates through fractions (denominators 2, 3, 4, 6, 8), products, tens-times, and rounding to ten and hundred. Items are tagged with standards codes (`shot.tags`).
 - Stretch items show "Bonus challenge" and never cost a slip or a hint's slip; `tests/browser/archery.browser.js` checks that a round of all bonus challenges can still end "Perfect round".
 - Grades 7 and 8 in Arrow Range are signed fractions, percent-of ("75% of 80") and uncapped height differences. The grade 8 mechanics (slope, 8.EE.B.5; distance by the Pythagorean theorem, 8.G.B.8) are not built yet.

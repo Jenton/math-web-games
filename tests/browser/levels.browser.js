@@ -27,11 +27,13 @@ const { serve } = require('../helpers/static-server.js');
   assert.deepStrictEqual(await cell('balance'), ['2-3', 3], 'the old override is ignored');
   assert.strictEqual(await page.evaluate(() => Store.profiles[0].games.balance.band), 'K-1', 'and not deleted');
 
-  // 3. the player menu changes the grade, and every game follows
+  // 3. the settings page changes the grade, and every game follows
+  await page.click('#openSettings'); await page.waitForSelector('#settings:not([hidden])');
   await page.click('#setDefaultBand .chip:has-text("Kindergarten")');
   for (const g of GAMES) assert.deepStrictEqual(await cell(g), ['K-1', 1], g + ' at kindergarten');
   await page.click('#setDefaultBand .chip:has-text("6th grade")');
   for (const g of GAMES) assert.deepStrictEqual(await cell(g), ['6', 2], g + ' at 6th grade');
+  await page.click('#settings .crumb:has-text("Games")'); await page.waitForSelector('#menu:not([hidden])');
 
   // 4. no game's setup screen has a grade or "how tricky" picker
   for (const g of ['munchers', 'balance', 'machine', 'defense', 'lemonade', 'escape', 'runner', 'archery', 'sort', 'share', 'quest']) {
