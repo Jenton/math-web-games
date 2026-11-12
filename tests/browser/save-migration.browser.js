@@ -25,6 +25,8 @@ const sum = (m) => Object.values(m || {}).reduce((a, b) => a + b, 0);
 async function newPage(browser, seed) {
   const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
+  // old profiles are asked for a grade once per visit; "Not now" saves nothing, so dismiss it whenever it appears
+  await page.addLocatorHandler(page.locator('#gaLater'), (l) => l.click());
   await ctx.addInitScript(() => { window.__questFast = true; }); // skip battle animation delays
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });

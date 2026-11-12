@@ -217,6 +217,11 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    const nameIn = $('#setName');
+    nameIn.value = current.name;
+    const paintWho = () => { $('#menuAv').textContent = current.avatar; $('#menuName').textContent = current.name; };
+    nameIn.onchange = () => { Store.setMeta(current, { name: nameIn.value }); nameIn.value = current.name; Store.save(); paintWho(); };
+    chips($('#setAvatar'), AVATARS.map((a) => [a, a]), current.avatar, (v) => { Store.setMeta(current, { avatar: v }); Store.save(); paintWho(); });
     chips($('#setDefaultBand'), Grades.options(), Store.gradeKnown(current) ? Store.grade(current) : null, (v) => { Store.setGrade(current, v); Store.save(); });
     chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');

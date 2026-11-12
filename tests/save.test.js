@@ -348,5 +348,15 @@ for (let seed = 1; seed <= 200; seed++) {
   assert.strictEqual(Save.sumCounter(local.profiles[0].games.munchers.levels), 8);
 }
 
+{ // renaming a player: the newest rename wins when two devices merge; an empty name is never saved
+  const a = Save.newProfile({ id: 'p', name: 'Kid', avatar: 'x', now: 5 });
+  const b = JSON.parse(JSON.stringify(a));
+  a.name = 'Ada'; a.metaAt = 10;
+  b.name = 'Bea'; b.avatar = 'y'; b.metaAt = 20;
+  const m = Save.mergeProfile(a, b);
+  assert.strictEqual(m.name, 'Bea'); assert.strictEqual(m.avatar, 'y');
+  assert.deepStrictEqual(Save.mergeProfile(b, a).name, 'Bea');
+}
+
 console.log(`OK: migration verified; merge is commutative, associative and idempotent over ${laws} random multi-device histories; ` +
   `no progress lost over 300 more; all devices converge across ${syncs} simulated syncs.`);

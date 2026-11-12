@@ -74,6 +74,7 @@ node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Roo
 node tests/browser/grades.browser.js     # (Playwright) the grade is chosen at creation, asked once for old profiles, changed in the player menu
 node tests/browser/levels.browser.js     # (Playwright) the grade is the only difficulty setting: every game follows it, old per-game overrides are ignored, no pickers
 node tests/browser/bonus.browser.js      # (Playwright) every graded game starts on a forced bonus item without errors, at grades 0, 3, 6, 7 and 8
+node tests/browser/profile-settings.browser.js # (Playwright) rename a player, change their buddy and default grade, delete them
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
