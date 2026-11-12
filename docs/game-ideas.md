@@ -70,6 +70,7 @@ Everything below is open. State of play: v2 rules, sprites in two themes, the wo
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
 - [x] Number Line Runner (`js/runlogic.js` + `tests/runner.test.js`, `js/runner.js`, `css/runner.css`, `tests/browser/runner.browser.js`): rope-over-a-river number line, aim at a tick and jump, four flags per run, hops and landings, all four bands. Not built: collectibles, a scrolling longer world, number-line estimation without ticks, two-player.
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
+- [ ] **Arrow Range** (archery, a sibling of Number Line Runner; an idea from the older child, Nov 2026): aim an arrow at a hidden target a number of units away, then add height (coordinates, height differences, slope) and wind (signed numbers). Design plan is in "Arrow Range: design plan" below. **Playable first version built** (`js/archerylogic.js` + `tests/archery.test.js`, screen `js/archery.js`, `css/archery.css`, `tests/browser/archery.browser.js`, save rule `archery`, menu card, keyboard, Kenney vector art). Not playtested with the kids yet; the screen is built, so what is left is the playtest and the later items (slope shot, moving targets, archer choice, two-player)
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
@@ -402,6 +403,141 @@ The v2 decisions above are implemented except for art and the world map. What ex
   more allies beyond the 22, Spellcraft enemies, Machine Builder bosses, sound. Nothing here has been playtested with the kids yet: expect to retune.
 
 ---
+
+## Arrow Range: design plan (archery game, idea from the older child, Nov 2026)
+
+Status: **plan agreed in outline (owner answers, 12 Nov 2026), nothing built.** The older child liked Number Line Runner and asked for an archery version: shoot an arrow a certain
+distance, tied to the math already in the game, and maybe add height.
+
+**Decisions so far:** side view; the arrow flies in a visual arc (math unchanged, the arc always ends exactly on the chosen spot); the first release is Stages 1 and 2 together (flat range plus height); scoring rings are in the first release too (so Stage 3's rings move into it; the grade 6 slope shot stays later). Art search done: smooth vector family (see "Art").
+
+### Pitch
+You are an archer at a misty range. A scout's note says where the target is ("It is 3/4 of the way down the field", "7 × 8 m away",
+"4 m further than your last arrow"). The target is hidden in the mist, so you work out the number, set the bow to that spot on a ruler,
+and loose the arrow. The mist then clears: a hit shows the arithmetic that made it right, a miss shows exactly how many ticks short or long.
+
+It is the Runner's number-line skill (read ticks, place fractions, decimals and negatives, hop by a distance) in a theme the kids asked for,
+and then it grows a **second axis for height**, which the Runner does not have.
+
+### Why a new game and not a Runner mode
+Runner is one horizontal line. Archery has a natural second line (up), wind, scoring rings and a bow, so it needs its own screen and scene.
+The **logic** can still borrow from `js/runlogic.js` (`lineFor`, `fmtValue`, `writeValue`, the tick and hop checking) so fractions, decimals,
+percents and negatives are not written twice. Build `js/archerylogic.js` (DOM-free, `tests/archery.test.js`) that calls those helpers, and
+leave the merged Runner alone.
+
+### Could a kid play well without the math? (rule 1)
+Not if these hold. The target is **never drawn at its real spot before the shot** (it sits in mist, like the Runner's unmarked landing
+tick), so you cannot aim by eye. The ruler is labeled sparsely (whole numbers, or every 5th tick), so you must count ticks or place a
+fraction. Arrows are limited (3 stars = at most one wasted arrow, like the Runner's slips), and a miss costs one. The note often gives the
+distance in a different form from the ruler (a fraction note on a decimal ruler, an expression like 6 × 7, a percent). So trial and error
+is expensive, and reading the note correctly is the game.
+
+### The height idea (the owner's son's suggestion), three honest ways to do it
+Real arrow flight needs physics, which is not the math here. These versions keep the math and drop gravity ("magic arrows fly straight").
+Each one maps to a grade band, so the height grows up with the player.
+
+1. **Two rulers: across and up (coordinates).** The target is on a hill, a tree or a tower. You set two numbers: how far across and how high.
+   The field gets a vertical ruler on the left edge, and the target's spot is a point (across, up). K-1 counts squares ("4 across, 3 up");
+   2-3 skip-counts the scale (each square is 5 m); 4-5 uses fractions and decimals on both axes; 6 uses all four quadrants.
+2. **Height differences (subtraction, negatives).** The archer stands on a platform at height 12. The note says the target is at height 5, or
+   "8 m below you". You have to work out how far to aim up or down, so it is "how much lower is 5 than 12?" and later "−3 m is a well below ground
+   level 0". Natural home for negative numbers and comparing, which the Runner only touches on a flat line.
+3. **Sight line = slope (grade 6 and strong 5).** Instead of picking a height, you pick the *steepness* of the shot: "up 2 for every 5 across".
+   The arrow's sight line is a straight line from the bow, so hitting a target at (10, 4) needs the slope 4/10 = 2/5. This is unit rate and
+   proportional reasoning, and a wrong slope is explained on the grid (the arrow passes at height 5 at distance 10, one square too high).
+   Shown as a faint ruler-line from the bow; the player picks the rise and run from steppers, the line previews only after Loose.
+
+Recommendation: ship 1 and 2 first (they reuse the tick-tap input), and treat 3 as the grade 6 headliner after a playtest.
+
+### Archery-only mechanics that add fun and are real math
+- **Wind (signed numbers).** A flag shows the wind ("+3" pushes the arrow 3 right, "−2" pushes it 2 left). You aim to the target *minus* the wind. K-1
+  is only a calm day (no wind); 2-3 whole-number wind; 4-5 fraction or decimal wind; 6 negative wind and "wind then height" chains. The explanation on a miss
+  shows target − wind = where to aim.
+- **Scoring rings (sum to a target).** A target board with rings worth different amounts. The challenge: "score exactly 25 with 3 arrows". You pick the
+  rings, so this is Munchers-style sums with a bow, and it scales up (rings worth 0.5 and 0.25; rings worth 1/2, 1/4; total 25 with negatives for a penalty ring).
+  Each arrow's landing spot is fixed by the ring you choose, so it is a planning puzzle first and a shot second.
+- **Chain shots (hops).** "Shoot 1/2 further than your last arrow." Reuses the Runner's hop kind: from where the last arrow stuck, count the new distance.
+- **Moving target (patterns).** The target slides 2 squares each turn. "Where will it be after 3 turns?" is a pattern and multiplication; aim at where it
+  will be, not where it is. Only at 2 and 3 stars, and with no timer (it moves by turn, not by clock).
+- **Bow upgrades by stars, never by points.** A longer bow or a golden arrow unlocks from perfect rounds and only changes the look (rule 6, cosmetic).
+
+### How a round plays
+1. The scout's note appears (and can be read aloud, for the younger player). Wind flag and ruler(s) are visible; the target is in the mist.
+2. Tap a tick on the distance ruler (and, in height modes, on the height ruler). The bow turns to match, the aim shows as a number label.
+3. Press **Loose**. The arrow flies (a straight line, or a gentle arc that is purely visual and always ends exactly on the chosen spot).
+4. Mist clears. Hit: a short line with the arithmetic ("3/4 of 8 = 6 ✓"). Miss: the arrow sticks where it landed, the target shows where it was,
+   and the message counts ticks off and gives the arithmetic. Try again with the arrows you have left, then the next target.
+5. A round is four aimed targets (matching the Runner's four flags) and then the scoring board. Stars come from wasted arrows across all five. No timers. (Built in the logic: the first shot is always a plain distance, `hop` only follows a distance shot, and `tests/archery.test.js` checks every band and star level, thousands of rounds.)
+
+### Scaling (every band, 1-3 stars)
+| Band | 1 star | 2 stars | 3 stars |
+|---|---|---|---|
+| K-1 | Distance only, ruler 0-10, count ticks, calm day | Ruler 0-20, labeled every 5; height by counting squares (0-5) | Across and up (height 0-10); wind of 1 or 2 squares; rings sum to as much as 10 or 20 |
+| 2-3 | Ruler 0-100 by tens | By fives; height differences within 100; whole-number wind | Notes as multiplication (6 × 7); coordinates with a scale of 5 or 10; ring sums to 50 or 100 |
+| 4-5 | Fourths of the field (0 to 2) | Eighths or tenths; decimal and fraction heights; wind in tenths | Mixed numbers and decimals; coordinate pairs in quadrant 1 with fraction units; height differences with decimals; ring sums with halves |
+| 6 | Distance by halves; height ruler −5 to 5 (a well, a valley below ground 0) | Distance by quarters; heights by halves, platform-relative with negatives; wind either way | Distance as percents of the field ("70%"); heights by quarters below and above ground; slope as rise over run is a later add-on |
+
+### Wrong answers explain themselves (rule 2)
+Always counted and shown with arithmetic, in the Runner's style: "You aimed at 5. The target was 3/4 of 8 = 6, which is 1 tick (1 m) further."
+Height misses name the axis ("Right distance, 2 squares too low: the target is at 7 up, you aimed at 5"). Wind misses show target − wind.
+A hint button counts from a known tick (as the Runner does), and a second press names the starting tick.
+
+### Build plan (each stage playtestable)
+1. **Stage 1, flat range** (ships together with Stage 2 and the rings): `js/archerylogic.js` + `tests/archery.test.js` (every target equals its tick, every wrong tick is explained, all four bands and
+   three stars), `js/archery.js` screen, `css/archery.css`, scene brief in `docs/scene-briefs.md`, registry entries (`GAMES`, `SCREEN_OF`, `index.html`). Distance and
+   hops only, plus the wind flag. This alone is the "Runner with a bow" the kids asked for.
+2. **Stage 2, height:** vertical ruler, coordinate targets, height differences and negative heights. Phone layout check at 375 px (two rulers have to stay thumb-sized).
+3. **Stage 3, scoring rings** (part of the first release, per the owner) **and slope:** the sum-to-total board comes with Stages 1-2; the grade 6 slope shot waits for a playtest.
+4. **Stage 4, extras:** moving targets, bow cosmetics from perfect rounds, a two-player "closest to the note" mode (handicapped by band), and a region on the Quest world map.
+
+Saving follows the usual rules (hard rule 3): `profile.games.archery` holds counters (rounds played, perfect rounds, best stars per band as a max) with a
+`Save.registerGame` merge rule and a `tests/save.test.js` case; nothing defaulted is saved as a choice. Skill ids for the grown-ups stats: `archery-distance`,
+`archery-height`, `archery-wind`, `archery-score`. Sound only through `js/sfx.js`: fixed bow-twang, hit and miss sounds, and the result sound must not be masked by the flight sound.
+Motion: follow `docs/animation-guide.md`; the arrow flight is skipped to a quick fade under Reduce motion.
+
+### Art
+**Look:** side view. Sky and hills behind, a ground strip with the distance ruler along the bottom, a vertical height ruler on the left, the archer on the left
+(on a platform for height-difference rounds), a mist layer over the target area, a wind flag. The arc is drawn with CSS/SVG along a path whose end point is the chosen spot.
+
+**Art search done (bundle at `AI Projects/Kenney Game Assets All-in-1 3.8.0`, 2D assets/).** Decision: **smooth vector family** (the pixel packs have no sky, hills or trees, and the vector packs cover everything but the weapon).
+Do not mix the two families in one scene. Files are built into `assets/kenney/archery/` by `tools/make_kenney_assets.sh` (38 images, about 400 KB, plus three sounds in `sfx/`).
+
+Style decision: **smooth vector, because the sky, hills, trees, tower, flag, ringed targets and archer all exist in that family and the 16 px pixel packs have no backdrop or archer. No scene mixes the two families** (nothing from `assets/kenney/escape/`, `runner/` or `board/` is used in Arrow Range).
+
+Paths are under `assets/kenney/archery/` unless they start with `sfx/` or `fx/` (those are in `assets/kenney/`). Sizes are the built files (downscaled by the script).
+
+| Piece | Pack | Exact path | Pixel size | Note | Status |
+|---|---|---|---|---|---|
+| Sky | Background Elements Remastered | `sky.png` | 768 x 768 | plain blue and cloud gradient; stretch or crop to the field | have it |
+| Hills | Background Elements Remastered | `hills.png`, `hillsLarge.png` | 768 x 300 each | two parallax layers; repeat horizontally | have it |
+| Far trees, bush | Background Elements Remastered | `tree.png`, `treeSmall_green1.png`, `bush1.png` | 188 x 408, 40 x 86, 192 x 96 | no outline | have it |
+| Ground strip | Background Elements Remastered | `groundLayer1.png` | 768 x 300 | grass band; crop the top, the ruler sits on it | have it |
+| Tower or castle wall (height shots) | Background Elements Remastered | `tower.png`, `towerSmall.png`, `castleWall.png`, `castleWallAlt.png` | 146 x 490, 76 x 180, 120 x 120 | `tower` is tall enough for a 12-unit height ruler; stack `castleWall` for a wall | have it |
+| Wooden platform | Shooting Gallery | `wood.png` (plank tile), `post.png` (support) | 256 x 256, 30 x 123 | tile `wood` as the deck; colors fit, the orange outline is slightly different | have it |
+| Wind flag | Platformer Pack Remastered | `flagRed1.png`, `flagRed2.png`, `flagRed_down.png` | 128 x 128 | alternate 1 and 2 to wave; `_down` is the calm day. Flip with `scaleX(-1)` for a left wind. Needs a small SVG pole | have it (pole: draw as original SVG) |
+| Archer | Toon Characters (male and female adventurer) | `male_idle.png`, `male_side.png`, `male_hold.png`, `male_attack0.png` (draw), `male_attack1.png` (loose), `male_cheer0.png` (hit), `male_hurt.png` (miss); same names with `female_` | 96 x 128 each | front-facing character, not truly side-on; flip or replace if it looks wrong at 375 px. The archer holds nothing, so the bow is drawn over the hands | have it (poses); bow is separate |
+| Bow | none in the bundle | draw `archery-bow` as inline SVG | about 40 x 90 | simple curved limb and string, rotates with the aim | draw as original SVG |
+| Arrow (and quiver) | none in the bundle | draw `archery-arrow` as inline SVG | about 60 x 6 | shaft, head, feathers; it also sticks in the ground | draw as original SVG |
+| Target with rings | Shooting Gallery | `target_colored.png`, `target_red1.png`, `target_red3.png`, `target_white.png` | 128 x 128 | scoring board: scale up (vector, but the PNG is only 128 px, so keep it under about 200 px or draw a bigger SVG with rings); label ring values in SVG | have it |
+| Mist or cloud | Background Elements Remastered | `cloudLayer1.png`, `cloud1.png`, `cloud2.png`, `cloud3.png` | 768 x 300, 192 wide | use as the mist bank with white overlay and opacity; fine, no new art needed | have it (tint with CSS) |
+| Hit / miss effects | Particle Pack (already built for other games) | `fx/star_01.png`, `fx/star_02.png`, `fx/star_05.png`, `fx/spark_01.png`, `fx/spark_02.png` | 128 max | stars for a bullseye, sparks for the thunk. Particle Pack is white-on-transparent, tint it with CSS | have it |
+| Sound: bow twang | Interface Sounds `pluck_001` | `../sfx/bow_twang.m4a` | | fixed, string pluck. Play through `js/sfx.js` only | have it (candidate, listen first) |
+| Sound: arrow in flight | RPG Audio `cloth3` | `../sfx/arrow_fly.m4a` | | short swish. Must not mask the result sound | have it (candidate) |
+| Sound: arrow thunk | Impact Sounds `impactSoft_heavy_000` | `../sfx/arrow_thunk.m4a` | | soft thud when the arrow lands | have it (candidate) |
+| Sound: hit and miss | existing | `../sfx/correct.m4a`, `../sfx/wrong.m4a` | | reuse; fixed, never random variants | have it |
+
+Also checked and not chosen: Tiny Dungeon (16 px; hero, sword, axe and staff tiles but no bow or arrow), Tiny Battle (units and flags, no archer), Roguelike Characters (one spritesheet, no archery layers),
+RTS Medieval and Platformer Pack Medieval (castle tiles, no archer), Tower Defense (top-down, already used by Number Defense), Sports Pack (golf-style flags, no bow),
+Animal Pack Remastered (an animal archer would still need a hand-drawn bow), Flag Pack (country flags). Caveat: Toon Characters face the viewer, so the side-on look is a three-quarter pose;
+if it looks wrong at 375 px, flip it with `scaleX(-1)` or draw a small original SVG archer in this style. Shooting Gallery art has a thin orange outline that Background Elements does not,
+so compare them side by side before the PR.
+Check the network tab for 404s when it is wired in (a missing image silently falls back to emoji).
+**As built:** `sky.png` is not used, because it has a baked-in green ground and trees; the sky is a CSS gradient, the ground is CSS (green, or an earth cutaway for grade 6's below-ground heights), and `hills`, `hillsLarge` and the cloud files make the haze and mist. `groundLayer1.png` is also unused (it is a pale haze layer, not grass). The wall for height shots is `castleWall.png` as a cap on a CSS brick body. The archer faces the viewer in every pose; the bow and arrow are inline SVG in `js/archery.js`. The mist is `cloudLayer1`/`cloud1`/`cloud2` over a white gradient.
+
+### Open questions for the owner
+Answered 12 Nov 2026: side view, visual arc, Stages 1 and 2 together, scoring rings included. Still open:
+- Art family: **smooth vector chosen** after the art search (see "Art"); the owner can still overrule it.
+- Does the older child want to pick the archer's look (cosmetic only), or is one archer enough for the first release?
 
 ## Later
 

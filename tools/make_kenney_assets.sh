@@ -6,7 +6,7 @@ set -euo pipefail
 K="${1:-/Volumes/JentMini Drive/AI Projects/Kenney Game Assets All-in-1 3.8.0}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/assets/kenney"
 A="$K/2D assets"; S="$K/Audio"
-mkdir -p "$OUT"/{runner,escape,board,animals,aliens,tiles,balance,medals,fx,ui,sfx,music,voice,fonts}
+mkdir -p "$OUT"/{runner,escape,board,animals,aliens,tiles,balance,medals,fx,ui,archery,sfx,music,voice,fonts}
 
 img() { ffmpeg -loglevel error -y -i "$1" -vf "format=rgba,scale='min($3,iw)':-1:flags=lanczos" -pix_fmt rgba "$2"; }   # src dst maxwidth
 for a in frog chick owl rabbit panda penguin pig cow; do img "$A/Animal Pack Remastered/PNG/Round/$a.png" "$OUT/animals/$a.png" 128; done
@@ -38,6 +38,21 @@ done
 for n in 0 11 15; do
   ffmpeg -loglevel error -y -i "$PP/Backgrounds/tile_$(printf %04d $n).png" -vf "format=rgba,scale=iw*3:ih*3:flags=neighbor" -pix_fmt rgba "$OUT/runner/b$n.png"
 done
+# Arrow Range: ONE style family, smooth vector (Background Elements Remastered, Shooting Gallery, Platformer Pack Remastered, Toon Characters). No pixel art in this scene.
+# Not in the bundle (draw as small original SVG): the bow, the arrow, the quiver. Findings: docs/game-ideas.md "Arrow Range: design plan" > "Art".
+BG="$A/Background Elements Remastered"; SG="$A/Shooting Gallery/PNG"; TC="$A/Toon Characters"
+img "$BG/Backgrounds/backgroundColorGrass.png"     "$OUT/archery/sky.png"        768
+for f in hills hillsLarge groundLayer1 cloudLayer1; do img "$BG/Backgrounds/Elements/$f.png" "$OUT/archery/$f.png" 768; done
+for f in tree treeSmall_green1 bush1 castleWall castleWallAlt tower towerSmall cloud1 cloud2 cloud3; do img "$BG/PNG/Retina/$f.png" "$OUT/archery/$f.png" 192; done
+img "$SG/Stall/bg_wood.png"            "$OUT/archery/wood.png"    256     # wooden platform / planks
+img "$SG/Objects/stick_wood.png"       "$OUT/archery/post.png"    64      # support post
+for f in target_colored target_red1 target_red3 target_white; do img "$SG/Objects/$f.png" "$OUT/archery/$f.png" 128; done   # ringed targets, 128 px
+for f in flagRed1 flagRed2 flagRed_down; do img "$A/Platformer Pack Remastered/PNG/Items/$f.png" "$OUT/archery/$f.png" 128; done   # wind flag: two wave frames and a calm one
+for who in male female; do   W=$([ $who = male ] && echo Male || echo Female)   # archer: side, idle, hold (arms up), attack0/1 (draw and release), cheer, hurt; 96 x 128
+  for pose in side idle hold attack0 attack1 cheer0 hurt; do
+    img "$TC/$W adventurer/PNG/Poses/character_${who}Adventurer_$pose.png" "$OUT/archery/${who}_$pose.png" 96
+  done
+done
 cp "$K/Other/Fonts/Kenney Future.ttf" "$K/Other/Fonts/Kenney High.ttf" "$OUT/fonts/" 2>/dev/null || true
 
 snd() { ffmpeg -loglevel error -y -i "$1" -c:a aac -b:a 64k -ac 1 -ar 44100 "$OUT/$2.m4a"; }
@@ -59,6 +74,10 @@ snd "$R2/hurt2.ogg"            sfx/hurt
 snd "$RPG/knifeSlice.ogg"      sfx/hit
 snd "$I/drop_002.ogg"          sfx/pop    # soft bubble pop for Number Defense kills (the coin ding was too sharp to hear on every hit)
 snd "$RPG/bookFlip1.ogg"       sfx/flip
+# Arrow Range (fixed sounds, never random variants): string pluck for the bow, cloth swish for the flight, soft thud for the arrow landing. Hit and miss reuse sfx/correct and sfx/wrong.
+snd "$I/pluck_001.ogg"         sfx/bow_twang
+snd "$RPG/cloth3.ogg"          sfx/arrow_fly
+snd "$IM/impactSoft_heavy_000.ogg" sfx/arrow_thunk
 for i in 00 08; do snd "$J/jingles-pizzicato_$i.ogg" sfx/win$i; done   # only rising jingles: 03 and 07 ended lower than they began
 snd "$V/correct.ogg"           voice/correct
 snd "$V/level_up.ogg"          voice/level_up

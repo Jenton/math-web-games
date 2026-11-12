@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/motion.css">
   <link rel="stylesheet" href="css/escape.css">
   <link rel="stylesheet" href="css/runner.css">
+  <link rel="stylesheet" href="css/archery.css">
   <link rel="stylesheet" href="css/wide.css">
 </head>
 <body data-theme="block">
@@ -63,6 +64,13 @@
           <span class="g-ico"><img class="g-img" src="assets/kenney/animals/frog.png" alt=""></span>
           <span class="g-name">Munchers</span>
           <span class="g-desc">Walk around the grid and munch only the numbers that fit the rule.</span>
+          <span class="g-go">Choose &rarr;</span>
+        </button>
+        <!-- Arrow Range (archery): card, screen, scripts -->
+        <button class="game-card" data-game="archery" type="button">
+          <span class="g-ico"><img class="g-img" src="assets/kenney/archery/target_colored.png" alt=""></span>
+          <span class="g-name">Arrow Range</span>
+          <span class="g-desc">Work out where the hidden target is, then shoot an arrow right onto it.</span>
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="runner" type="button">
@@ -216,6 +224,30 @@
         <button id="runRight" class="btn ghost big" type="button" aria-label="Aim one tick to the right">&#9654;</button>
       </div>
       <div class="row center"><button id="runHint" class="btn ghost small" type="button">&#128161; Hint</button></div>
+    </section>
+
+    <!-- GAME: Arrow Range -->
+    <section id="archery" class="screen" hidden>
+      <div class="hud">
+        <nav class="crumbs" data-level="play" data-back="arBack" data-game="archery" aria-label="Where you are"></nav>
+        <span id="arNo" class="pill"></span>
+      </div>
+      <div id="arSign" class="ar-sign"></div>
+      <div id="arScene" class="ar-scene" role="img" aria-label="An archery field in the mist, with a distance ruler along the ground"></div>
+      <div id="arBoard" class="ar-board" hidden></div>
+      <p id="arMsg" class="ar-msg" role="status" aria-live="polite"></p>
+      <div id="arAim" class="ar-aim"></div>
+      <div class="ar-controls">
+        <button id="arLeft" class="btn ghost big" type="button" aria-label="Aim one tick to the left">&#9664;</button>
+        <button id="arLoose" class="btn big" type="button">Loose!</button>
+        <button id="arRight" class="btn ghost big" type="button" aria-label="Aim one tick to the right">&#9654;</button>
+        <div class="ar-vert">
+          <button id="arUp" class="btn ghost big" type="button" aria-label="Aim one tick higher" hidden>&#9650;</button>
+          <button id="arDown" class="btn ghost big" type="button" aria-label="Aim one tick lower" hidden>&#9660;</button>
+        </div>
+      </div>
+      <div class="row center"><button id="arHint" class="btn ghost small" type="button">&#128161; Hint</button></div>
+      <div id="arKeys"></div>
     </section>
 
     <!-- GAME: Escape Room Locks -->
@@ -588,6 +620,8 @@
   <script src="js/escape.js"></script>
   <script src="js/runlogic.js"></script>
   <script src="js/runner.js"></script>
+  <script src="js/archerylogic.js"></script>
+  <script src="js/archery.js"></script>
   <script src="js/tdlogic.js"></script>
   <script src="js/td.js"></script>
   <script src="js/art.js"></script>

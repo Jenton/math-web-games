@@ -76,6 +76,7 @@
   registerGame('share', { levels: 'counter' });
   registerGame('escape', { rooms: 'counter', perfect: 'counter' });
   registerGame('runner', { runs: 'counter', perfect: 'counter' });
+  registerGame('archery', { rounds: 'counter', perfect: 'counter' }); // Arrow Range
   registerGame(
     'rpg',
     { xpEarned: 'counter', wins: 'counter', bosses: 'counter', creatures: 'set', team: 'lww', cleared: 'set', gold: 'set', run: 'lww', resetAt: 'max' }, // cleared / gold: world-map node ids (grow-only sets); run: the Quick adventure in progress ({ i, band, stars } or null; last write wins, with runAt); resetAt: when Creature Quest was last started over

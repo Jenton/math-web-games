@@ -16,6 +16,7 @@ share this folder, so check `git branch --show-current` and `git status` before 
 | Wide layouts | `wide-layouts` | PR open for review | `js/layout.js`, `css/wide.css`, `tests/browser/layout.browser.js` | nothing |
 | Keyboard controls | `keyboard-controls` | PR open for review | `js/keys.js`, keyboard bindings in `js/escape.js` and `js/share.js`, `tests/browser/keyboard.browser.js` | nothing |
 | Number Line Runner (new game) | `number-line-runner` | PR open for review | `js/runlogic.js`, `js/runner.js`, `css/runner.css`, `tests/runner.test.js`, `tests/browser/runner.browser.js`, `assets/kenney/runner/` | nothing |
+| Arrow Range (new game, archery) | `claude/determined-rubin-beq9c1` | Playable: logic, tests, screen, art and save rule are built; waiting for the owner's review, then a playtest with the kids | `js/archerylogic.js`, `js/archery.js`, `css/archery.css`, `tests/archery.test.js`, `tests/browser/archery.browser.js`, `assets/kenney/archery/`, `tools/kenney-browser/` | owner's review |
 
 No other PRs are open. New work starts from a fresh branch off `main`. `feature/sort-share-balance-rework` was deleted (superseded by #27). Sort & Rule is exported as `MGR` (not `MGS`, which is Lemonade Stand).
 

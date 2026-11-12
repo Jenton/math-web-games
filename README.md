@@ -37,6 +37,8 @@ creatures already earned are kept.
 - **Number Line Runner**: the number line is a rope over a river. The sign says "Land on 3/4" or "Hop 1/2 to the right"; tap a tick to aim, press
   Jump, and the hero leaps and lands exactly there. The spot is never marked, so you read the ticks (whole numbers, fractions, mixed numbers,
   decimals, percents, negatives). A miss splashes and the message counts how many ticks you were off.
+- **Arrow Range**: an archery field in the mist. A scout's note says where the hidden target is ("Shoot to 3/4", "Shoot 1/2 further than your last arrow", "Across 6, up 3", or a wind that pushes the arrow); work out the number, aim on the distance ruler (and the height ruler
+  for height shots, including platform-relative heights and heights below ground), and loose. The arrow flies in an arc; a hit parts the mist, a miss counts the ticks you were off. Each round ends on a scoring board: pick rings that add to an exact total.
 - **Escape Room**: locked in a pixel dungeon room with three chests. Tap a chest and your hero walks over; crack its lock (a number
   pattern, a keypad code built from arithmetic clues, a scale, or a machine chain) to open it. Open all three and the exit door opens.
 - **Creature Quest**: a turn-based RPG. You fight groups of 1 to 3 monsters, each with its own weakness ("multiples of 6", "armored: only 3/4 or more breaks
@@ -64,6 +66,7 @@ node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answe
 node tests/rpg.test.js       # verifies Quest: every ally effect, the round-based turn order, enemy retaliation, starting over, rescues, and that perfect play always wins while ignoring the math loses
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
 node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
+node tests/archery.test.js    # verifies every Arrow Range note equals its target, wind and height arithmetic, the scoring board is solvable and the arc ends on target
 node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop

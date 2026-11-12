@@ -113,3 +113,7 @@ use A and B1 and build the map from Tiny Town / Roguelike Base.
 - Samples: `assets/candidates/{tiny-dungeon,tiny-town,tiny-battle,pixel-platformer,roguelike-base,roguelike-characters,map-pack,monster-builder,animal-pack-remastered,background-elements-remastered,ui-pack-pixel-adventure,ui-pixel-pack,fantasy-ui-borders,audio-*}/`
   (each keeps its `License.txt`).
 - Contact sheets: `assets/candidates/previews/*.png`.
+
+## Arrow Range (archery) art
+Searched separately: see `docs/game-ideas.md`, "Arrow Range: design plan" > "Art". Chosen from the smooth family (Background Elements Remastered, Shooting Gallery, Platformer Pack Remastered, Toon Characters);
+the bundle has no bow, arrow or quiver, so those are original SVG.
