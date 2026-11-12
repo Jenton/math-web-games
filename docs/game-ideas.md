@@ -70,7 +70,7 @@ Everything below is open. State of play: v2 rules, sprites in two themes, the wo
 - [x] Tower Defense, built as **Number Defense** (`js/tdlogic.js` logic + `tests/tdlogic.test.js`, `js/td.js` screen): wave preview, limited gold, towers with rules, automatic run phase, per-number explanations, a winding 7x9 board (three layouts, Kenney Tower Defense tiles) where each pad reaches the path squares within one square of it. Not built yet: co-op, creatures as towers, tower upgrades.
 - [x] Number Line Runner (`js/runlogic.js` + `tests/runner.test.js`, `js/runner.js`, `css/runner.css`, `tests/browser/runner.browser.js`): rope-over-a-river number line, aim at a tick and jump, four flags per run, hops and landings, all four bands. Not built: collectibles, a scrolling longer world, number-line estimation without ticks, two-player.
 - [x] Sort & Rule (Zoombinis-style logic): built (`js/sortrule.js`, `js/sort.js`)
-- [ ] **Arrow Range** (archery, a sibling of Number Line Runner; an idea from the older child, Nov 2026): aim an arrow at a hidden target a number of units away, then add height (coordinates, height differences, slope) and wind (signed numbers). Design plan is in "Arrow Range: design plan" below; no code yet
+- [ ] **Arrow Range** (archery, a sibling of Number Line Runner; an idea from the older child, Nov 2026): aim an arrow at a hidden target a number of units away, then add height (coordinates, height differences, slope) and wind (signed numbers). Design plan is in "Arrow Range: design plan" below. **Logic built** (`js/archerylogic.js`, `tests/archery.test.js`, save rule `archery`); screen, art and wiring not started
 - [ ] Build-a-World (Minecraft-style)
 - [x] Escape Room Locks, built as **Escape Room** (`js/elogic.js` lock logic + `tests/escape.test.js`, `js/escape.js` screen, `css/escape.css`): a Tiny Dungeon room with three chests, a walking hero, four lock kinds (pattern, code with arithmetic clues, scale, machine), hints, a door that opens. Ideas left: a story that spans several rooms, riddle/cipher locks, co-op (one reads clues, one enters).
 - [x] Lemonade Stand / Shop (first version: make change, stock up, set the price; ideas left: forecasts and weather, a stand that grows, unit pricing)
@@ -467,15 +467,15 @@ Recommendation: ship 1 and 2 first (they reuse the tick-tap input), and treat 3 
 3. Press **Loose**. The arrow flies (a straight line, or a gentle arc that is purely visual and always ends exactly on the chosen spot).
 4. Mist clears. Hit: a short line with the arithmetic ("3/4 of 8 = 6 ✓"). Miss: the arrow sticks where it landed, the target shows where it was,
    and the message counts ticks off and gives the arithmetic. Try again with the arrows you have left, then the next target.
-5. A round is four targets (matching the Runner's four flags). Stars come from wasted arrows. No timers.
+5. A round is four aimed targets (matching the Runner's four flags) and then the scoring board. Stars come from wasted arrows across all five. No timers. (Built in the logic: the first shot is always a plain distance, `hop` only follows a distance shot, and `tests/archery.test.js` checks every band and star level, thousands of rounds.)
 
 ### Scaling (every band, 1-3 stars)
 | Band | 1 star | 2 stars | 3 stars |
 |---|---|---|---|
-| K-1 | Distance only, ruler 0-10, count ticks, calm day | Ruler 0-20, labeled every 5; height by counting squares (up to 5) | Across and up on a 10 x 10 grid; wind of 1 or 2 squares; ring sums to 10 |
+| K-1 | Distance only, ruler 0-10, count ticks, calm day | Ruler 0-20, labeled every 5; height by counting squares (0-5) | Across and up (height 0-10); wind of 1 or 2 squares; rings sum to as much as 10 or 20 |
 | 2-3 | Ruler 0-100 by tens | By fives; height differences within 100; whole-number wind | Notes as multiplication (6 × 7); coordinates with a scale of 5 or 10; ring sums to 50 or 100 |
 | 4-5 | Fourths of the field (0 to 2) | Eighths or tenths; decimal and fraction heights; wind in tenths | Mixed numbers and decimals; coordinate pairs in quadrant 1 with fraction units; height differences with decimals; ring sums with halves |
-| 6 | Integers −5 to 5 on both rulers | Halves; negative heights (a well, a valley); negative wind | Quarters, percents ("80% of the way"); four-quadrant coordinates; slope as rise over run |
+| 6 | Distance by halves; height ruler −5 to 5 (a well, a valley below ground 0) | Distance by quarters; heights by halves, platform-relative with negatives; wind either way | Distance as percents of the field ("70%"); heights by quarters below and above ground; slope as rise over run is a later add-on |
 
 ### Wrong answers explain themselves (rule 2)
 Always counted and shown with arithmetic, in the Runner's style: "You aimed at 5. The target was 3/4 of 8 = 6, which is 1 tick (1 m) further."

@@ -78,7 +78,7 @@ function makeOps(dev) {
     if (roll < 0.2) Save.addStat(p, SKILLS[Math.floor(r() * SKILLS.length)], dev, r() < 0.6);
     else if (roll < 0.3) bump('munchers', 'levels');
     else if (roll < 0.38) bump('balance', 'levels');
-    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); if (r() < 0.3) bump('runner', 'runs'); if (r() < 0.3) bump('sort', 'levels'); if (r() < 0.3) bump('share', 'levels'); } }
+    else if (roll < 0.46) { if (r() < 0.5) bump('machine', 'levels'); else { bump('td', 'waves'); if (r() < 0.5) bump('td', 'perfect'); if (r() < 0.3) bump('escape', 'rooms'); if (r() < 0.3) bump('runner', 'runs'); if (r() < 0.3) bump('archery', 'rounds'); if (r() < 0.2) bump('archery', 'perfect'); if (r() < 0.3) bump('sort', 'levels'); if (r() < 0.3) bump('share', 'levels'); } }
     else if (roll < 0.56) {
       const o = g('rpg');
       o.creatures = [...new Set([...(o.creatures || []), CREATURES[Math.floor(r() * CREATURES.length)]])];
@@ -91,7 +91,7 @@ function makeOps(dev) {
       o.teamAt = clock();
     } else if (roll < 0.78) { p.settings.stars = 1 + Math.floor(r() * 3); p.settingsAt = clock(); }
     else if (roll < 0.84) { const o = g('munchers'); o.streak = Math.floor(r() * 5); o.streakAt = clock(); }
-    else if (roll < 0.86) { const o = g(['balance', 'runner', 'rpg'][Math.floor(r() * 3)]); o.band = r() < 0.2 ? null : ['K-1', '2-3', '4-5', '6'][Math.floor(r() * 4)]; o.bandAt = clock(); o.stars = 1 + Math.floor(r() * 3); o.starsAt = clock(); }
+    else if (roll < 0.86) { const o = g(['balance', 'runner', 'rpg', 'archery'][Math.floor(r() * 4)]); o.band = r() < 0.2 ? null : ['K-1', '2-3', '4-5', '6'][Math.floor(r() * 4)]; o.bandAt = clock(); o.stars = 1 + Math.floor(r() * 3); o.starsAt = clock(); }
     else if (roll < 0.9) {
       const np = Save.newProfile({ id: dev + '-' + n++, name: 'K' + n, avatar: 'x', band: 'K-1', now: clock() });
       d.profiles.push(np);

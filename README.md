@@ -64,6 +64,7 @@ node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answe
 node tests/rpg.test.js       # verifies Quest: every ally effect, the round-based turn order, enemy retaliation, starting over, rescues, and that perfect play always wins while ignoring the math loses
 node tests/escape.test.js     # verifies every Escape Room lock has one right answer in every band
 node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
+node tests/archery.test.js    # verifies every Arrow Range note equals its target, wind and height arithmetic, the scoring board is solvable and the arc ends on target
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
