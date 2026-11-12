@@ -73,7 +73,7 @@ h2 { font-size: 1.15rem; margin: 24px 0 8px; }
 .rule-title { font-size: clamp(1.2rem, 4.5vw, 1.7rem); margin: 14px 0 2px; text-align: center; }
 .rule-hint { text-align: center; color: var(--muted); margin: 0 0 12px; }
 .board {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 100%; max-width: 640px; margin: 0 auto; container-type: inline-size;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; width: 100%; max-width: 640px; margin: 0 auto; container-type: inline-size;
 }
 .cell {
   position: relative; aspect-ratio: 1 / .92; padding: 0; border: 2px solid var(--line); border-radius: 12px;
@@ -645,3 +645,8 @@ button.crumb:hover { background: rgba(255,255,255,.7); border-color: var(--accen
 button.crumb:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
 .crumb.cur { color: var(--ink); cursor: default; }
 .crumb-sep { color: var(--muted); font-weight: 700; }
+
+/* ---- Keyboard hints (js/keys.js): visible only when a keyboard is likely in use (laptop, or a tablet after its first key press) ---- */
+.keyhint { display: none; margin: 6px auto 0; max-width: 480px; text-align: center; font-size: .82rem; color: var(--muted); }
+html.kbd .keyhint { display: block; }
+html.kbd .guess.kb-row { border-radius: 14px; box-shadow: 0 0 0 3px var(--accent); background: rgba(255,255,255,.55); }

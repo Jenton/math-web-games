@@ -26,6 +26,52 @@
     if (bound) return;
     bound = true;
     $('escBack').addEventListener('click', exit);
+    Keys.on('escape', onKey);
+  }
+
+  /* ---------- keyboard: type the numbers, Enter to try, arrows for the code digits ---------- */
+
+  function nextUnsolved(dir) {
+    const n = S.solved.length;
+    for (let step = 1; step <= n; step++) {
+      const i = (S.active + dir * step + n * 3) % n;
+      if (!S.solved[i]) return i;
+    }
+    return -1;
+  }
+
+  function onKey(e) {
+    if (!S || S.busy || S.active < 0) return false;
+    const t = e.target;
+    if (t && t.closest && (t.closest('nav.crumbs') || t.classList.contains('esc-chest'))) return false; // Enter on a crumb or chest is its own button
+    const lk = lock();
+    const k = e.key;
+    if (k === 'h' || k === 'H') { giveHint(false); return true; }
+    if (k === '[' || k === ']') { const i = nextUnsolved(k === ']' ? 1 : -1); if (i >= 0 && i !== S.active) selectLock(i); return true; }
+    if (lk.kind === 'machine') {
+      const d = Keys.digit(e);
+      if (d && +d >= 1 && +d <= lk.p.ops.length) { if (!S.opEls[+d - 1].disabled) pressOp(+d - 1); return true; }
+      if (k === 'Backspace') { if (S.path.length) { S.path.pop(); paintMachine(); } return true; }
+      if (k === 'Delete' || k === 'Escape') { S.path = []; paintMachine(); return true; }
+      if (k === 'ArrowUp' || k === 'ArrowDown') { const i = nextUnsolved(k === 'ArrowDown' ? 1 : -1); if (i >= 0 && i !== S.active) selectLock(i); return true; }
+      return false;
+    }
+    if (!S.pad) return false;
+    const d = Keys.digit(e);
+    if (d !== null) { Sfx.play('card'); S.pad.onKey(d); return true; }
+    if (k === 'Backspace') { Sfx.play('card'); S.pad.onKey('⌫'); return true; }
+    if ((k === '-' || k === '−') && S.pad.minus) { Sfx.play('card'); S.pad.onKey('−'); return true; }
+    if (k === 'Enter' || k === ' ') { S.pad.onTry(); return true; }
+    if (lk.kind === 'code') {
+      const n = lk.n;
+      if (k === 'ArrowDown' || k === 'ArrowRight') { S.slot = Math.min(n - 1, S.slot + 1); paintSlots(); return true; }
+      if (k === 'ArrowUp' || k === 'ArrowLeft') { S.slot = Math.max(0, S.slot - 1); paintSlots(); return true; }
+    } else if (k === 'ArrowUp' || k === 'ArrowDown') {
+      const i = nextUnsolved(k === 'ArrowDown' ? 1 : -1);
+      if (i >= 0 && i !== S.active) selectLock(i);
+      return true;
+    }
+    return false;
   }
 
   function start(profile, hooks) {
@@ -45,7 +91,7 @@
 
   function newRoom() {
     clearTimers();
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'escape');
     S.n++;
     S.room = ESC.makeRoom(st.band, st.stars, S.n);
     S.solved = S.room.locks.map(() => false);
@@ -141,6 +187,7 @@
   const lock = () => S.room.locks[S.active];
 
   function renderPlaque() {
+    S.pad = null;
     const p = $('escPlaque');
     p.innerHTML = '';
     p.className = 'esc-plaque';
@@ -179,6 +226,8 @@
     go.addEventListener('click', () => { if (!S.busy) opts.onTry(); });
     host.appendChild(pad);
     host.appendChild(go);
+    S.pad = opts;
+    Keys.hint(host, opts.keysHint || 'Keyboard: type the digits, Backspace deletes, Enter tries, H for a hint, [ ] switch chests.');
   }
 
   function numberKey(k, maxLen) {
@@ -216,6 +265,7 @@
     p.appendChild(list);
     paintSlots();
     keypad(p, {
+      keysHint: 'Keyboard: type each digit, ↑ ↓ (or ← →) move between the digits, Backspace deletes, Enter tries, H for a hint.',
       onKey: (k) => {
         if (k === '⌫') { if (S.digits[S.slot] == null && S.slot > 0) S.slot--; S.digits[S.slot] = null; }
         else { S.digits[S.slot] = parseInt(k, 10); if (S.slot < lk.n - 1) S.slot++; }
@@ -272,6 +322,7 @@
     reset.addEventListener('click', () => { if (!S.busy) { S.path = []; paintMachine(); } });
     row.append(undo, reset);
     p.appendChild(row);
+    Keys.hint(p, 'Keyboard: press 1' + (lk.p.ops.length > 1 ? '–' + lk.p.ops.length : '') + ' to use a card, Backspace undoes, Delete starts over, H for a hint.');
     S.opEls = [...ops.children];
     paintMachine();
   }

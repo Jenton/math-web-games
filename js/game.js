@@ -74,7 +74,7 @@
   /* ---------- level setup ---------- */
 
   function newLevel(sameRule) {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'munchers');
     if (!sameRule || !S.rule) {
       S.rule = MG.makeLevelRule(st.band, st.stars, S.rule && S.rule.id);
       S.level++;
@@ -97,7 +97,7 @@
   }
 
   function monsterCount() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'munchers');
     return st.monsters === 'off' ? 0 : MONSTER_COUNT[st.stars - 1];
   }
 
@@ -355,7 +355,7 @@
       changed = true;
     }
     if (S && !S.paused && S.monsters.length) {
-      const st = ctx.profile.settings;
+      const st = Store.level(ctx.profile, 'munchers');
       const iv = MONSTER_INTERVAL[st.stars - 1];
       const tell = TELL_MS[st.stars - 1] + (st.band === 'K-1' ? 100 : 0);
       const since = now - S.lastMonster;
@@ -482,11 +482,12 @@
     setTimeout(() => Sfx.play('win'), 450); // after the last coin ding, so the jingle does not cover it
     if (S.clean) setTimeout(() => Sfx.say('correct'), 1200);
     const opts = { icon: S.clean ? 'medals/m3' : 'medals/m1', title: 'Level cleared! 🎉', text, btn: 'Next level', onBtn: next };
-    if (S.streak >= 3 && p.settings.stars < 3) {
+    const lv = Store.level(p, 'munchers');
+    if (S.streak >= 3 && lv.stars < 3) {
       opts.text += ' That is ' + S.streak + ' clean levels in a row. Ready for a bigger challenge?';
-      opts.btn2 = 'Try harder (★'.concat('★'.repeat(p.settings.stars), ')');
+      opts.btn2 = 'Try harder (★'.concat('★'.repeat(lv.stars), ')');
       opts.onBtn2 = () => {
-        Store.setSettings(p, { stars: p.settings.stars + 1 });
+        Store.setLevel(p, 'munchers', { stars: lv.stars + 1 });
         S.streak = 0;
         Store.setField(mg, 'streak', 0);
         ctx.onSave();

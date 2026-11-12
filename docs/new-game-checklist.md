@@ -25,7 +25,9 @@ Five lines, no more:
 - **Success sounds must rise and end high; error sounds fall.** Check candidates with `tools/sound_pitch.py` and by ear (see "Sound choices" in `docs/kenney-asset-plan.md`).
 - **Sound on every action**, through `js/sfx.js` only. Right and wrong sounds are fixed (never random between variants), and a
   result sound must never be masked by another one.
+- **Wide screens too:** on iPad and laptop (720 px and up) a game puts its picture on the left and its controls on the right so it fits without scrolling. Add one entry to `js/layout.js` (`a` = left elements, `b` = right elements, in DOM order with nothing between them); `css/wide.css` and `tests/browser/layout.browser.js` do the rest. Keep the phone stacked layout working.
 - **Phone first:** design at 375 px wide, thumb-sized targets, no horizontal scroll, key buttons visible without hunting.
+- **Keyboard:** the game must be playable with a keyboard alone (laptops, and iPads with a keyboard). Register keys with `Keys.on('<screenId>', fn)` in `js/keys.js`: digits type numbers, Backspace deletes, Enter confirms, arrows move between choices (up/down between rows or entries), number keys pick the Nth card, H is Hint. Add a `Keys.hint(...)` line (it shows only on keyboard devices, never on a touch-only iPad) and a keyboard-only case in `tests/browser/keyboard.browser.js`.
 - **Respect Reduce motion** (`css/motion.css`).
 
 ## 3. Review before the PR
@@ -36,6 +38,8 @@ Five lines, no more:
 - In the PR text, list: what moves, what the Kenney art is, and what is still placeholder.
 
 ## 4. Wiring (unchanged)
+**Grade and challenge are per game.** Read them with `Store.level(profile, '<dataId>')` (a game's own choice, else the player's default grade), never from `profile.settings.band/stars` directly. The setup screen saves with `Store.setLevel(profile, '<dataId>', { band | stars })`. The default grade lives on the player menu and is the only thing that writes `profile.settings.band`. The merge rule gets `band` and `stars` as last-write-wins automatically (`Save.registerGame`).
+
 Breadcrumbs: the screen's top row is `<nav class="crumbs" data-level="play" data-back="<yourBackId>" data-game="<gameKey>"></nav>` (inside the `.hud`), built by `buildCrumbs()` in `js/app.js` as Players > Games > your game. Your module's own exit code runs on the crumb that carries `data-back`, and the other crumbs run it first. No separate back button.
 Card + `GAMES` entry in `js/app.js`, one `<section>` in `index.html`, `Save.registerGame` rule and a `tests/save.test.js` case,
 README and `docs/game-ideas.md` updates, credits, `docs/work-streams.md` row.

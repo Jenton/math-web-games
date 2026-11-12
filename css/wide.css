@@ -1,0 +1,78 @@
+/* Wide screens (iPad, laptop). Loaded last. Phones are untouched: below 720 px the .split columns are plain stacked blocks.
+   Games get a wider canvas and put the picture on the left and the controls on the right (js/layout.js builds the columns). */
+
+main { max-width: 1160px; }
+/* menus and setup read better narrow */
+#home, #menu, #setup { max-width: 760px; margin-left: auto; margin-right: auto; }
+
+/* narrow screens: the Escape Room picture stays pinned while you work the lock, but never taller than a third of the screen, on a solid
+   background, so lock text never slides underneath a big picture */
+.esc-scene { width: min(100%, 52vh); background-color: #2a1c1c; }
+
+@media (min-width: 720px) {
+  .screen.has-split .split { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); column-gap: 28px; align-items: start; }
+  /* the picture column stays in view while the right column scrolls */
+  .screen.has-split .split > .col-a { position: sticky; top: 8px; min-width: 0; }
+  .screen.has-split .split > .col-b { min-width: 0; }
+  .screen.has-split .split > .col-b > .controls, .screen.has-split .split > .col-b > .run-controls { margin-top: 8px; }
+
+  /* fill the columns instead of the old phone-sized caps */
+  .split .esc-scene, .split .run-scene, .split .esc-plaque, .split .run-msg, .split .run-sign { max-width: none; width: 100%; }
+  .split .esc-scene { position: relative; top: auto; } /* relative, not static: the tiles are positioned inside it */
+  .split .scale { max-width: none; }
+  .split .board { max-width: 640px; }
+  .split .rule-hint { text-align: left; }
+
+  /* things that centered themselves on a phone read better left-aligned beside a picture */
+  .split .col-b .controls, .split .col-b .row.center, .split .col-b .guess { justify-content: flex-start; text-align: left; }
+  .split .col-b .run-controls { justify-content: flex-start; }
+  .split .col-b .run-msg { text-align: left; }
+  .split .col-b .mac-ops, .split .col-b .num-tray { justify-content: flex-start; }
+
+  /* games that were already one wide block just get the room */
+  .td-board { max-width: none; }
+}
+
+@media (min-width: 1000px) {
+  .screen.has-split .split { column-gap: 40px; }
+}
+
+/* Number Defense: the board is tall, so on wide screens cap its height to the window and give the tower shop two columns beside it */
+@media (min-width: 900px) {
+  .td-board { justify-content: center; gap: 24px; }
+  .td-board .td-lane { flex: 0 1 auto; width: 100%; max-width: max(320px, calc((100vh - 350px) * 7 / 9)); }
+  .td-shop { flex: 0 0 300px; display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
+}
+
+/* Escape Room on a laptop-height window: tighten the lock panel so every lock kind (the scale lock is the tallest) fits without scrolling */
+@media (min-width: 720px) and (max-height: 900px) {
+  .split .esc-plaque { padding: 10px 12px 8px; }
+  .split .esc-pad { gap: 4px; max-width: 230px; margin: 4px auto 6px; }
+  .split .esc-key { padding: 6px 0; font-size: 1.2rem; }
+  .split .esc-scale { margin: 20px auto 2px; }
+  .split .esc-scale .beam { min-height: 96px; padding-bottom: 8px; }
+  .split .esc-msg { min-height: 1.4em; margin: 4px 0 2px; }
+  .split .esc-seq { margin: 4px 0 6px; }
+  .split .esc-term { padding: 4px 8px; font-size: 1.15rem; }
+  .split .esc-plaque .op-card { min-height: 52px; }
+  .split .esc-try { padding: 8px 20px; }
+}
+
+/* Munchers: a cell with a long label (an expression or a fraction) must not stretch its column past the screen; the label shrinks instead */
+.board .cell { min-width: 0; overflow: visible; }
+.board .cell .lbl { max-width: 100%; }
+.board .cell:not(.long) .lbl { white-space: nowrap; }
+
+/* Laptop-height windows: trim the space around the game so even a wider fallback font (some Linux/Android systems) still fits without scrolling */
+@media (min-width: 720px) and (max-height: 900px) {
+  main { padding-top: 8px; padding-bottom: 16px; }
+  .screen.has-split > .hud { margin-bottom: 12px; } /* spacing.browser.js needs at least 12 px under the back row */
+  .screen.has-split nav.crumbs .crumb { min-height: 32px; padding-top: 2px; padding-bottom: 2px; }
+  .split .esc-title { font-size: .95rem; }
+  .split .esc-prompt { margin-bottom: 4px; font-size: .95rem; }
+  .split .esc-eq-line { margin: 2px 0; }
+  .split .esc-scale { margin-top: 14px; }
+  .split .esc-scale .beam { min-height: 84px; }
+  .split .esc-plaque .esc-actions { margin-top: 0; }
+  .split .esc-story { margin-bottom: 0; }
+}

@@ -39,7 +39,7 @@
   }
 
   function nextPuzzle() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'balance');
     S.n++;
     S.p = MGP.makeBalance(st.band, st.stars);
     S.guess = 0;

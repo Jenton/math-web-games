@@ -31,7 +31,7 @@
   }
 
   function nextPuzzle() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'machine');
     S.n++;
     S.p = MGP.makeMachine(st.band, st.stars);
     S.path = [];

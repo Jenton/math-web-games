@@ -82,6 +82,8 @@
       sample: (s) => MGC.makeShare(s.band, s.stars).text,
     },
   };
+  // the id a game's data is saved under (the portal key differs for two of them)
+  const DATA_ID = (key) => ({ quest: 'rpg', defense: 'td' }[key] || key);
   let currentGame = 'munchers';
   let current = null;
   let chosenAvatar = AVATARS[0];
@@ -209,6 +211,7 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    chips($('#setDefaultBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b]]), current.settings.band, (v) => { Store.setSettings(current, { band: v }); Store.save(); });
     chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');
     stats.innerHTML = '';
@@ -228,7 +231,10 @@
   /* ---------- game setup (one screen: choose, then Play) ---------- */
 
   function updateSetup() {
-    const s = current.settings;
+    const s = Store.level(current, DATA_ID(currentGame));
+    const own = Store.hasOwnLevel(current, DATA_ID(currentGame), 'band');
+    $('#bandHelp').textContent = own ? 'Set just for ' + GAMES[currentGame].name + '. Your default grade (' + BAND_LABELS[current.settings.band] + ') is unchanged.' : 'Using your default grade. Pick another here to change only this game.';
+    $('#bandReset').hidden = !own;
     const g = GAMES[currentGame];
     const star = g.stars[s.stars - 1][0];
     $('#summary').textContent = BAND_LABELS[s.band] + ' · ' + star + (g.extras ? ' · ' + (s.monsters === 'on' ? 'Glitches on' : 'Calm') + ' · ' + Munchers.THEMES[s.theme].name : '');
@@ -242,7 +248,8 @@
     if (typeof gameId === 'string') currentGame = gameId;
     const g = GAMES[currentGame];
     applyTheme(current);
-    const s = current.settings;
+    const id = DATA_ID(currentGame);
+    const s = Store.level(current, id);
     const save = () => { Store.save(); updateSetup(); };
     $('#setupIco').innerHTML = g.ico.includes('/') ? '<img class="g-img" src="assets/kenney/' + g.ico + '.png" alt="">' : g.ico;
     $('#setupTitle').textContent = g.name;
@@ -252,8 +259,8 @@
     $('#questArtBox').hidden = currentGame !== 'quest';
     chips($('#setQuestArt'), Object.keys(Art.THEMES).map((k) => [k, (k === 'cute' ? '🐰 ' : '🗡️ ') + Art.THEMES[k].name]), Art.themeId(current), (v) => { Store.setSettings(current, { questArt: v }); $('#questArtHelp').textContent = Art.THEMES[v].blurb + ' Only changes the pictures. The game stays the same.'; save(); });
     $('#questArtHelp').textContent = Art.THEMES[Art.themeId(current)].blurb + ' Only changes the pictures. The game stays the same.';
-    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setSettings(current, { band: v }); save(); });
-    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setSettings(current, { stars: v }); save(); });
+    optCards($('#setBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b], g.band[b]]), s.band, (v) => { Store.setLevel(current, id, { band: v }); save(); });
+    optCards($('#setStars'), [1, 2, 3].map((n) => [n, g.stars[n - 1][0], g.stars[n - 1][1]]), s.stars, (v) => { Store.setLevel(current, id, { stars: v }); save(); });
     chips($('#setTheme'), Object.keys(Munchers.THEMES).map((k) => [k, Munchers.THEMES[k].player + ' ' + Munchers.THEMES[k].name]), s.theme, (v) => { Store.setSettings(current, { theme: v }); applyTheme(current); save(); });
     chips($('#setMonsters'), [['on', 'Glitches on'], ['off', 'Calm (no glitches)']], s.monsters, (v) => { Store.setSettings(current, { monsters: v }); save(); });
     updateSetup();
@@ -333,6 +340,7 @@
     $('#menuBack').addEventListener('click', renderHome);
     document.querySelectorAll('[data-game]').forEach((b) => b.addEventListener('click', () => openSetup(b.dataset.game)));
     $('#playNow').addEventListener('click', playGame);
+    $('#bandReset').addEventListener('click', () => { Store.setLevel(current, DATA_ID(currentGame), { band: null }); Store.save(); openSetup(currentGame); });
     // sound: one mute button for every game, and a soft click on any button or card
     const sb = $('#soundBtn');
     const paintSound = () => {

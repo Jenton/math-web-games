@@ -156,6 +156,7 @@ Wiring is done in `js/sync-ui.js`, and the adapter that sets `window.MathQuestBa
 - **Starting a game over** (Creature Quest: `RPG.resetState`): counters cannot go down, so the game stamps an epoch field (`resetAt`, a 'max' field) and registers it with
   `Save.registerGame(id, fields, post, { epoch: 'resetAt' })`. On merge, the side with the newer epoch wins entirely; progress made on another device BEFORE the reset is dropped,
   progress after it merges normally. Resetting is explicit and confirmed in the UI. Per-skill practice stats are not part of the reset.
+- **Grade and challenge are per game** (`profile.games.<id>.band` and `.stars`, both last-write-wins, empty = follow the player's default grade in `profile.settings.band`). Read with `Store.level(profile, id)`, write with `Store.setLevel`. The default grade is set only on the player menu.
 - Level in Creature Quest is **derived** from total XP (`RPG.progress`), never stored.
 - Migration filed v1 counters under the migrating device. If the same v1 backup is restored on two devices before they sync, those starting counts
   are summed once per device (cosmetic inflation). We chose that over the alternative, which could silently drop real progress.
