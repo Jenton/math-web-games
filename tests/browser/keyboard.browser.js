@@ -7,7 +7,7 @@ const { serve } = require('../helpers/static-server.js');
 
 async function newPlayer(page, url, band) {
   await page.goto(url);
-  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npBand', band); await page.click('#npForm button[type=submit]');
+  await page.click('.player-card.add'); await page.fill('#npName', 'Kai'); await page.selectOption('#npGrade', String({ 'K-1': 1, '2-3': 3, '4-5': 5, '6': 6 }[band])); await page.click('#npForm button[type=submit]');
   await page.waitForSelector('#menu:not([hidden])');
 }
 
@@ -125,7 +125,7 @@ async function newPlayer(page, url, band) {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 } });
     const page = await ctx.newPage(); watch(page);
     await newPlayer(page, server.url, 'K-1');
-    await page.evaluate(() => { Store.setLevel(Store.profiles[0], 'archery', { band: 'K-1', stars: 1 }); const o = ARCH.makeRound; ARCH.makeRound = (b, s) => (window.__round = o(b, s)); });
+    await page.evaluate(() => { Store.setGrade(Store.profiles[0], 0); const o = ARCH.makeRound; ARCH.makeRound = (g) => (window.__round = o(g, { stretchShare: 0 })); });
     await page.click('[data-game=archery]'); await page.click('#playNow');
     await page.waitForSelector('#archery:not([hidden])');
     assert(await page.isVisible('#archery .keyhint'), 'laptop sees the Arrow Range key hint');

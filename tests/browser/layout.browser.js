@@ -24,7 +24,7 @@ const SKIP_FIT = new Set(['defense']); // the tower board is taller than a lapto
     page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
     await page.goto(server.url);
-    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npBand', '4-5'); await page.click('#npForm button[type=submit]');
+    await page.click('.player-card.add'); await page.fill('#npName', 'Ada'); await page.selectOption('#npGrade', '5'); await page.click('#npForm button[type=submit]');
     await page.waitForSelector('#menu:not([hidden])');
     const games = await page.$$eval('[data-game]', (e) => e.map((x) => x.dataset.game));
     for (const g of games) {

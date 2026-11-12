@@ -63,6 +63,26 @@ assert.ok(Save.normalize({ profiles: 'x' }).error);
 assert.ok(Save.normalize({ profiles: [{ avatar: 'x', settings: {} }] }).error);
 assert.ok(Save.normalize({ profiles: [{ name: 'x', settings: 5 }] }).error);
 
+/* ---------- grade (docs/grade-and-difficulty-plan.md) ---------- */
+{
+  const withGrade = Save.newProfile({ id: 'g1', name: 'A', avatar: 'x', band: '2-3', grade: 3, now: 5 });
+  assert.strictEqual(withGrade.settings.grade, 3, 'a chosen grade is stored');
+  const without = Save.newProfile({ id: 'g2', name: 'B', avatar: 'x', band: '2-3', now: 5 });
+  assert.ok(!('grade' in without.settings), 'a grade nobody chose is NEVER defaulted into the save (hard rule 3)');
+  assert.ok(!('grade' in Save.newProfile({ id: 'g3', name: 'C', avatar: 'x', band: 'K-1', grade: 99, now: 5 }).settings), 'an impossible grade is dropped');
+  assert.strictEqual(Save.newProfile({ id: 'g4', name: 'K', avatar: 'x', band: 'K-1', grade: 0, now: 5 }).settings.grade, 0, 'kindergarten (0) is a real grade');
+  // settings merge last-write-wins as one object: the newer grade (and its derived band) wins on both devices, in either order
+  const a = clone(withGrade); a.settings = Object.assign({}, a.settings, { grade: 4, band: '4-5' }); a.settingsAt = 20;
+  const b = clone(withGrade); b.settings = Object.assign({}, b.settings, { grade: 3, band: '2-3', motion: 'reduced' }); b.settingsAt = 10;
+  const mk = (p) => Object.assign(Save.newData(), { profiles: [p] }); const da = mk(a); const db = mk(b);
+  assert.strictEqual(merge(da, db).profiles[0].settings.grade, 4, 'newer grade wins');
+  assert.strictEqual(merge(db, da).profiles[0].settings.grade, 4, 'in either order');
+  // an old device that never knew about grades merges without losing the player, and the grade falls back to a read-time guess (not saved)
+  const old = clone(withGrade); delete old.settings.grade; old.settingsAt = 30;
+  const m = merge(mk(a), mk(old)).profiles[0];
+  assert.strictEqual(m.settings.band, '2-3'); assert.ok(!('grade' in m.settings), 'the newer settings (no grade) win whole; Store.grade() then falls back to the band');
+}
+
 /* ---------- simulated devices ---------- */
 const SKILLS = ['multiples', 'primes', 'armor', 'balance', 'fractions'];
 const CREATURES = ['multiples', 'factors', 'primes', 'armor', 'boss', 'compare'];
