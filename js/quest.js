@@ -335,7 +335,7 @@
 
   function openPuzzle(n) {
     const g = sel();
-    Q.pz = { n, kind: n.puzzle, p: n.puzzle === 'machine' ? MGP.makeMachine(g.band, g.stars) : MGP.makeBalance(g.band, g.stars), guess: 0, path: [], missed: false, done: false };
+    Q.pz = { n, kind: n.puzzle, p: n.puzzle === 'machine' ? MGP.makeMachine(g.band, g.stars) : MGP.makeBalance(g.band, g.stars), guess: 0, tries: MGP.BAL_TRIES, path: [], missed: false, done: false };
     const t = theme();
     const T = Art.THEMES[t];
     const bg = Art.src(t, 'bg', regionBackdrop(t) || T.bgFor.weakness || Object.keys(T.bg)[0]);
@@ -400,17 +400,16 @@
     return frag;
   }
 
-  function paintBalance() {
+  /* Like the Balance game: the scale does not tip while you adjust the number and no totals are shown, so the weight has to be
+   * worked out. It tips only to answer a lock-in, and there are a few tries (guessing is not a strategy). */
+  function paintBalance(reveal) {
     const { p, guess } = Q.pz;
-    const l = MGP.sideVal(p.L, guess);
-    const r = MGP.sideVal(p.R, guess);
-    const diff = l - r;
     const scale = $('qPzScale');
-    scale.style.setProperty('--tilt', (diff === 0 ? 0 : -Math.sign(diff) * Math.min(16, 4 + Math.abs(diff) * 1.2)) + 'deg');
-    scale.classList.toggle('level', diff === 0);
-    [['qPzL', p.L], ['qPzR', p.R]].forEach(([id, side]) => { const pan = $(id); pan.innerHTML = ''; pan.appendChild(pzBlocks(side, guess)); });
+    scale.style.setProperty('--tilt', (reveal ? -Math.sign(reveal.diff) * Math.min(14, 6 + Math.abs(reveal.diff) * 0.6) : 0) + 'deg');
+    scale.classList.toggle('level', !!reveal && reveal.diff === 0);
+    [['qPzL', p.L], ['qPzR', p.R]].forEach(([id, side]) => { const pan = $(id); pan.innerHTML = ''; pan.appendChild(pzBlocks(side, '?')); });
     $('qPzVal').textContent = '? = ' + guess;
-    $('qPzSums').textContent = 'Left ' + l + '  ·  Right ' + r + '   (' + p.text + ')';
+    $('qPzSums').textContent = p.text + '   ·   ' + Q.pz.tries + (Q.pz.tries === 1 ? ' try left' : ' tries left');
   }
 
   function lockBalance() {
@@ -418,13 +417,28 @@
     if (!z || z.done) return;
     const res = MGP.checkBalance(z.p, z.guess);
     Store.record(ctx.profile, 'balance', res.balanced);
-    if (!res.balanced) {
-      z.missed = true;
-      sfx('wrong');
-      ctx.onSave();
-      return pzMsg(res.msg, false);
+    if (res.balanced) {
+      paintBalance(res);
+      return solved('One ? weighs ' + z.guess + '. Both sides weigh ' + res.l + '.', !z.missed);
     }
-    solved('One ? weighs ' + z.guess + '. ' + res.msg, !z.missed);
+    z.missed = true;
+    z.tries--;
+    ctx.onSave();
+    paintBalance(res);
+    if (z.tries > 0) {
+      sfx('wrong');
+      return pzMsg('The ' + (res.diff > 0 ? 'left' : 'right') + ' side is heavier. Think it through before you guess again.', false);
+    }
+    z.done = true;
+    $('qPzGo').hidden = true;
+    sfx('lose');
+    UI.panel({
+      title: 'Out of tries',
+      text: MGP.balanceSteps(z.p).join(' ') + ' You can try this puzzle again from the map.',
+      btn: 'Back to the map',
+      onBtn: () => { Q.pz = null; goMap(Q.region); },
+      bad: true,
+    });
   }
 
   /** Machine Builder: tap operation cards to turn the start into the target. Fewest steps earns the gold star. */
@@ -672,6 +686,7 @@
     const b = Q.battle;
     if (!b || !b.puzzle) return;
     Q.guess = Math.max(0, Math.min(b.puzzle.max, v));
+    if (Q.tries > 0) Q.chargeMsg = '';
     renderCharge();
   }
 
@@ -685,11 +700,15 @@
     if (Q.puzzle !== b.puzzle) {
       Q.puzzle = b.puzzle;
       Q.guess = 0;
+      Q.tries = MGP.BAL_TRIES;
+      Q.chargeMsg = '';
     }
     const p = b.puzzle;
     $('qChargeEq').textContent = p.text;
     $('qgVal').textContent = '? = ' + Q.guess;
-    $('qChargeSums').textContent = 'Left ' + MGP.sideVal(p.L, Q.guess) + '  ·  Right ' + MGP.sideVal(p.R, Q.guess);
+    // No totals while choosing (they would let you nudge the number until it matches): work it out, then lock it in.
+    $('qChargeSums').textContent = Q.chargeMsg || (Q.tries > 0 ? Q.tries + (Q.tries === 1 ? ' try left' : ' tries left') + ' to cancel the attack' : 'Out of tries');
+    $('qgLock').disabled = Q.tries <= 0;
     $('qgBigMinus').hidden = $('qgBigPlus').hidden = p.max <= 20;
     $('qgMinus').disabled = $('qgBigMinus').disabled = Q.guess <= 0;
     $('qgPlus').disabled = $('qgBigPlus').disabled = Q.guess >= p.max;
@@ -698,6 +717,7 @@
   function lockCharge() {
     const b = Q.battle;
     if (!b || Q.busy || !b.puzzle || !charging()) return;
+    if (Q.tries <= 0) return;
     const res = MGP.checkBalance(b.puzzle, Q.guess);
     if (res.balanced) {
       Store.record(ctx.profile, 'balance', true);
@@ -708,7 +728,14 @@
       renderBattle();
     } else {
       Store.record(ctx.profile, 'balance', false);
-      UI.toast(res.msg, false);
+      Q.tries--;
+      const heavy = res.diff > 0 ? 'left' : 'right';
+      Q.chargeMsg = Q.tries > 0
+        ? 'The ' + heavy + ' side is heavier. ' + Q.tries + (Q.tries === 1 ? ' try left.' : ' tries left.')
+        : 'Out of tries. ' + MGP.balanceSteps(b.puzzle).join(' ') + ' The attack is coming!';
+      sfx(Q.tries > 0 ? 'wrong' : 'lose');
+      ctx.onSave();
+      renderCharge();
     }
   }
 
