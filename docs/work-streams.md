@@ -15,6 +15,7 @@ share this folder, so check `git branch --show-current` and `git status` before 
 | Animation pass | `claude/dreamy-pasteur-xues94` | Munchers, Machine Builder, Lemonade Stand, Number Defense are merged. Left: Balance, Sort & Rule and Cut & Share (the rework is merged, so the Balance plan in the guide can be applied; waiting on the owner's playtest notes), Escape Room, and Creature Quest | `docs/animation-guide.md`, `css/motion.css`, motion blocks in `css/style.css` | nothing |
 | Wide layouts | `wide-layouts` | PR open for review | `js/layout.js`, `css/wide.css`, `tests/browser/layout.browser.js` | nothing |
 | Keyboard controls | `keyboard-controls` | PR open for review | `js/keys.js`, keyboard bindings in `js/escape.js` and `js/share.js`, `tests/browser/keyboard.browser.js` | nothing |
+| Player settings | `profile-settings` | PR open for review | name and buddy editing in the player menu (`js/app.js`, `Store.setMeta`), `tests/browser/profile-settings.browser.js` | nothing |
 | Number Line Runner (new game) | `number-line-runner` | PR open for review | `js/runlogic.js`, `js/runner.js`, `css/runner.css`, `tests/runner.test.js`, `tests/browser/runner.browser.js`, `assets/kenney/runner/` | nothing |
 
 No other PRs are open. New work starts from a fresh branch off `main`. `feature/sort-share-balance-rework` was deleted (superseded by #27). Sort & Rule is exported as `MGR` (not `MGS`, which is Lemonade Stand).

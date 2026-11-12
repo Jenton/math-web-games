@@ -211,6 +211,11 @@
     applyTheme(current);
     $('#menuAv').textContent = current.avatar;
     $('#menuName').textContent = current.name;
+    const nameIn = $('#setName');
+    nameIn.value = current.name;
+    const paintWho = () => { $('#menuAv').textContent = current.avatar; $('#menuName').textContent = current.name; };
+    nameIn.onchange = () => { Store.setMeta(current, { name: nameIn.value }); nameIn.value = current.name; Store.save(); paintWho(); };
+    chips($('#setAvatar'), AVATARS.map((a) => [a, a]), current.avatar, (v) => { Store.setMeta(current, { avatar: v }); Store.save(); paintWho(); });
     chips($('#setDefaultBand'), MG.BANDS.map((b) => [b, BAND_LABELS[b]]), current.settings.band, (v) => { Store.setSettings(current, { band: v }); Store.save(); });
     chips($('#setMotion'), [['full', 'Full motion'], ['reduced', 'Reduce motion']], current.settings.motion || 'full', (v) => { Store.setSettings(current, { motion: v }); Store.save(); applyTheme(current); });
     const stats = $('#statsList');

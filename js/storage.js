@@ -129,6 +129,15 @@
     if ('stars' in patch) setField(g, 'stars', patch.stars);
   }
   const hasOwnLevel = (profile, gameId, field) => !!(profile.games && profile.games[gameId] && profile.games[gameId][field || 'band']);
+  /** Rename a player or change their buddy. Stamped so the newest change wins when devices sync (same rule as settings). */
+  function setMeta(profile, patch) {
+    if (typeof patch.name === 'string') {
+      const n = patch.name.trim().slice(0, 20);
+      if (n) profile.name = n; // never save an empty name
+    }
+    if (typeof patch.avatar === 'string' && patch.avatar) profile.avatar = patch.avatar;
+    profile.metaAt = Date.now();
+  }
   function setSettings(profile, patch) {
     Object.assign(profile.settings, patch);
     profile.settingsAt = Date.now();
@@ -169,7 +178,7 @@
   const onSave = (fn) => { saveListener = fn; };
 
   root.Store = {
-    load, save, newProfile, remove, snapshot, onSave,
+    load, save, newProfile, remove, snapshot, onSave, setMeta,
     record, stat, statSkills, game, bump, total, setField, setSettings, level, setLevel, hasOwnLevel,
     exportJSON, importJSON, mergeIn,
     get profiles() { return data.profiles; },

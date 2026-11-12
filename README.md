@@ -66,6 +66,7 @@ node tests/escape.test.js     # verifies every Escape Room lock has one right an
 node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
 node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room and Cut & Share, and the keyboard hints
+node tests/browser/profile-settings.browser.js # (Playwright) rename a player, change their buddy and default grade, delete them
 node tests/tdlogic.test.js   # verifies every Number Defense wave is solvable within budget and that you cannot buy the whole shop
 node tests/worldmap.test.js  # verifies the Quest world-map data and unlock rules, and that every enemy and ally has art in both themes
 node tests/save.test.js      # verifies the save format: v1 migration, and that merging devices never loses progress
