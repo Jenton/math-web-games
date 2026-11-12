@@ -91,7 +91,7 @@
 
   function newRoom() {
     clearTimers();
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'escape');
     S.n++;
     S.room = ESC.makeRoom(st.band, st.stars, S.n);
     S.solved = S.room.locks.map(() => false);

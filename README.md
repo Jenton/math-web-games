@@ -22,7 +22,7 @@ In Creature Quest the current five-battle adventure is not saved: leaving mid-ad
 creatures already earned are kept.
 
 ## What's here
-- Player profiles with a grade level (K-1, 2-3, 4-5, 6) and a 1-3 star challenge setting
+- Player profiles with a default grade level (each game can set its own grade and challenge without touching the default) (K-1, 2-3, 4-5, 6) and a 1-3 star challenge setting
 - **Munchers**: munch only the numbers that fit the rule. Wrong munches explain why.
   Skills: sums to a target, even/odd, greater/less (and the number line), multiples,
   rounding, factors, primes, expressions, equivalent fractions, exponents.
