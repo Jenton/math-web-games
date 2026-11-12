@@ -1,10 +1,11 @@
-// Browser test: every game that plays by grade can START on a bonus (stretch) item without errors, shows its "Bonus" label, and shows none at the top grades
-// (7 and 8 have no stretch). A normal first item is never a bonus, so this forces one: Store.cell is wrapped to stretch every time, first item included.
+// Browser test: every game that plays by grade can START on a bonus (stretch) item without errors, shows its "Bonus" label, and shows none at its top grade. A normal first item is never a bonus, so this forces one: Store.cell is wrapped to stretch every time, first item included.
 // Needs Playwright (not a repo dependency): node tests/browser/bonus.browser.js
 const { chromium } = require('playwright');
 const assert = require('assert');
 const { serve } = require('../helpers/static-server.js');
 
+// the highest grade each game has its own content for; no stretch at or above it (games on the shared difficulty ladder top out at 7; the Runner and Arrow Range have grade 8)
+const TOP = { runner: 8, archery: 8 };
 const GAMES = [['munchers', '#levelNo'], ['balance', '#balNo'], ['machine', '#macNo'], ['defense', '#tdNo'], ['lemonade', '#lemNo'], ['escape', '#escNo'], ['runner', '#runNo'], ['sort', '#sortNo'], ['share', '#shNo']];
 
 (async () => {
@@ -34,7 +35,7 @@ const GAMES = [['munchers', '#levelNo'], ['balance', '#balNo'], ['machine', '#ma
       await page.click('#playNow');
       await page.waitForFunction((sel) => { const e = document.querySelector(sel); return e && e.offsetParent !== null && e.textContent.trim().length > 0; }, label, { timeout: 8000 });
       const text = await page.textContent(label);
-      if (grade < 7) assert(/[Bb]onus/.test(text), game + ' at grade ' + grade + ' should start on a bonus item: "' + text + '"');
+      if (grade < (TOP[game] || 7)) assert(/[Bb]onus/.test(text), game + ' at grade ' + grade + ' should start on a bonus item: "' + text + '"');
       else assert(!/[Bb]onus/.test(text), game + ' at grade ' + grade + ' has no stretch: "' + text + '"');
       played++;
     }
@@ -43,6 +44,6 @@ const GAMES = [['munchers', '#levelNo'], ['balance', '#balNo'], ['machine', '#ma
   await browser.close();
   server.close();
   assert.deepStrictEqual(errors, []);
-  console.log('OK: ' + played + ' game starts (9 games x grades 0, 3, 6, 7, 8) with a forced bonus item: label shown below grade 7, none at 7 and 8, no errors');
+  console.log('OK: ' + played + ' game starts (9 games x grades 0, 3, 6, 7, 8) with a forced bonus item: label shown below each top grade of a game, none at or above it, no errors');
   console.log('ERRORS: none');
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

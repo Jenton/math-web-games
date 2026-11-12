@@ -18,7 +18,7 @@
 .ar-xt.major { width: 4px; height: 15px; margin-left: -2px; }
 .ar-xt.aimed { background: #ff7a00; width: 6px; height: 20px; margin-left: -3px; box-shadow: 0 0 0 3px rgba(255,255,255,.85); }
 .ar-xt.miss { background: #d33; }
-.ar-xl { transform: translateX(-50%); margin-top: 17px; padding: 0 4px; font-weight: 800; font-size: clamp(.62rem, 3vw, .85rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.78); border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 6; }
+.ar-xl { transform: translateX(-50%); margin-top: 17px; padding: 0 2px; font-weight: 800; font-size: clamp(.62rem, 3vw, .85rem); line-height: 1.25; color: #fff; background: rgba(20,60,70,.78); border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 6; }
 .ar-axis { width: 4px; margin-left: -2px; border-radius: 2px; background: #7a4a1d; pointer-events: none; z-index: 6; }
 .ar-yt { width: 9px; height: 3px; margin: -1.5px 0 0 0; border-radius: 2px; background: #4a2e14; pointer-events: none; z-index: 6; }
 .ar-yt.major { width: 15px; height: 4px; margin-top: -2px; }

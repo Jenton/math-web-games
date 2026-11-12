@@ -197,7 +197,7 @@
         // 3.NF.A.2: fractions on a number line, denominators 2, 3, 4, 6, 8 only (grade 3 limit)
         [X(L(2, 0, 6, 1, 2, ['frac'], '1/2'), 'frac'), X(L(3, 0, 9, 1, 3, ['frac'], '1/3'), 'frac'), X(L(4, 0, 8, 1, 4, ['frac'], '1/4'), 'frac'), X(L(6, 0, 12, 1, 6, ['frac'], '1/6'), 'frac'), X(L(8, 0, 8, 1, 8, ['frac'], '1/8'), 'frac')],
         [X(L(1, 0, 80, 4, 5, ['int'], '4'), 'facts')], // 3.OA.C.7: products as notes (6 × 7); ticks are multiples of 4
-        [X(L(1, 0, 1000, 50, 2, ['int'], '50'), 'big')], // 3.NBT.A.3 and A.2: 9 × 50 style notes, hops within 1000
+        [X(L(1, 0, 1000, 50, 4, ['int'], '50'), 'big')], // 3.NBT.A.3 and A.2: 9 × 50 style notes, hops within 1000
         [X(L(1, 0, 100, 10, 2, ['int'], '10'), 'round')], // 3.NBT.A.1: round to the nearest ten
         [X(L(1, 0, 1000, 100, 2, ['int'], '100'), 'round100')], // 3.NBT.A.1: round to the nearest hundred
       ];
