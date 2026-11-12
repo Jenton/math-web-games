@@ -405,8 +405,10 @@ The v2 decisions above are implemented except for art and the world map. What ex
 
 ## Arrow Range: design plan (archery game, idea from the older child, Nov 2026)
 
-Status: **plan only, nothing built.** The older child liked Number Line Runner and asked for an archery version: shoot an arrow a certain
-distance, tied to the math already in the game, and maybe add height. This section is the proposal for the owner to react to before any code.
+Status: **plan agreed in outline (owner answers, 12 Nov 2026), nothing built.** The older child liked Number Line Runner and asked for an archery version: shoot an arrow a certain
+distance, tied to the math already in the game, and maybe add height.
+
+**Decisions so far:** side view; the arrow flies in a visual arc (math unchanged, the arc always ends exactly on the chosen spot); the first release is Stages 1 and 2 together (flat range plus height); scoring rings are in the first release too (so Stage 3's rings move into it; the grade 6 slope shot stays later). Art search is still open (see "Art").
 
 ### Pitch
 You are an archer at a misty range. A scout's note says where the target is ("It is 3/4 of the way down the field", "7 × 8 m away",
@@ -480,11 +482,11 @@ Height misses name the axis ("Right distance, 2 squares too low: the target is a
 A hint button counts from a known tick (as the Runner does), and a second press names the starting tick.
 
 ### Build plan (each stage playtestable)
-1. **Stage 1, flat range:** `js/archerylogic.js` + `tests/archery.test.js` (every target equals its tick, every wrong tick is explained, all four bands and
+1. **Stage 1, flat range** (ships together with Stage 2 and the rings): `js/archerylogic.js` + `tests/archery.test.js` (every target equals its tick, every wrong tick is explained, all four bands and
    three stars), `js/archery.js` screen, `css/archery.css`, scene brief in `docs/scene-briefs.md`, registry entries (`GAMES`, `SCREEN_OF`, `index.html`). Distance and
    hops only, plus the wind flag. This alone is the "Runner with a bow" the kids asked for.
 2. **Stage 2, height:** vertical ruler, coordinate targets, height differences and negative heights. Phone layout check at 375 px (two rulers have to stay thumb-sized).
-3. **Stage 3, scoring rings and slope:** the sum-to-total board and the grade 6 slope shot.
+3. **Stage 3, scoring rings** (part of the first release, per the owner) **and slope:** the sum-to-total board comes with Stages 1-2; the grade 6 slope shot waits for a playtest.
 4. **Stage 4, extras:** moving targets, bow cosmetics from perfect rounds, a two-player "closest to the note" mode (handicapped by band), and a region on the Quest world map.
 
 Saving follows the usual rules (hard rule 3): `profile.games.archery` holds counters (rounds played, perfect rounds, best stars per band as a max) with a
@@ -493,14 +495,26 @@ Saving follows the usual rules (hard rule 3): `profile.games.archery` holds coun
 Motion: follow `docs/animation-guide.md`; the arrow flight is skipped to a quick fade under Reduce motion.
 
 ### Art
-Check `docs/art-shortlist.md` before drawing anything; a quick search of the shortlist docs found no archery-specific Kenney pack (the bundle itself was not searched), so the bow, arrow, target and flag may have to be
-small original SVG or CSS shapes, with Kenney tiles or UI pieces for the ground, trees and tower (CC0, recorded in `assets/CREDITS.md`). Original characters only.
+**Look:** side view. Sky and hills behind, a ground strip with the distance ruler along the bottom, a vertical height ruler on the left, the archer on the left
+(on a platform for height-difference rounds), a mist layer over the target area, a wind flag. The arc is drawn with CSS/SVG along a path whose end point is the chosen spot.
+
+**Not yet checked:** the full Kenney bundle (`AI Projects/Kenney Game Assets All-in-1 3.8.0`) is on the owner's Mac and was not reachable from the cloud chat that wrote this plan
+(kenney.nl is blocked there too). `docs/art-shortlist.md` has no archery-specific items, but it only covers the packs shortlisted for Quest, so it does not settle the question.
+A session that has the bundle should do this, then record the result here and in `docs/art-shortlist.md`:
+1. Search the bundle's `2D assets/` folder names and file names for: `arrow`, `bow`, `archer`, `target`, `bullseye`, `quiver`, `crossbow`, `flag`, `shooting`, `range`, `ring`.
+   Packs worth opening by name first (guesses from memory, unverified): Shooting Gallery, Tower Defense (arrow or bullet sprites, already used for Number Defense tiles),
+   Roguelike Characters (weapon layers), Tiny Battle, Tiny Dungeon, Medieval RTS, Platformer Pack, Sports Pack, Particle Pack, Emote Pack.
+2. For the scene: sky/hill/tree backdrops (Background Elements Remastered is already shortlisted), a tower or castle wall for height rounds, a wooden platform, and a flag for wind.
+3. For the archer: a hero sprite in the same style family as the backdrop (smooth vector family: Toon Characters, Animal Pack Remastered, Shape Characters; pixel family: Tiny Dungeon,
+   Roguelike Characters). Do not mix the two families in one scene (see the shortlist's key finding).
+4. Pick one style family, copy only the chosen files into `assets/kenney/archery/` through `tools/make_kenney_assets.sh`, and add the packs to `assets/CREDITS.md`.
+5. Anything missing (bow, arrow, target with rings) is drawn as small original SVG; keep them simple so they match the family. Original characters only.
+Check the network tab for 404s when it is wired in (a missing image silently falls back to emoji).
 
 ### Open questions for the owner
-- Should the field be a **side view** (clear height, like a castle wall and a tree) or a **top-down view** with height on a separate meter? Side view is recommended: it makes the height ruler obvious.
-- Is a straight "magic arrow" fine, or does the older child want a visible arc? The recommendation is a visual arc with the math unchanged.
-- Start with Stage 1 (flat) as its own game, or hold it until Stage 2 so the first release already has the height idea? Recommendation: Stage 1 and 2 together, since height is the new part.
-- Do you want the scoring-rings puzzle in the first release, or keep it for later?
+Answered 12 Nov 2026: side view, visual arc, Stages 1 and 2 together, scoring rings included. Still open:
+- Which art family: smooth vector (cute, matches Map Pack and Animal Pack) or 16 px pixel (matches Escape Room and Number Defense)? Decide after the art search above.
+- Does the older child want to pick the archer's look (cosmetic only), or is one archer enough for the first release?
 
 ## Later
 
