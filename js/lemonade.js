@@ -42,7 +42,7 @@
   }
 
   function newDay() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'lemonade');
     S.day++;
     S.day_ = M().makeDay(st.band, st.stars);
     S.jobs = S.day_.jobs;

@@ -22,7 +22,7 @@
   }
 
   const rpg = () => ctx.profile.games.rpg;
-  const sel = () => ctx.profile.settings;
+  const sel = () => Store.level(ctx.profile, 'rpg'); // grade and challenge for Creature Quest (its own choice, else the player's default)
   const theme = () => Art.themeId(ctx.profile);
   // every enemy has art by its skill; armored enemies and bosses have their own
   const enemyArt = (e) => (e.kind === 'boss' ? 'boss' : e.kind === 'armor' ? 'armor' : e.rule.id);

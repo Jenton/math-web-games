@@ -116,6 +116,11 @@
 
       <h2>Settings</h2>
       <div class="setting">
+        <span class="s-label">Default grade</span>
+        <div id="setDefaultBand" class="chips"></div>
+        <p class="help">Every game starts at this grade. Inside a game you can change just that game, and it won't touch this default.</p>
+      </div>
+      <div class="setting">
         <span class="s-label">Motion</span>
         <div id="setMotion" class="chips"></div>
         <p class="help">"Reduce motion" turns off bouncing, shaking and sliding in every game. If your device already asks apps to reduce motion, we follow that too.</p>
@@ -138,6 +143,8 @@
 
       <h2>1. Which grade?</h2>
       <div id="setBand" class="opts"></div>
+      <p id="bandHelp" class="help"></p>
+      <div class="row"><button id="bandReset" class="btn ghost small" type="button" hidden>Use my default grade</button></div>
 
       <h2>2. How tricky?</h2>
       <div id="setStars" class="opts"></div>
@@ -458,13 +465,13 @@
       <div id="shFriends" class="friends" aria-hidden="true"></div>
       <div class="share-set">
         <span class="s-label">Cut each pizza into</span>
-        <div class="guess">
+        <div id="cutRow" class="guess">
           <button id="cutMinus" class="btn ghost big" type="button" aria-label="fewer slices">&minus;</button>
           <div id="cutVal" class="gval"></div>
           <button id="cutPlus" class="btn ghost big" type="button" aria-label="more slices">+</button>
         </div>
         <span class="s-label">Each friend gets</span>
-        <div class="guess">
+        <div id="eachRow" class="guess">
           <button id="eachMinus" class="btn ghost big" type="button" aria-label="fewer slices each">&minus;</button>
           <div id="eachVal" class="gval"></div>
           <button id="eachPlus" class="btn ghost big" type="button" aria-label="more slices each">+</button>
@@ -566,6 +573,7 @@
   <script src="js/storage.js"></script>
   <script src="js/sync-ui.js"></script>
   <script src="js/sfx.js"></script>
+  <script src="js/keys.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/puzzles.js"></script>
   <script src="js/rpg.js"></script>

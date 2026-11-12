@@ -17,6 +17,34 @@
     $('eachMinus').addEventListener('click', () => setEach(S.s - 1));
     $('eachPlus').addEventListener('click', () => setEach(S.s + 1));
     $('shGo').addEventListener('click', share);
+    Keys.on('share', onKey);
+    Keys.hint($('shGo').parentElement, 'Keyboard: ↑ ↓ choose the row, ← → (or − +) change it, or just type a number. Enter shares.');
+  }
+
+  /* ---------- keyboard: ↑ ↓ pick the row ("cut into" or "each friend gets"), ← → or − + change it, digits type a number ---------- */
+
+  function onKey(e) {
+    if (!S) return false;
+    const k = e.key;
+    const setRow = (v) => (S.row === 0 ? setCuts(v) : setEach(v));
+    const cur = () => (S.row === 0 ? S.c : S.s);
+    if (k === 'ArrowUp' || k === 'ArrowDown') { S.row = S.row === 0 ? 1 : 0; S.typed = ''; Sfx.play('flip'); render(); return true; }
+    if (k === 'ArrowLeft' || k === '-' || k === '−') { S.typed = ''; setRow(cur() - 1); return true; }
+    if (k === 'ArrowRight' || k === '+' || k === '=') { S.typed = ''; setRow(cur() + 1); return true; }
+    const d = Keys.digit(e);
+    if (d !== null) {
+      // two quick digits make one number (1 then 2 = 12); a pause starts over
+      const now = Date.now();
+      let t = now - (S.typedAt || 0) < 900 ? (S.typed || '') + d : d;
+      if (parseInt(t, 10) > MGC.MAX_CUTS) t = d;
+      S.typed = t;
+      S.typedAt = now;
+      if (parseInt(t, 10) >= 1) setRow(parseInt(t, 10));
+      return true;
+    }
+    if (k === 'Backspace') { S.typed = ''; setRow(1); return true; }
+    if (k === 'Enter' || k === ' ') { share(); return true; }
+    return false;
   }
 
   function start(profile, hooks) {
@@ -34,11 +62,13 @@
   }
 
   function nextPuzzle() {
-    const st = ctx.profile.settings;
+    const st = Store.level(ctx.profile, 'share');
     S.n++;
     S.p = MGC.makeShare(st.band, st.stars);
     S.c = 1;
     S.s = 1;
+    S.row = 0;
+    S.typed = '';
     S.misses = 0;
     $('shNo').textContent = 'Puzzle ' + S.n + ' of ' + ROUND;
     $('shTitle').textContent = S.p.text;
@@ -124,6 +154,8 @@
     $('cutPlus').disabled = S.c >= MGC.MAX_CUTS;
     $('eachMinus').disabled = S.s <= 1;
     $('eachPlus').disabled = S.s >= MGC.MAX_CUTS;
+    $('cutRow').classList.toggle('kb-row', S.row === 0);
+    $('eachRow').classList.toggle('kb-row', S.row === 1);
     $('shTries').textContent = MGC.MAX_TRIES - S.misses + (MGC.MAX_TRIES - S.misses === 1 ? ' try left' : ' tries left');
   }
 
