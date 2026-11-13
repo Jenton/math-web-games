@@ -23,7 +23,7 @@ trap 'rm -f "$LIST"' EXIT
 #   tests/ docs/ tools/ and the build output itself (_site/), markdown, Firebase config and rules, any dotfile or dot-folder at any depth
 #   (.git, .github, .firebase, ...), the raw Kenney download bundle (assets/Kenney Game ... , NOT assets/kenney/), assets/incoming, node_modules
 (git ls-files; git ls-files --others --exclude-standard) | sort -u \
-  | grep -E '^(index\.html$|css/|js/|assets/)' \
+  | grep -E '^(index\.html$|manifest\.webmanifest$|css/|js/|assets/)' \
   | grep -v -E '^(tests|docs|tools|_site)/|\.md$|^firebase\.json$|^firestore\.(rules|indexes\.json)$|^\.firebaserc$|(^|/)\.[^/]*$|(^|/)\.[^/]+/|^assets/Kenney Game[^/]*/|^assets/incoming/|node_modules/' \
   > "$LIST"
 

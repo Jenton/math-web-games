@@ -285,9 +285,9 @@
     opts = opts || {};
     const dev = opts.deviceId || 'device';
     const xpTotal = opts.xpTotal || ((level, xp) => xp);
-    if (!isObj(input) || !Array.isArray(input.profiles)) return { error: 'That file does not look like a Math Quest backup.' };
+    if (!isObj(input) || !Array.isArray(input.profiles)) return { error: 'That file does not look like a Puzzle Lab backup.' };
     const valid = input.profiles.every((p) => isObj(p) && typeof p.name === 'string' && isObj(p.settings));
-    if (!valid) return { error: 'That file does not look like a Math Quest backup.' };
+    if (!valid) return { error: 'That file does not look like a Puzzle Lab backup.' };
     const data = newData();
     data.lastSaved = num(input.lastSaved) || null;
     const seen = new Set();

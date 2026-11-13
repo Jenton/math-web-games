@@ -163,7 +163,7 @@
       throw new SyncError('corrupt', 'The cloud copy unlocked but is not readable.');
     }
     const r = Save.normalize(obj, { deviceId: 'cloud' });
-    if (r.error) throw new SyncError('corrupt', 'The cloud copy unlocked but is not a Math Quest save.');
+    if (r.error) throw new SyncError('corrupt', 'The cloud copy unlocked but is not a Puzzle Lab save.');
     return r.data;
   }
 

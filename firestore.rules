@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Math Quest cloud save. One ENCRYPTED document per family, addressed by an unguessable 64-character lookup id
+// Puzzle Lab cloud save. One ENCRYPTED document per family, addressed by an unguessable 64-character lookup id
 // (derived on the device from the family passphrase). The server never sees names or progress, only ciphertext.
 // See docs/sync-design.md. Anyone who knows the id can read/write that one document, so the passphrase must be long.
 service cloud.firestore {

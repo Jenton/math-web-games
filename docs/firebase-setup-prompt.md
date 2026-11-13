@@ -21,7 +21,7 @@ Rules were written but NOT executed by the author (no Firebase access in the clo
 ---
 
 ```
-You are helping me set up Firebase for my family's math game, "Math Quest" (this repo). Read docs/sync-design.md first: it explains why.
+You are helping me set up Firebase for my family's math game, "Puzzle Lab" (this repo). Read docs/sync-design.md first: it explains why.
 We are setting up the infrastructure only: a NEW Firebase project, Firestore with locked-down security rules, and Firebase Hosting for the
 static site. The cloud-sync code itself is not built yet, so nothing needs to sync today. Move step by step, tell me what you are doing, and
 keep this short and plain: I find the Firebase console confusing.
