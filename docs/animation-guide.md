@@ -1,4 +1,4 @@
-# Animation & Motion Guide for Math Quest
+# Animation & Motion Guide for Puzzle Lab
 
 Working rules for making our games feel alive and polished. Written for this codebase
 (plain DOM + CSS + JS; Munchers, Balance, Machine Builder and Creature Quest, drawn with emoji and the Kenney CC0 art described in `docs/kenney-asset-plan.md`), and for a

@@ -1,4 +1,4 @@
-/* Math Quest engine: skill rules + puzzle generators (no DOM, testable in Node).
+/* Puzzle Lab engine: skill rules + puzzle generators (no DOM, testable in Node).
  *
  * A "rule" is one Munchers-style challenge, e.g. "Eat the multiples of 6".
  * Each rule can generate correct cells, wrong cells (near-misses at higher

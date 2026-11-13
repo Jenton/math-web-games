@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Math Quest</title>
+  <title>Puzzle Lab</title>
+  <!-- home-screen icon and name (tools/make_icon.js builds the icons from Kenney Letter Tiles) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Puzzle Lab">
+  <meta name="theme-color" content="#3f9a45">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/motion.css">
   <link rel="stylesheet" href="css/escape.css">
@@ -16,7 +22,7 @@
   <main>
     <!-- HOME: pick a player -->
     <section id="home" class="screen">
-      <h1>Math Quest</h1>
+      <h1>Puzzle Lab</h1>
       <p class="lead">Who's playing?</p>
       <div id="players" class="players"></div>
       <p id="saveNote" class="note"></p>
@@ -96,7 +102,7 @@
           <span class="g-go">Choose &rarr;</span>
         </button>
         <button class="game-card" data-game="balance" type="button">
-          <span class="g-ico"><img class="g-img" src="assets/kenney/balance/blockBlue.png" alt=""></span>
+          <span class="g-ico"><img class="g-img" src="assets/kenney/balance/weight.png" alt=""></span>
           <span class="g-name">Balance</span>
           <span class="g-desc">Find the mystery weight that makes the scale level.</span>
           <span class="g-go">Choose &rarr;</span>

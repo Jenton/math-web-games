@@ -1,4 +1,4 @@
-# Math Quest
+# Puzzle Lab
 
 Puzzle-first math games for kids, kindergarten through 6th grade. The math *is*
 the gameplay (think Number Munchers), not a quiz you answer to unlock the game.
@@ -89,7 +89,7 @@ node tests/browser/spacing.browser.js        # optional, needs Playwright: every
 node tests/browser/newgames.browser.js    # optional, needs Playwright: plays Sort & Rule and Cut & Share (win and lose); art loads, sound button covers nothing, win text is honest
 ```
 Code layout: `js/engine.js` (rules/generators, no DOM), `js/save.js` (save format, migration and merge, no DOM), `js/sync.js` (cloud sync core) and `js/sync-ui.js` (its screens), `js/firebase-backend.js` (the Firebase REST adapter, no SDK), `js/storage.js`, `js/game.js`
-(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/sortrule.js` + `js/sort.js` (Sort & Rule), `js/cutshare.js` + `js/share.js` (Cut & Share), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/layout.js` and `css/wide.css` (side-by-side layouts on wide screens), `js/keys.js` (keyboard controls and hints), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
+(Munchers), `js/balance.js`, `js/machine.js`, `js/puzzles.js` (their logic, no DOM), `js/tdlogic.js` and `js/td.js` (Number Defense logic and screen), `js/shop.js` (Lemonade Stand jobs, no DOM), `js/lemonade.js` (its screens), `js/sortrule.js` + `js/sort.js` (Sort & Rule), `js/cutshare.js` + `js/share.js` (Cut & Share), `js/rpg.js` (Quest battle logic and balance numbers, no DOM), `js/quest.js` (Quest screens), `js/elogic.js` and `js/escape.js` (Escape Room logic and screen), `js/art.js` and `js/worldmap.js` (Quest art manifest and world map), `js/sfx.js` (all sound), `js/ui.js` (shared toast/panel), `js/layout.js` and `css/wide.css` (side-by-side layouts on wide screens), `js/keys.js` (keyboard controls and hints), `manifest.webmanifest` + `assets/icons/` (home-screen icon, built by `tools/make_icon.js`), `js/app.js` (portal), `css/style.css`, `css/motion.css` (per-game motion), `css/escape.css`.
 
 **Working on this repo (people or Claude):** start with `CLAUDE.md` (rules and which doc to read for which task), then `docs/work-streams.md` (who owns what).
 

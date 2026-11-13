@@ -26,7 +26,7 @@
       sample: (s) => MG.makeLevelRule(s.band, s.stars, null).title,
     },
     balance: {
-      name: 'Balance', ico: 'balance/blockBlue', extras: false, graded: true, mod: () => Balance,
+      name: 'Balance', ico: 'balance/weight', extras: false, graded: true, mod: () => Balance,
       how: ['Every <b>yellow block</b> is the same mystery weight (<b>?</b>). White blocks show their weight.', '<b>Change the number</b> for ? with − and +. Watch the scale tip.', '<b>Lock it in</b> when you think both sides are equal.'],
       band: { 'K-1': 'One mystery block and a few small blocks. Totals up to 20.', '2-3': 'Two mystery blocks, or bigger totals up to 50.', '4-5': 'Several mystery blocks plus extra weight, like 4 × ? + 7.', '6': 'Mystery blocks on both sides, like 5 × ? + 3 = 2 × ? + 21.' },
       stars: [['★ Easier', 'Smaller numbers.'], ['★★ Medium', 'Bigger numbers and more blocks.'], ['★★★ Harder', 'The trickiest numbers and more blocks.']],
