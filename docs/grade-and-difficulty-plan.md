@@ -144,8 +144,8 @@ Result screens say so when a bonus item made a miss free (they never claim "no s
 | Creature Quest | fits | skip counting, rounding and simple-fraction armor are already in its 2-3 band |
 | Number Defense, Sort & Rule | fits for multiples | multiples of 2, 3, 4, 5, 10; no explicit "products from memory" (3.OA.C.7) |
 | Machine Builder | fits for add, subtract, times | division only from 4-5 |
-| Munchers | partly | sums to 50 and mystery blocks; no times-table fluency rule |
-| Lemonade Stand | partly | change and pitcher counts; no multiplication word problems framed as 3.OA.A.3 |
+| Munchers | **fixed (grade 3 and 4 rules built)** | the first audit missed that multiples of 3, 4 and 6, products in expressions and rounding to hundreds were already there (3.OA.C.7, 3.NBT.A.1). The real gaps were fractions (3.NF.A.3), tens-times (3.NBT.A.3) and sums within 1000 (3.NBT.A.2): see "Munchers on grades" below |
+| Lemonade Stand | **fits (the audit was wrong)** | read from the code, not the blurb: the 2-3 stocking job is a two-step word problem ("12 customers each buy 3 cups, a pitcher fills 8, how many pitchers?": multiply, divide, round up = 3.OA.A.3 and 3.OA.D.8) and the 4-5 job adds lemons per pitcher. No new content needed |
 | Escape Room | fits | skip-counting and doubling patterns |
 K, 1 and 2 were not audited for any game; Munchers and Quest have the most content to check there.
 
@@ -164,6 +164,19 @@ The Runner no longer goes through the difficulty ladder: `RUN.makeGradeRun(grade
 | 7, 8 | through zero by quarters, with percents | signed fractions and percents, hops across zero | 7.NS.A.1 |
 
 A bonus (stretch) run is a whole run from the next grade's spec with more hops. Kindergarten has no hops. Grade 8 is grade 7 (no new mechanic yet). Tested in `tests/runner.test.js` (2,700 grade runs: notes equal their ticks, every wrong tick is refused with its distance, tags present, grade 3 denominators and the share of plain whole-number notes).
+
+### Munchers on grades (built 13 Nov 2026)
+`MG.makeLevelRule(band, stars, lastId, grade)` now takes the item's grade and mixes that grade's extra rules into the band's pool (`MG.GRADE_EXTRA`): grade 3 gets four, grade 4 gets three. A bonus level for a 3rd grader is a grade 4 level, so it can be a tenths level. The extras are only for grades 3 and 4; every other grade plays its band's rules unchanged.
+
+| Rule | Grade | Standard | What the player does |
+|---|---|---|---|
+| Fractions equal to a target | 3 | 3.NF.A.3 | "Eat the fractions equal to 1/2": 2/4, 3/6, 4/8. Denominators 2, 3, 4, 6, 8 only. A wrong tile is explained with a common denominator ("5/8 = 5/8 and 1/2 = 4/8, so it is bigger") |
+| Fractions bigger or smaller than 1/2 | 3, 4 | 3.NF.A.3.d | "Half of 8 is 4, and 3 is less than that." At 3 stars, exactly 1/2 (4/8) is a trap |
+| Tens-times | 3, 4 | 3.NBT.A.3 | "Eat every product that equals 240": 6 × 40, 40 × 6, 24 tens. A wrong tile is explained in tens ("5 × 7 tens = 35 tens = 350") |
+| Sums and differences within 1000 | 3 | 3.NBT.A.2 | "Eat every sum or difference that equals 350": 180 + 170, 400 − 50 |
+| Tenths, hundredths, decimals | 4 | 4.NF.C.5, C.6 | "Eat the numbers equal to 3/10": 0.3, 3/10, 30/100; 0.03 is a trap ("0.03 is 3 hundredths, but 3/10 is 30 hundredths") |
+
+Tested in `tests/engine.test.js` (2,160 rules across grades K to 8 with and without a stretch item: every correct tile passes its check, every wrong one fails and explains itself, no garbled text, grade 3 denominators, the extras reach the right grades only). Looked at on a 375 px phone: unbreakable labels like "50/100" got a smaller step (`.cell.xlong`).
 
 ### Order of work
 1. **Phase 1a (pilot): built, see above.**

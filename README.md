@@ -25,7 +25,8 @@ creatures already earned are kept.
 - Player profiles with a default grade level (each game can set its own grade and challenge without touching the default) (K-1, 2-3, 4-5, 6) and a 1-3 star challenge setting
 - **Munchers**: munch only the numbers that fit the rule. Wrong munches explain why.
   Skills: sums to a target, even/odd, greater/less (and the number line), multiples,
-  rounding, factors, primes, expressions, equivalent fractions, exponents.
+  rounding, factors, primes, expressions, equivalent fractions, exponents. Third and fourth graders also meet fractions equal to or compared with a half,
+  tens-times (6 × 40 = 24 tens), sums within 1000, and tenths = hundredths = decimals.
 - **Balance**: work out the mystery weight `?` to level the scale (it only tips after you lock in, 3 tries per puzzle, worked solution after a miss); K-6 equations
   (one unknown at K-1, unknown on both sides at 6th)
 - **Machine Builder**: chain operation cards to turn a start number into a target in the fewest steps
@@ -60,7 +61,7 @@ the live site (what must be public is, and `.git`, workflows, docs, tests and Fi
 
 ## Develop
 ```
-node tests/engine.test.js    # verifies every Munchers rule at every band/star level
+node tests/engine.test.js    # verifies every Munchers rule at every band/star level, and the grade 3 and 4 extra rules (fractions, tens-times, sums within 1000, tenths)
 node tests/puzzles.test.js   # verifies Balance solutions are unique and Machine par is optimal
 node tests/newgames.test.js  # Sort & Rule has one fitting rule; Cut & Share par is minimal; Balance worked steps
 node tests/shop.test.js      # verifies Lemonade Stand jobs have one right answer in every band

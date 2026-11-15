@@ -77,7 +77,7 @@
     if (!sameRule || !S.rule) {
       // a new level: the player's grade on the difficulty ladder, sometimes a stretch (bonus) level; a retry of the same level keeps its cell
       S.cur = Store.cell(ctx.profile, 'munchers', { first: !S.level });
-      S.rule = MG.makeLevelRule(S.cur.band, S.cur.stars, S.rule && S.rule.id);
+      S.rule = MG.makeLevelRule(S.cur.band, S.cur.stars, S.rule && S.rule.id, S.cur.grade); // the item's grade: grade 3 and 4 also get fractions, tens-times, sums within 1000 and tenths
       S.level++;
     }
     const st = S.cur;
@@ -123,7 +123,7 @@
     cellEls = S.cells.map((cell, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'cell' + (cell.label.length > 3 ? ' long' : '');
+      b.className = 'cell' + (cell.label.length > 3 ? ' long' : '') + (cell.label.length >= 6 && !/\s/.test(cell.label) ? ' xlong' : ''); // xlong: a long label that cannot wrap (50/100)
       b.setAttribute('aria-label', cell.label);
       b.dataset.i = i;
       b.innerHTML = '<span class="lbl"></span>';

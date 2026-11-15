@@ -34,6 +34,10 @@
     primes: 'Prime numbers',
     fractions: 'Equivalent fractions',
     exponents: 'Exponents',
+    fractions3: 'Fractions: equal fractions and comparing with a half',
+    tens: 'Multiplying by multiples of 10',
+    sums1000: 'Adding and subtracting within 1000',
+    tenths: 'Tenths, hundredths and decimals',
   };
 
   /* ---------- expressions that equal a target ---------- */
@@ -394,9 +398,192 @@
     ],
   };
 
-  /** Pick a rule for the band/stars, avoiding the previous skill when possible. */
-  function makeLevelRule(band, stars, lastId) {
-    const makers = RULES[band] || RULES['2-3'];
+
+  /* ---------- grade-specific additions (docs/grade-and-difficulty-plan.md) ----------
+   * The band/star rules above already cover multiples, products, rounding and 3-digit comparing for a 3rd grader. What grade 3 also asks for, and
+   * Munchers lacked, is fractions (3.NF.A.3), tens-times (3.NBT.A.3) and sums within 1000 (3.NBT.A.2); grade 4 adds tenths (4.NF.C.5, C.6).
+   * These are mixed into the pool for those grades only (GRADE_EXTRA, used when makeLevelRule gets a grade). */
+  const lcm = (a, b) => (a / gcd(a, b)) * b; // (gcd is defined with the fraction rule above)
+  const DEN3 = [2, 3, 4, 6, 8]; // grade 3 fractions use only these denominators (CCSS 3.NF footnote)
+  const fracCell = (a, b) => ({ label: a + '/' + b, value: a / b, num: a, den: b });
+  const halfText = (n) => (n % 2 === 0 ? String(n / 2) : (n - 1) / 2 + ' 1/2');
+
+  /** Eat the fractions equal to p/q (2/4 and 3/6 are 1/2): equivalent fractions, denominators 2, 3, 4, 6, 8 only. */
+  function fractionEqRule(stars) {
+    const targets = [[[1, 2]], [[1, 2], [1, 4], [3, 4], [1, 3]], [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4]]][stars - 1];
+    const [p, q] = pick(targets);
+    const eq = [];
+    const other = [];
+    DEN3.forEach((b) => {
+      for (let a = 1; a < b; a++) (a * q === p * b ? eq : other).push([a, b]);
+    });
+    // nearer misses at 3 stars (3/8 against 1/2), anywhere at 1 star
+    const near = other.filter(([a, b]) => Math.abs(a / b - p / q) <= 0.2);
+    const wrongPool = stars === 3 && near.length ? near : other;
+    return {
+      id: 'fractions3',
+      tags: ['3.NF.A.3'],
+      title: 'Eat the fractions equal to ' + p + '/' + q,
+      hint: 'Equal fractions are the same size, like 1/2 = 2/4 = 3/6. Multiply the top and the bottom by the same number.',
+      correct: () => fracCell(...pick(eq)),
+      wrong: () => fracCell(...pick(wrongPool)),
+      check: (c) => c.num * q === p * c.den,
+      why: (c) => {
+        const L = lcm(c.den, q);
+        const mine = (c.num * L) / c.den;
+        const theirs = (p * L) / q;
+        return c.label + ' = ' + mine + '/' + L + ' and ' + p + '/' + q + ' = ' + theirs + '/' + L + ', so ' + c.label + ' is ' + (mine > theirs ? 'bigger' : 'smaller') + ', not equal.';
+      },
+      ok: (c) => {
+        const k = c.den / q;
+        return k === 1 ? c.label + ' is ' + p + '/' + q + ' itself' : c.label + ' = ' + p + '/' + q + ': ' + p + ' × ' + k + ' = ' + c.num + ' and ' + q + ' × ' + k + ' = ' + c.den;
+      },
+    };
+  }
+
+  /** Eat the fractions bigger (or smaller) than 1/2: compare by asking whether the top is more than half of the bottom. */
+  function fractionHalfRule(stars) {
+    const bigger = Math.random() < 0.5;
+    const cells = [];
+    DEN3.forEach((b) => {
+      for (let a = 1; a < b; a++) cells.push(fracCell(a, b));
+    });
+    const rel = (c) => Math.sign(2 * c.num - c.den); // 1: more than half, 0: exactly half, -1: less
+    const want = bigger ? 1 : -1;
+    const good = cells.filter((c) => rel(c) === want);
+    const bad = cells.filter((c) => rel(c) !== want && (stars === 3 || rel(c) !== 0)); // exactly-a-half is a trap at 3 stars
+    const nearHalf = (c) => Math.abs(c.num / c.den - 0.5) <= 0.17;
+    const goodPool = stars === 3 && good.filter(nearHalf).length >= 2 ? good.filter(nearHalf) : good;
+    const badPool = stars === 3 && bad.filter(nearHalf).length >= 2 ? bad.filter(nearHalf) : bad;
+    const word = bigger ? 'bigger' : 'smaller';
+    const cmp = (c) => (rel(c) > 0 ? 'more than' : rel(c) < 0 ? 'less than' : 'exactly');
+    return {
+      id: 'fractions3',
+      tags: ['3.NF.A.3.d'],
+      title: 'Eat the fractions ' + word + ' than 1/2',
+      hint: 'A half of the bottom number is the middle. Is the top number past it?',
+      correct: () => Object.assign({}, pick(goodPool)),
+      wrong: () => Object.assign({}, pick(badPool)),
+      check: (c) => rel(c) === want,
+      why: (c) => (rel(c) === 0
+        ? 'Half of ' + c.den + ' is ' + halfText(c.den) + ' and the top is ' + c.num + ', so ' + c.label + ' is exactly 1/2, not ' + word + ' than it.'
+        : 'Half of ' + c.den + ' is ' + halfText(c.den) + ', and ' + c.num + ' is ' + cmp(c) + ' that, so ' + c.label + ' is ' + (rel(c) > 0 ? 'bigger' : 'smaller') + ' than 1/2, not ' + word + '.'),
+      ok: (c) => 'Half of ' + c.den + ' is ' + halfText(c.den) + ', and ' + c.num + ' is ' + cmp(c) + ' that, so ' + c.label + ' is ' + word + ' than 1/2.',
+    };
+  }
+
+  /** Eat every product that equals 240: tens-times (6 × 40, 40 × 6, 24 tens). One-digit numbers times multiples of 10 (10 to 90). */
+  function tensTimesRule(stars) {
+    const N = pick([[120, 180], [160, 240, 360], [180, 240, 360]][stars - 1]);
+    const T = N / 10; // the number of tens
+    const pairs = [];
+    for (let d = 2; d <= 9; d++) for (let m = 1; m <= 9; m++) if (d * m === T) pairs.push([d, m]);
+    const mk = (d, m, form) => {
+      const tens = d * m;
+      const label = form === 0 ? d + ' × ' + m * 10 : form === 1 ? m * 10 + ' × ' + d : tens + ' tens';
+      return { label, value: tens * 10, d, m, tens: form === 2 };
+    };
+    const near = stars === 3 ? 3 : 8;
+    return {
+      id: 'tens',
+      tags: ['3.NBT.A.3'],
+      title: 'Eat every product that equals ' + N,
+      hint: 'Think in tens: 6 × 40 is 6 × 4 tens = 24 tens = 240.',
+      correct: () => {
+        const [d, m] = pick(pairs);
+        return mk(d, m, rnd(0, 2));
+      },
+      wrong: () => {
+        let d;
+        let m;
+        do {
+          d = rnd(2, 9);
+          m = rnd(1, 9);
+        } while (d * m === T || Math.abs(d * m - T) > near);
+        return mk(d, m, rnd(0, 2));
+      },
+      check: (c) => c.value === N,
+      why: (c) => (c.tens ? c.label + ' = ' + c.value + ', not ' + N + '.' : c.d + ' × ' + c.m + ' tens = ' + c.d * c.m + ' tens = ' + c.value + ', not ' + N + '.'),
+      ok: (c) => (c.tens ? c.label + ' = ' + N : c.d + ' × ' + c.m + ' tens = ' + c.d * c.m + ' tens = ' + N),
+    };
+  }
+
+  /** Eat every sum or difference that equals 350: adding and subtracting within 1000. */
+  function sumsTo1000Rule(stars) {
+    const [lo, hi] = [[200, 500], [200, 800], [300, 1000]][stars - 1];
+    const step = stars === 1 ? 10 : 1;
+    const t = Math.round(rnd(lo, hi) / step) * step;
+    const mk = (v) => {
+      if (Math.random() < 0.6) {
+        const a = Math.round(rnd(Math.max(10, Math.floor(v * 0.2)), Math.max(20, Math.floor(v * 0.8))) / step) * step;
+        return { label: a + ' + ' + (v - a), value: v };
+      }
+      const b = Math.round(rnd(20, 400) / step) * step;
+      return { label: v + b + ' − ' + b, value: v };
+    };
+    // the common slips: a ten or a hundred off, or the ones digit
+    const offs = stars === 1 ? [10, 20, 100] : stars === 2 ? [10, 20, 100, 1, 2] : [10, 100, 1, 9, 11];
+    return {
+      id: 'sums1000',
+      tags: ['3.NBT.A.2'],
+      title: 'Eat every sum or difference that equals ' + t,
+      hint: 'Add the hundreds, then the tens, then the ones.',
+      correct: () => mk(t),
+      wrong: () => {
+        let v;
+        do {
+          v = t + (Math.random() < 0.5 ? -1 : 1) * pick(offs);
+        } while (v < 20 || v > 1100 || v === t);
+        return mk(v);
+      },
+      check: (c) => c.value === t,
+      why: (c) => c.label + ' = ' + c.value + ', not ' + t + '.',
+      ok: (c) => c.label + ' = ' + t,
+    };
+  }
+
+  /** Eat the numbers equal to 3/10: tenths, hundredths and decimals say the same number (0.3 = 3/10 = 30/100). */
+  function tenthsRule(stars) {
+    const t = rnd(1, 9);
+    const forms = [() => ({ label: '0.' + t, h: t * 10 }), () => ({ label: t + '/10', h: t * 10 }), () => ({ label: t * 10 + '/100', h: t * 10 }), () => ({ label: '0.' + t + '0', h: t * 10 })];
+    const cell = (c) => Object.assign(c, { value: c.h });
+    const wrongs = () => {
+      const u = pick(stars === 1 ? [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((x) => Math.abs(x - t) >= 3 && x !== t) : [t - 1, t + 1].filter((x) => x >= 1 && x <= 9));
+      const v = u || (t === 1 ? 2 : t - 1);
+      return pick([
+        () => ({ label: '0.0' + t, h: t }), // t hundredths, not tenths
+        () => ({ label: t + '/100', h: t }),
+        () => ({ label: '0.' + v, h: v * 10 }),
+        () => ({ label: v + '/10', h: v * 10 }),
+        () => ({ label: '0.' + t + t, h: t * 10 + t }),
+      ])();
+    };
+    return {
+      id: 'tenths',
+      tags: ['4.NF.C.5', '4.NF.C.6'],
+      title: 'Eat the numbers equal to ' + t + '/10',
+      hint: 'Tenths: 0.3 = 3/10 = 30/100. The first place after the point is tenths, the second is hundredths.',
+      correct: () => cell(pick(forms)()),
+      wrong: () => {
+        let c;
+        do c = cell(wrongs()); while (c.h === t * 10);
+        return c;
+      },
+      check: (c) => c.h === t * 10,
+      why: (c) => c.label + ' is ' + c.h + ' hundredths, but ' + t + '/10 is ' + t * 10 + ' hundredths (0.' + t + ').',
+      ok: (c) => c.label + ' is ' + t * 10 + ' hundredths, the same as ' + t + '/10 = 0.' + t,
+    };
+  }
+
+  /** Extra rule makers mixed into a grade's pool (on top of its band's rules), when makeLevelRule is given the grade. */
+  const GRADE_EXTRA = {
+    3: [fractionEqRule, fractionHalfRule, tensTimesRule, sumsTo1000Rule],
+    4: [tenthsRule, fractionHalfRule, tensTimesRule],
+  };
+
+  /** Pick a rule for the band/stars, avoiding the previous skill when possible. `grade` (optional) adds that grade's extra rules (GRADE_EXTRA) to the band's pool. */
+  function makeLevelRule(band, stars, lastId, grade) {
+    const makers = (RULES[band] || RULES['2-3']).concat((grade != null && GRADE_EXTRA[grade]) || []);
     const s = Math.min(3, Math.max(1, stars | 0 || 1));
     let rule = null;
     for (let i = 0; i < 12; i++) {
@@ -425,7 +612,7 @@
     return shuffle(cells);
   }
 
-  const api = { BANDS, SKILLS, makeLevelRule, buildBoard, shuffle, rnd, RULES };
+  const api = { BANDS, SKILLS, makeLevelRule, buildBoard, shuffle, rnd, RULES, GRADE_EXTRA };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MG = api;
 })(typeof window !== 'undefined' ? window : globalThis);
