@@ -58,6 +58,7 @@ async function newPage(browser, seed) {
   assert.match(await page.textContent('#levelsCleared'), /6 Munchers levels, 3 Balance puzzles, 2 Machine puzzles solved, 0 Lemonade days run, 0 Defense waves held, 0 Escape Rooms cleared, 0 Number Line runs, 0 Arrow Range rounds, 7 Quest battles won/);
   const stats = await page.textContent('#statsList');
   assert.match(stats, /12 right, 4 oops/);
+  assert.match(stats, /Can practise: [0-9K]\.[A-Z]+\.[A-Z]\.[0-9]+/, 'the grown-ups list shows the standards a skill can practise');
   await page.click('#settings .crumb:has-text("Games")'); await page.waitForSelector('#menu:not([hidden])');
 
   /* ===== 2. Creature Quest shows the migrated progress and saves new progress ===== */

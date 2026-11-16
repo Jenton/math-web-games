@@ -260,7 +260,9 @@
     ids.forEach((k) => {
       const li = document.createElement('li');
       const st = Store.stat(current, k);
+      const std = Standards.label(k);
       li.textContent = (MG.SKILLS[k] || MGP.SKILLS[k] || RPG.SKILLS[k] || MGS.SKILLS[k] || MGR.SKILLS[k] || MGC.SKILLS[k] || ESC.SKILLS[k] || RUN.SKILLS[k] || ARCH.SKILLS[k] || k) + ': ' + st.right + ' right, ' + st.wrong + ' oops';
+      if (std) { const sm = document.createElement('small'); sm.className = 'std'; sm.textContent = std; li.appendChild(document.createElement('br')); li.appendChild(sm); } // grown-ups view: CCSS codes the skill can practise
       stats.appendChild(li);
     });
     const count = (id, f) => Store.total(Store.game(current, id), f);

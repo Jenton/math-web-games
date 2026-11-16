@@ -195,3 +195,6 @@ Tested in `tests/engine.test.js` (2,160 rules across grades K to 8 with and with
 - Grades 9-12 content (separate project). Candidate for Arrow Range: parabolic arcs and quadratic height (the picker would extend to 12 when a game can serve it).
 - Whether the grade should move out of `settings` into its own last-write-wins field (only if syncing proves flaky).
 - The 30% stretch share and, in Phase 2, the adaptive thresholds: tune after playtests.
+
+## Standards labels in the grown-ups view (built)
+`js/standards.js` maps each skill id a game records to the CCSS-M codes it *can practise* (a skill spans grades, so the wording is never "mastered"). The settings page's grown-ups list shows them under each skill. Only codes read from the standards text are listed (grade pages earlier, then the California CDE PDF for 3.NBT, 4.OA.B.4, 4.NF.A.1-2, 5.NBT.A.2, 5.NF, 6.EE.A.1, 6.EE.B.7, 6.NS.B.4, 2.OA.B.2, 2.NBT.B.5, 2.MD.C.8, 3.OA.D.9). Left unlabeled on purpose: even-odd, boss, code, machine, sort, lemon-price. `tests/standards.test.js` fails if a new skill is added without a code or an entry in its unlabeled list.

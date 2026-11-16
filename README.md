@@ -70,6 +70,7 @@ node tests/escape.test.js     # verifies every Escape Room lock has one right an
 node tests/runner.test.js     # verifies every Number Line Runner target equals its tick and every wrong tick is explained
 node tests/archery.test.js    # verifies every Arrow Range note equals its target for grades K to 8 (fractions, products, rounding, percent of), wind and height arithmetic, the stretch rules, the scoring board is solvable and the arc ends on target
 node tests/grades.test.js     # verifies the grade labels, the old-band mapping and the on-grade / stretch pick
+node tests/standards.test.js  # verifies the standards labels shown in the grown-ups view (every skill labeled or knowingly left out)
 node tests/browser/layout.browser.js     # (Playwright) side-by-side layouts on iPad and laptop, stacked on a phone, nothing overflows sideways
 node tests/browser/keyboard.browser.js   # (Playwright) keyboard-only Escape Room, Cut & Share and Arrow Range, and the keyboard hints
 node tests/browser/grades.browser.js     # (Playwright) the grade is chosen at creation, asked once for old profiles, changed on the settings page

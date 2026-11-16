@@ -672,3 +672,6 @@ button.crumb:focus-visible { outline: 3px solid #222; outline-offset: 2px; }
 .keyhint { display: none; margin: 6px auto 0; max-width: 480px; text-align: center; font-size: .82rem; color: var(--muted); }
 html.kbd .keyhint { display: block; }
 html.kbd .guess.kb-row { border-radius: 14px; box-shadow: 0 0 0 3px var(--accent); background: rgba(255,255,255,.55); }
+
+/* Grown-ups stats: the standards line under a skill */
+#statsList .std { color: var(--muted, #667); font-size: .78rem; }
